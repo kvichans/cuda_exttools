@@ -1,0 +1,14 @@
+[info]
+title=External Tools for CudaText
+desc=External Tools for CudaText
+type=cudatext-plugin
+subdir=cuda_exttools
+
+[item1]
+section=events
+events=on_start
+
+[item2]
+section=commands
+caption=External tools...
+method=dlg_config
