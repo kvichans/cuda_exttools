@@ -1,6 +1,6 @@
 [info]
-title=External Tools for CudaText
-desc=External Tools for CudaText
+title=ExtTools
+desc=Adds support for calling external programs in CudaText
 type=cudatext-plugin
 subdir=cuda_exttools
 
@@ -10,5 +10,5 @@ events=on_start
 
 [item2]
 section=commands
-caption=External tools...
+caption=ExtTools
 method=dlg_config

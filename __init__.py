@@ -20,6 +20,7 @@ JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
 
 RSLT_TO_PANEL   = 'Output panel'
+RSLT_TO_PANEL_AP= 'Output panel (append)'
 RSLT_TO_NEWDOC  = 'Copy to new document'
 RSLT_TO_CLIP    = 'Copy to clipboard'
 RSLT_REPL_SEL   = 'Replace selection'
@@ -221,65 +222,71 @@ class Command:
         ext     = self.ext4id.get(str(ext_id))
         if ext is None:
             return app.msg_status('No ext-tool: {}'.format(ext_id))
-        cmd     = ext['file']+' '+ext['prms']
-        pass;                   LOG and log('nm, raw-cmd={}',(ext['nm'], cmd))
+        cmnd    = ext['file']
+        prms    = ext['prms']
+        pass;                   LOG and log('nm, raw-cmd={} {} {}',ext['nm'], cmnd, prms)
         
-        # Preparinf
+        # Preparing
         file_nm = ed.get_filename()
-        cmd     = cmd if '{FileName}'       not in cmd else cmd.replace('{FileName}'    ,                           file_nm)
-        cmd     = cmd if '{FileDir}'        not in cmd else cmd.replace('{FileDir}'     ,           os.path.dirname(file_nm))
-        cmd     = cmd if '{FileNameOnly}'   not in cmd else cmd.replace('{FileNameOnly}',          os.path.basename(file_nm))
-        cmd     = cmd if '{FileNameNoExt}'  not in cmd else cmd.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
-        cmd     = cmd if '{FileExt}'        not in cmd else cmd.replace('{FileExt}'     ,          os.path.basename(file_nm).split('.')[-1])
+        prms     = prms if '{FileName}'       not in prms else prms.replace('{FileName}'    ,                           file_nm)
+        prms     = prms if '{FileDir}'        not in prms else prms.replace('{FileDir}'     ,           os.path.dirname(file_nm))
+        prms     = prms if '{FileNameOnly}'   not in prms else prms.replace('{FileNameOnly}',          os.path.basename(file_nm))
+        prms     = prms if '{FileNameNoExt}'  not in prms else prms.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
+        prms     = prms if '{FileExt}'        not in prms else prms.replace('{FileExt}'     ,          os.path.basename(file_nm).split('.')[-1])
 
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         crt_line= ed.get_text_line(rCrt)
-        cmd     = cmd if '{CurrentLine}'        not in cmd else cmd.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
-        cmd     = cmd if '{CurrentLineNum}'     not in cmd else cmd.replace('{CurrentLineNum}'  , str(1+rCrt))
-        cmd     = cmd if '{CurrentColumnNum}'   not in cmd else cmd.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-        cmd     = cmd if '{SelectedText}'       not in cmd else cmd.replace('{SelectedText}'    , ed.get_text_sel())
+        prms     = prms if '{CurrentLine}'        not in prms else prms.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
+        prms     = prms if '{CurrentLineNum}'     not in prms else prms.replace('{CurrentLineNum}'  , str(1+rCrt))
+        prms     = prms if '{CurrentColumnNum}'   not in prms else prms.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+        prms     = prms if '{SelectedText}'       not in prms else prms.replace('{SelectedText}'    , ed.get_text_sel())
 
-        if '{Interactive}' in cmd:
+        if '{Interactive}' in prms:
             ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
             ans = '' if ans is None else ans
-            cmd = cmd.replace('{Interactive}', ans)
-        if '{InteractiveFile}' in cmd:
+            prms = prms.replace('{Interactive}', ans)
+        if '{InteractiveFile}' in prms:
             ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
             ans = '' if ans is None else ans
-            cmd = cmd.replace('{InteractiveFile}', ans)
+            prms = prms.replace('{InteractiveFile}', ans)
         
-        pass;                   LOG and log('ready   cmd={}',(cmd))
+        pass;                   LOG and log('ready   prms={}',(prms))
 
-
-        app.msg_status('call: {}'.format(cmd))
 
         # Calling
         if 'Y'  ==ext.get('savs', 'N'):
-            ed.file_save()
+            if not ed.file_save():  return
         if 'ALL'==ext.get('savs', 'N'):
             ed.cmd(cmds.cmd_FileSaveAll)
         
         if 'Y'!=ext.get('capt', 'N'):
             # Without capture
-            subprocess.Popen(cmd)
+            subprocess.Popen([cmnd, prms])
             return
         
         # With capture
         pass;                   LOG and log('?? Popen',)
-        pipe    = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        pipe    = subprocess.Popen([cmnd, prms]
+                                , stdout=subprocess.PIPE
+                                , stderr=subprocess.STDOUT
+                               #, universal_newlines = True
+                                , shell=True)
         if pipe is None:
             pass;               LOG and log('fail Popen',)
+            app.msg_status('Fail call: {} {}'.format(cmnd, prms))
             return
         pass;                   LOG and log('ok Popen',)
+        app.msg_status('Call: {} {}'.format(cmnd, prms))
 
         rslt    = ext.get('rslt', RSLT_TO_PANEL)
         rslt_txt= ''
         if False:pass
-        elif rslt ==  RSLT_TO_PANEL:
+        elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
             ed.cmd(cmds.cmd_ShowPanelOutput)
             app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
-            app.app_log(app.LOG_CLEAR, '')
+            if rslt==RSLT_TO_PANEL:
+                app.app_log(app.LOG_CLEAR, '')
         elif rslt ==  RSLT_TO_NEWDOC:
             ed.cmd(cmds.cmd_FileNew)
             
@@ -289,7 +296,7 @@ class Command:
             out_ln = out_ln.strip('\r\n')
             pass;           LOG and log('out_ln={}',out_ln)
             if False:pass
-            elif rslt ==  RSLT_TO_PANEL:
+            elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
                 app.app_log(app.LOG_ADD, out_ln)
             elif rslt ==  RSLT_TO_NEWDOC:
                 ed.set_text_line(-1, out_ln)
@@ -351,7 +358,7 @@ class Command:
 
             if ext_list[CAPT] == 'Y' and ext_list[ENCD] == '':
                 enc_nms = self.get_encoding_names()
-                enc_ind = app.dlg_menu(app.MENU_LIST, '\n'.join(enc_nms))
+                enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms))
                 if enc_ind is not None:
                     ext_list[ENCD] = enc_nms[enc_ind].split('\t')[0]
                 else:
@@ -382,7 +389,7 @@ class Command:
        
     def get_encoding_names(self):
         return [
-            'mbcs\tANSI (Win only)'
+            'mbcs\tWindows only: Encode operand according to the ANSI codepage (CP_ACP, dbcs)'
         ,   'cp866\tRussian (DOS)'
         ,   'utf_8\tall language'
         ,   'ascii\tEnglis'
@@ -452,6 +459,7 @@ class Command:
     def get_usage_names(self):
         return [
             RSLT_TO_PANEL
+        ,   RSLT_TO_PANEL_AP
         ,   RSLT_TO_NEWDOC
         ,   RSLT_TO_CLIP
         ,   RSLT_REPL_SEL
