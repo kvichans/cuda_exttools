@@ -223,34 +223,51 @@ class Command:
         if ext is None:
             return app.msg_status('No Tool: {}'.format(ext_id))
         cmnd    = ext['file']
-        prms    = ext['prms']
-        pass;                   LOG and log('nm="{}", cmnd="{}", raw-prms="{}"',ext['nm'], cmnd, prms)
+        prms_s  = ext['prms']
+        pass;                   LOG and log('nm="{}", cmnd="{}", prms_s="{}"',ext['nm'], cmnd, prms_s)
         
         # Preparing
         file_nm = ed.get_filename()
-        if '{FileName}'         in prms: prms = prms.replace('{FileName}'     ,quot(                          file_nm)                  )
-        if '{FileDir}'          in prms: prms = prms.replace('{FileDir}'      ,quot(          os.path.dirname(file_nm))                 )
-        if '{FileNameOnly}'     in prms: prms = prms.replace('{FileNameOnly}' ,quot(         os.path.basename(file_nm))                 )
-        if '{FileNameNoExt}'    in prms: prms = prms.replace('{FileNameNoExt}',quot('.'.join(os.path.basename(file_nm).split('.')[0:-1])))
-        if '{FileExt}'          in prms: prms = prms.replace('{FileExt}'      ,quot(         os.path.basename(file_nm).split('.')[-1])  )
-
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
-        if '{CurrentLine}'      in prms: prms = prms.replace('{CurrentLine}'     , quot(ed.get_text_line(rCrt)))
-        if '{CurrentLineNum}'   in prms: prms = prms.replace('{CurrentLineNum}'  , str(1+rCrt))
-        if '{CurrentColumnNum}' in prms: prms = prms.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-        if '{SelectedText}'     in prms: prms = prms.replace('{SelectedText}'    , quot(ed.get_text_sel()))
+        prms_l  = shlex.split(prms_s)
+        for ind, prm in enumerate(prms_l):
+            prm_raw = prm
+            if '{FileName}'         in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
+            if '{FileDir}'          in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
+            if '{FileNameOnly}'     in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
+            if '{FileNameNoExt}'    in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
+            if '{FileExt}'          in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
 
-        if '{Interactive}' in prms:
-            ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
-            ans = '' if ans is None else ans
-            prms = prms.replace('{Interactive}'     , quot(ans))
-        if '{InteractiveFile}' in prms:
-            ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-            ans = '' if ans is None else ans
-            prms = prms.replace('{InteractiveFile}' , quot(ans))
-        
-        pass;                   LOG and log('ready prms={}',(prms))
+            if '{CurrentLine}'      in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
+            if '{CurrentLineNum}'   in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
+            if '{CurrentColumnNum}' in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+            if '{SelectedText}'     in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
+
+            if '{Interactive}' in prm:
+                ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
+                if ans is None: return
+                prm = prm.replace('{Interactive}'     , ans)
+            if '{InteractiveFile}' in prm:
+                ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+                if ans is None: return
+                prm = prm.replace('{InteractiveFile}' , ans)
+
+            if prm_raw != prm:
+                prms_l[ind] = shlex.quote(prm)
+           #for ind, prm
+
+        pass;                   LOG and log('ready prms_l={}',(prms_l))
+
+#       val4call  = (cmnd+' '+prms).strip()
+#       val4call  = [(cmnd+' '+prms).strip()]
+#       val4call  = [cmnd, prms]
+#       val4call  = [cmnd] + shlex.split(prms)
+        val4call  = [cmnd] + prms_l
+#       val4call  = [cmnd] + list(map(lambda t: shlex.quote(t), shlex.split(prms)))
+#       val4call  = [cmnd] + list(map(lambda t: 'r"'+t+'"', shlex.split(prms)))
+        pass;                   LOG and log('val4call={}',(val4call))
+        pass;                  #return
 
         # Calling
         if 'Y'  ==ext.get('savs', 'N'):
@@ -258,12 +275,6 @@ class Command:
         if 'ALL'==ext.get('savs', 'N'):
             ed.cmd(cmds.cmd_FileSaveAll)
         
-#       val4call  = (cmnd+' '+prms).strip()
-#       val4call  = [(cmnd+' '+prms).strip()]
-#       val4call  = [cmnd, prms]
-        val4call  = [cmnd] + shlex.split(prms)
-#       val4call  = [cmnd] + list(map(lambda t: 'r"'+t+'"', shlex.split(prms)))
-        pass;                   LOG and log('val4call={}',(val4call))
         if 'Y'!=ext.get('capt', 'N'):
             # Without capture
             subprocess.Popen(val4call)
@@ -280,10 +291,10 @@ class Command:
                                 , shell=True)
         if pipe is None:
             pass;              #LOG and log('fail Popen',)
-            app.msg_status('Fail call: {} {}'.format(cmnd, prms))
+            app.msg_status('Fail call: {} {}'.format(cmnd, prms_s))
             return
         pass;                  #LOG and log('ok Popen',)
-        app.msg_status('Call: {} {}'.format(cmnd, prms))
+        app.msg_status('Call: {} {}'.format(cmnd, prms_s))
 
         rslt    = ext.get('rslt', RSLT_TO_PANEL)
         rslt_txt= ''
@@ -317,9 +328,7 @@ class Command:
             app.app_proc(app.PROC_SET_CLIP, rslt_txt)
         elif rslt == RSLT_REPL_SEL:
             crts    = ed.get_carets()
-            for icrt in range(len(crts)-1, -1, -1):
-                (cCrt, rCrt
-                ,cEnd, rEnd)    = crts[icrt]
+            for (cCrt, rCrt, cEnd, rEnd) in crts.reverse():
                 if -1!=cEnd:
                     (rCrt, cCrt), (rEnd, cEnd) = apx.minmax((rCrt, cCrt), (rEnd, cEnd))
                     ed.delete(cCrt, rCrt, cEnd, rEnd)
@@ -474,9 +483,11 @@ class Command:
    #class Command
 
 def quot(text):
-    return '"' + text + '"'
-def repr_(text):
-    return '"' + text + '"'
+    return text.replace('\\','\\\\')
+#   return text
+#   return '"' + text.replace('"','""') + '"'
+#def repr_(text):
+#   return '"' + text + '"'
 #   return 'r"' + text + '"'
 '''
 ToDo
