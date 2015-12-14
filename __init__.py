@@ -6,7 +6,7 @@ Version:
 ToDo: (see end of file)
 '''
 
-import  os, json, random, subprocess
+import  os, json, random, subprocess, shlex
 import  cudatext        as app
 from    cudatext    import ed
 import  cudatext_cmd    as cmds
@@ -59,7 +59,7 @@ class Command:
             top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top').splitlines()
             pass;              #LOG and log('top_nms={}',top_nms)
             plg_ind = top_nms.index('&Plugins|')        ##?? 
-            id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', 0, 'Ext&Tools', 1+plg_ind))
+            id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', 0, '&Tools', 1+plg_ind))
             ed.exttools_id_menu = id_menu               ##?? dirty hack!
 
         # Fill
@@ -74,14 +74,14 @@ class Command:
     def dlg_config(self):
         ''' Show dlg for change exts list.
         '''
-        acts= ['Edit ExtTool...'
-              ,'Hotkeys for ExtTool...'
-              ,'Run ExtTool...'
-              ,'Delete ExtTool...'
+        acts= ['Edit Tool...'
+              ,'Hotkeys for Tool...'
+              ,'Run Tool...'
+              ,'Delete Tool...'
               ,'-----'
               ,'Help...'
               ,'-----'
-              ,'Add ExtTool...'
+              ,'Add Tool...'
               ]
         while True:
             act_ind = app.dlg_menu(app.MENU_LIST, '\n'.join(acts))
@@ -119,7 +119,7 @@ class Command:
 
             if act=='Add':
                 file4run= app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-                ext     = self._dlg_edit_ext('New ExtTool properties'
+                ext     = self._dlg_edit_ext('New Tool properties'
                         ,   {'id':random.randint(100000, 999999)
                             ,'file':file4run if file4run is not None else ''
                             }
@@ -157,7 +157,7 @@ class Command:
             if False:pass
             elif act=='Delete': 
                 #Delete
-                if app.msg_box( 'Delete ExtTool\n    {} {}'.format(
+                if app.msg_box( 'Delete Tool\n    {} {}'.format(
                                 nms[ext_ind]
                               , ext_keys)
                               , app.MB_YESNO)!=app.ID_YES:  continue # while
@@ -169,7 +169,7 @@ class Command:
 
             elif act=='Edit': 
                 #Edit
-                ext     = self._dlg_edit_ext('ExtTool properties', ext, nms)
+                ext     = self._dlg_edit_ext('Tool properties', ext, nms)
 
             self._do_acts(what)
 #           break #while
@@ -221,37 +221,36 @@ class Command:
         pass;                  #LOG and log('ext_id={}',ext_id)
         ext     = self.ext4id.get(str(ext_id))
         if ext is None:
-            return app.msg_status('No ext-tool: {}'.format(ext_id))
+            return app.msg_status('No Tool: {}'.format(ext_id))
         cmnd    = ext['file']
         prms    = ext['prms']
-        pass;                   LOG and log('nm, raw-cmd={} {} {}',ext['nm'], cmnd, prms)
+        pass;                   LOG and log('nm="{}", cmnd="{}", raw-prms="{}"',ext['nm'], cmnd, prms)
         
         # Preparing
         file_nm = ed.get_filename()
-        prms     = prms if '{FileName}'       not in prms else prms.replace('{FileName}'    ,                           file_nm)
-        prms     = prms if '{FileDir}'        not in prms else prms.replace('{FileDir}'     ,           os.path.dirname(file_nm))
-        prms     = prms if '{FileNameOnly}'   not in prms else prms.replace('{FileNameOnly}',          os.path.basename(file_nm))
-        prms     = prms if '{FileNameNoExt}'  not in prms else prms.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
-        prms     = prms if '{FileExt}'        not in prms else prms.replace('{FileExt}'     ,          os.path.basename(file_nm).split('.')[-1])
+        if '{FileName}'         in prms: prms = prms.replace('{FileName}'     ,repr(                           file_nm)                  )
+        if '{FileDir}'          in prms: prms = prms.replace('{FileDir}'      ,repr(           os.path.dirname(file_nm))                 )
+        if '{FileNameOnly}'     in prms: prms = prms.replace('{FileNameOnly}' ,repr(          os.path.basename(file_nm))                 )
+        if '{FileNameNoExt}'    in prms: prms = prms.replace('{FileNameNoExt}',repr('.'.join(os.path.basename(file_nm).split('.')[0:-1])))
+        if '{FileExt}'          in prms: prms = prms.replace('{FileExt}'      ,repr(          os.path.basename(file_nm).split('.')[-1])  )
 
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
-        crt_line= ed.get_text_line(rCrt)
-        prms     = prms if '{CurrentLine}'        not in prms else prms.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
-        prms     = prms if '{CurrentLineNum}'     not in prms else prms.replace('{CurrentLineNum}'  , str(1+rCrt))
-        prms     = prms if '{CurrentColumnNum}'   not in prms else prms.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-        prms     = prms if '{SelectedText}'       not in prms else prms.replace('{SelectedText}'    , ed.get_text_sel())
+        if '{CurrentLine}'      in prms: prms = prms.replace('{CurrentLine}'     , repr(ed.get_text_line(rCrt)))
+        if '{CurrentLineNum}'   in prms: prms = prms.replace('{CurrentLineNum}'  , str(1+rCrt))
+        if '{CurrentColumnNum}' in prms: prms = prms.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+        if '{SelectedText}'     in prms: prms = prms.replace('{SelectedText}'    , repr(ed.get_text_sel()))
 
         if '{Interactive}' in prms:
             ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
             ans = '' if ans is None else ans
-            prms = prms.replace('{Interactive}', ans)
+            prms = prms.replace('{Interactive}'     , repr(ans))
         if '{InteractiveFile}' in prms:
             ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
             ans = '' if ans is None else ans
-            prms = prms.replace('{InteractiveFile}', ans)
+            prms = prms.replace('{InteractiveFile}' , repr(ans))
         
-        pass;                   LOG and log('ready   prms={}',(prms))
+        pass;                   LOG and log('ready prms={}',(prms))
 
 
         # Calling
@@ -260,23 +259,30 @@ class Command:
         if 'ALL'==ext.get('savs', 'N'):
             ed.cmd(cmds.cmd_FileSaveAll)
         
+#       val4call  = (cmnd+' '+prms).strip()
+#       val4call  = [(cmnd+' '+prms).strip()]
+#       val4call  = [cmnd, prms]
+        val4call  = [cmnd]+shlex.split(prms)
+        pass;                   LOG and log('val4call={}',(val4call))
         if 'Y'!=ext.get('capt', 'N'):
             # Without capture
-            subprocess.Popen([cmnd, prms])
+            subprocess.Popen(val4call)
+#           subprocess.Popen([cmnd, prms])
             return
         
         # With capture
-        pass;                   LOG and log('?? Popen',)
-        pipe    = subprocess.Popen([cmnd, prms]
+        pass;                  #LOG and log('?? Popen',)
+#       pipe    = subprocess.Popen([cmnd, prms]
+        pipe    = subprocess.Popen(val4call
                                 , stdout=subprocess.PIPE
                                 , stderr=subprocess.STDOUT
                                #, universal_newlines = True
                                 , shell=True)
         if pipe is None:
-            pass;               LOG and log('fail Popen',)
+            pass;              #LOG and log('fail Popen',)
             app.msg_status('Fail call: {} {}'.format(cmnd, prms))
             return
-        pass;                   LOG and log('ok Popen',)
+        pass;                  #LOG and log('ok Popen',)
         app.msg_status('Call: {} {}'.format(cmnd, prms))
 
         rslt    = ext.get('rslt', RSLT_TO_PANEL)
@@ -288,13 +294,13 @@ class Command:
             if rslt==RSLT_TO_PANEL:
                 app.app_log(app.LOG_CLEAR, '')
         elif rslt ==  RSLT_TO_NEWDOC:
-            ed.cmd(cmds.cmd_FileNew)
+            app.file_open('')
             
         while True:
             out_ln = pipe.stdout.readline().decode(ext.get('encd', 'utf-8'))
             if 0==len(out_ln): break
             out_ln = out_ln.strip('\r\n')
-            pass;           LOG and log('out_ln={}',out_ln)
+            pass;              #LOG and log('out_ln={}',out_ln)
             if False:pass
             elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
                 app.app_log(app.LOG_ADD, out_ln)
@@ -471,5 +477,3 @@ class Command:
 ToDo
 [ ][kv-kv][09dec15] Run test cmd
 '''
-
-
