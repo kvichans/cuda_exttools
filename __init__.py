@@ -228,30 +228,29 @@ class Command:
         
         # Preparing
         file_nm = ed.get_filename()
-        if '{FileName}'         in prms: prms = prms.replace('{FileName}'     ,repr(                           file_nm)                  )
-        if '{FileDir}'          in prms: prms = prms.replace('{FileDir}'      ,repr(           os.path.dirname(file_nm))                 )
-        if '{FileNameOnly}'     in prms: prms = prms.replace('{FileNameOnly}' ,repr(          os.path.basename(file_nm))                 )
-        if '{FileNameNoExt}'    in prms: prms = prms.replace('{FileNameNoExt}',repr('.'.join(os.path.basename(file_nm).split('.')[0:-1])))
-        if '{FileExt}'          in prms: prms = prms.replace('{FileExt}'      ,repr(          os.path.basename(file_nm).split('.')[-1])  )
+        if '{FileName}'         in prms: prms = prms.replace('{FileName}'     ,quot(                          file_nm)                  )
+        if '{FileDir}'          in prms: prms = prms.replace('{FileDir}'      ,quot(          os.path.dirname(file_nm))                 )
+        if '{FileNameOnly}'     in prms: prms = prms.replace('{FileNameOnly}' ,quot(         os.path.basename(file_nm))                 )
+        if '{FileNameNoExt}'    in prms: prms = prms.replace('{FileNameNoExt}',quot('.'.join(os.path.basename(file_nm).split('.')[0:-1])))
+        if '{FileExt}'          in prms: prms = prms.replace('{FileExt}'      ,quot(         os.path.basename(file_nm).split('.')[-1])  )
 
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
-        if '{CurrentLine}'      in prms: prms = prms.replace('{CurrentLine}'     , repr(ed.get_text_line(rCrt)))
+        if '{CurrentLine}'      in prms: prms = prms.replace('{CurrentLine}'     , quot(ed.get_text_line(rCrt)))
         if '{CurrentLineNum}'   in prms: prms = prms.replace('{CurrentLineNum}'  , str(1+rCrt))
         if '{CurrentColumnNum}' in prms: prms = prms.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-        if '{SelectedText}'     in prms: prms = prms.replace('{SelectedText}'    , repr(ed.get_text_sel()))
+        if '{SelectedText}'     in prms: prms = prms.replace('{SelectedText}'    , quot(ed.get_text_sel()))
 
         if '{Interactive}' in prms:
             ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
             ans = '' if ans is None else ans
-            prms = prms.replace('{Interactive}'     , repr(ans))
+            prms = prms.replace('{Interactive}'     , quot(ans))
         if '{InteractiveFile}' in prms:
             ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
             ans = '' if ans is None else ans
-            prms = prms.replace('{InteractiveFile}' , repr(ans))
+            prms = prms.replace('{InteractiveFile}' , quot(ans))
         
         pass;                   LOG and log('ready prms={}',(prms))
-
 
         # Calling
         if 'Y'  ==ext.get('savs', 'N'):
@@ -262,7 +261,8 @@ class Command:
 #       val4call  = (cmnd+' '+prms).strip()
 #       val4call  = [(cmnd+' '+prms).strip()]
 #       val4call  = [cmnd, prms]
-        val4call  = [cmnd]+shlex.split(prms)
+        val4call  = [cmnd] + shlex.split(prms)
+#       val4call  = [cmnd] + list(map(lambda t: 'r"'+t+'"', shlex.split(prms)))
         pass;                   LOG and log('val4call={}',(val4call))
         if 'Y'!=ext.get('capt', 'N'):
             # Without capture
@@ -473,6 +473,11 @@ class Command:
        #def get_usage_names
    #class Command
 
+def quot(text):
+    return '"' + text + '"'
+def repr_(text):
+    return '"' + text + '"'
+#   return 'r"' + text + '"'
 '''
 ToDo
 [ ][kv-kv][09dec15] Run test cmd
