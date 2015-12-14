@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on githab.com)
 Version:
-    '0.7.0 2015-12-11'
+    '0.8.0 2015-12-14'
 ToDo: (see end of file)
 '''
 
@@ -12,6 +12,7 @@ from    cudatext    import ed
 import  cudatext_cmd    as cmds
 import  cudax_lib       as apx
 from    cudax_lib   import log
+from    .encodings  import *
 
 pass;                           # Logging
 pass;                           LOG = (-2==-2)  # Do or dont logging.
@@ -118,12 +119,16 @@ class Command:
             nms         = [ext['nm'] for ext in self.exts]
 
             if act=='Add':
-                file4run= app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-                ext     = self._dlg_edit_ext('New Tool properties'
-                        ,   {'id':random.randint(100000, 999999)
-                            ,'file':file4run if file4run is not None else ''
-                            }
-                        ,   nms)
+                file4run    = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+                file4run    = file4run if file4run is not None else ''
+                id4ext      = random.randint(100000, 999999)
+                while id4ext in self.ext4id:
+                    id4ext  = random.randint(100000, 999999)
+                ext         = self._dlg_edit_ext('New Tool properties'
+                            ,   {'id':id4ext
+                                ,'file':file4run
+                                }
+                            ,   nms)
                 if ext is None: return
                 self.exts   += [ext]
                 self._do_acts('add')
@@ -254,20 +259,14 @@ class Command:
                 prm = prm.replace('{InteractiveFile}' , ans)
 
             if prm_raw != prm:
-                prms_l[ind] = shlex.quote(prm)
+                prms_l[ind] = prm
+#               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
 
         pass;                   LOG and log('ready prms_l={}',(prms_l))
 
-#       val4call  = (cmnd+' '+prms).strip()
-#       val4call  = [(cmnd+' '+prms).strip()]
-#       val4call  = [cmnd, prms]
-#       val4call  = [cmnd] + shlex.split(prms)
         val4call  = [cmnd] + prms_l
-#       val4call  = [cmnd] + list(map(lambda t: shlex.quote(t), shlex.split(prms)))
-#       val4call  = [cmnd] + list(map(lambda t: 'r"'+t+'"', shlex.split(prms)))
         pass;                   LOG and log('val4call={}',(val4call))
-        pass;                  #return
 
         # Calling
         if 'Y'  ==ext.get('savs', 'N'):
@@ -278,17 +277,17 @@ class Command:
         if 'Y'!=ext.get('capt', 'N'):
             # Without capture
             subprocess.Popen(val4call)
-#           subprocess.Popen([cmnd, prms])
             return
         
         # With capture
         pass;                  #LOG and log('?? Popen',)
-#       pipe    = subprocess.Popen([cmnd, prms]
+        pass;                  #LOG and log("'Y'==ext.get('shll', 'N')",'Y'==ext.get('shll', 'N'))
         pipe    = subprocess.Popen(val4call
                                 , stdout=subprocess.PIPE
                                 , stderr=subprocess.STDOUT
                                #, universal_newlines = True
-                                , shell=True)
+                                , shell=('Y'==ext.get('shll', 'N'))
+                                )
         if pipe is None:
             pass;              #LOG and log('fail Popen',)
             app.msg_status('Fail call: {} {}'.format(cmnd, prms_s))
@@ -301,6 +300,7 @@ class Command:
         if False:pass
         elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
             ed.cmd(cmds.cmd_ShowPanelOutput)
+            ed.focus()
             app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
             if rslt==RSLT_TO_PANEL:
                 app.app_log(app.LOG_CLEAR, '')
@@ -338,16 +338,18 @@ class Command:
     def _dlg_edit_ext(self, title, ext_dict, used_nms):
         NM  = 0
         FILE= 1
-        PRMS= 2
-        DDIR= 3
-        SAVS= 4
-        CAPT= 5
-        ENCD= 6
-        RSLT= 7
-        CNT = 8
+        SHLL= 2
+        PRMS= 3
+        DDIR= 4
+        SAVS= 5
+        CAPT= 6
+        ENCD= 7
+        RSLT= 8
+        CNT = 9
         ext_list       = list(range(CNT))
         ext_list[NM  ] = ext_dict.get('nm'  , '') 
         ext_list[FILE] = ext_dict.get('file', '')
+        ext_list[SHLL] = ext_dict.get('shll', 'N')
         ext_list[PRMS] = ext_dict.get('prms', '')
         ext_list[DDIR] = ext_dict.get('ddir', '')
         ext_list[SAVS] = ext_dict.get('savs', 'N')
@@ -358,6 +360,7 @@ class Command:
             ext_list = app.dlg_input_ex(CNT, title
                     , '*Name'                       , ext_list[NM  ]
                     , '*File (or command) to call'  , ext_list[FILE]
+                    , 'Shell command (N/Y)'         , ext_list[SHLL]
                     , 'Params for call'             , ext_list[PRMS]
                     , 'Default folder'              , ext_list[DDIR]
                     , 'Save before (N/Y/ALL)'       , ext_list[SAVS]
@@ -366,13 +369,16 @@ class Command:
                     , 'Output usage (empty to pick)', ext_list[RSLT]
                     )
             if ext_list is None: return None
+            ext_list[SHLL]  = ext_list[SHLL].upper()
+            ext_list[CAPT]  = ext_list[CAPT].upper()
+            ext_list[SAVS]  = ext_list[SAVS].upper()
 
             if ext_list[NM] in used_nms and ext_list[NM]!=ext_dict.get('nm', ''):
                 app.msg_box('Choose a name different from:\n    '+'\n    '.join(used_nms), app.MB_OK)
                 continue
 
             if ext_list[CAPT] == 'Y' and ext_list[ENCD] == '':
-                enc_nms = self.get_encoding_names()
+                enc_nms = get_encoding_names()
                 enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms))
                 if enc_ind is not None:
                     ext_list[ENCD] = enc_nms[enc_ind].split('\t')[0]
@@ -393,6 +399,7 @@ class Command:
            #while True
         ext_dict['nm']      = ext_list[NM  ]
         ext_dict['file']    = ext_list[FILE]
+        ext_dict['shll']    = ext_list[SHLL]
         ext_dict['prms']    = ext_list[PRMS]
         ext_dict['ddir']    = ext_list[DDIR]
         ext_dict['savs']    = ext_list[SAVS]
@@ -402,74 +409,6 @@ class Command:
         return ext_dict
        #def _dlg_edit_ext
        
-    def get_encoding_names(self):
-        return [
-            'mbcs\tWindows only: Encode operand according to the ANSI codepage (CP_ACP, dbcs)'
-        ,   'cp866\tRussian (DOS)'
-        ,   'utf_8\tall language'
-        ,   'ascii\tEnglis'
-        ,   'cp037\tEnglis'
-        ,   'cp424\tHebre'
-        ,   'cp437\tEnglis'
-        ,   'cp500\tWestern Europ'
-        ,   'cp737\tGree'
-        ,   'cp775\tBaltic language'
-        ,   'cp850\tWestern Europ'
-        ,   'cp852\tCentral and Eastern Europ'
-        ,   'cp855\tBulgarian, Byelorussian, Macedonian, Russian, Serbia'
-        ,   'cp856\tHebre'
-        ,   'cp857\tTurkis'
-        ,   'cp858\tWestern Europ'
-        ,   'cp860\tPortugues'
-        ,   'cp861\tIcelandi'
-        ,   'cp862\tHebre'
-        ,   'cp863\tCanadia'
-        ,   'cp865\tDanish, Norwegia'
-        ,   'cp869\tGree'
-        ,   'cp875\tGree'
-        ,   'cp1026\tTurkis'
-        ,   'cp1140\tWestern Europ'
-        ,   'cp1250\tCentral and Eastern Europ'
-        ,   'cp1251\tBulgarian, Byelorussian, Macedonian, Russian, Serbia'
-        ,   'cp1252\tWestern Europ'
-        ,   'cp1253\tGree'
-        ,   'cp1254\tTurkis'
-        ,   'cp1255\tHebre'
-        ,   'cp1257\tBaltic language'
-        ,   'cp65001\tWindows only: Windows UTF-8 (CP_UTF8)'
-        ,   'latin_1\tWest Europ'
-        ,   'iso8859_2\tCentral and Eastern Europ'
-        ,   'iso8859_3\tEsperanto, Maltes'
-        ,   'iso8859_4\tBaltic language'
-        ,   'iso8859_5\tBulgarian, Byelorussian, Macedonian, Russian, Serbia'
-        ,   'iso8859_6\tArabi'
-        ,   'iso8859_7\tGree'
-        ,   'iso8859_8\tHebre'
-        ,   'iso8859_9\tTurkis'
-        ,   'iso8859_10\tNordic language'
-        ,   'iso8859_13\tBaltic language'
-        ,   'iso8859_14\tCeltic language'
-        ,   'iso8859_15\tWestern Europ'
-        ,   'iso8859_16\tSouth-Eastern Europ'
-        ,   'koi8_r\tRussia'
-        ,   'koi8_u\tUkrainia'
-        ,   'mac_cyrillic\tBulgarian, Byelorussian, Macedonian, Russian, Serbia'
-        ,   'mac_greek\tGree'
-        ,   'mac_iceland\tIcelandi'
-        ,   'mac_latin2\tCentral and Eastern Europ'
-        ,   'mac_roman\tWestern Europ'
-        ,   'mac_turkish\tTurkis'
-        ,   'ptcp154\tKazak'
-        ,   'utf_32\tall language'
-        ,   'utf_32_be\tall language'
-        ,   'utf_32_le\tall language'
-        ,   'utf_16\tall language'
-        ,   'utf_16_be\tall language'
-        ,   'utf_16_le\tall language'
-        ,   'utf_7\tall language'
-        ,   'utf_8_sig\tall language'
-        ]
-       #def get_encoding_names
        
     def get_usage_names(self):
         return [
