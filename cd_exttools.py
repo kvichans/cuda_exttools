@@ -42,10 +42,10 @@ class Command:
     def _fill_ext(self, ext):
         ext.pop('capt', None)
         ext['ddir']     = ext.get('ddir', '')
-        ext['shll']     = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N')) in 'NY' else ext.get('shll', False)
+        ext['shll']     = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N')) in 'NY'            else ext.get('shll', False)
         ext['prms']     = ext.get('prms', '')
         ext['savs']     = ext.get('savs', 'N')
-        ext['rslt']     = ext.get('rslt', 'N')
+        ext['rslt']     = ext.get('rslt', 'N')      if     ext.get('rslt', 'N')  in self.rslt_vals  else 'N'
         ext['encd']     = ext.get('encd', 'utf-8')
         ext['lxrs']     = ext.get('lxrs', '')
         return ext
