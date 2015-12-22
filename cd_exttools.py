@@ -41,13 +41,13 @@ class Command:
     
     def _fill_ext(self, ext):
         ext.pop('capt', None)
-        ext['ddir']     = ext.get('ddir', '')
-        ext['shll']     = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N')) in 'NY'            else ext.get('shll', False)
-        ext['prms']     = ext.get('prms', '')
-        ext['savs']     = ext.get('savs', 'N')
-        ext['rslt']     = ext.get('rslt', 'N')      if     ext.get('rslt', 'N')  in self.rslt_vals  else 'N'
-        ext['encd']     = ext.get('encd', 'utf-8')
-        ext['lxrs']     = ext.get('lxrs', '')
+        ext['ddir'] = ext.get('ddir', '')
+        ext['shll'] = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N')) in 'NY'            else ext.get('shll', False)
+        ext['prms'] = ext.get('prms', '')
+        ext['savs'] = ext.get('savs', 'N')
+        ext['rslt'] = ext.get('rslt', 'N')      if     ext.get('rslt', 'N')  in self.rslt_vals  else 'N'
+        ext['encd'] = ext.get('encd', 'utf-8')
+        ext['lxrs'] = ext.get('lxrs', '')
         return ext
 
     def __init__(self):
@@ -137,7 +137,7 @@ class Command:
             
             ans = app.dlg_custom('Tools'   ,DLG_W, DLG_H, '\n'.join([]
             #LIST
-            +[C1.join(['type=group'     ,POS_FMT(l=GAP,         t=GAP,      r=GAP2+WD_LST+GAP, b=ACTS_T[3])
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP2,        t=GAP,      r=GAP2+WD_LST+GAP, b=ACTS_T[3])
                       ,'cap=&Tools'
                       ])] # i= 0
             +[C1.join(['type=listbox'   ,POS_FMT(l=GAP2,        t=GAP+20,   r=GAP+4+WD_LST,   b=GAP+HT_LST)
@@ -165,7 +165,7 @@ class Command:
                       ,'cap=Down'
                       ])] # i= 7
             # TOOL PROPS
-            +[C1.join(['type=group'     ,POS_FMT(l=PRP1_L-GAP,  t=GAP,      r=PRP1_L+GAP+PRP1_W+PRP2_W+PRP3_W+4, b=GAP+PROP_T[11])
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP2_L,  t=GAP,      r=PRP1_L+GAP+PRP1_W+PRP2_W+PRP3_W+4, b=GAP+PROP_T[11])
                       ,'cap=Tool properties'
                       ])] # i= 8
                       
@@ -216,7 +216,7 @@ class Command:
                       ])] # i=21
             +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[6],  r=PRP2_L+PRP2_W,b=0)
                       ,'val='+(ext['lxrs'] if ext is not None else '')
-                      ,'en=0'     # enabled
+                      ,'props=props=1,0,1'    # ro,mono,border
                       ])] # i=22
             +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[6]-1,r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Le&xers...'
@@ -235,7 +235,7 @@ class Command:
                       ])] # i=26
             +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[8],  r=PRP2_L+PRP2_W,b=0)
                       ,'val='+(ekeys[ext_ind] if ext is not None else '')
-                      ,'en=0'   # enabled
+                      ,'props=props=1,0,1'    # ro,mono,border
                       ])] # i=27
             +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[8]-1,r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Assi&gn...'
@@ -254,16 +254,16 @@ class Command:
                       ])] # i=31
             +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[10],  r=PRP2_L+PRP2_W,b=0)
                       ,'val='+(ext['encd'] if ext is not None else '')
-                      ,'en=0'   # enabled
+                      ,'props=props=1,0,1'    # ro,mono,border
                       ])] # i=32
             +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[10]-1,r=PRP3_L+PRP3_W,b=0)
                       ,'cap=S&elect...'
                       ])] # i=33
             # DLG ACTS
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L-GAP-PRP3_W,   t=DLG_H-24-GAP,r=PRP3_L-GAP,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L-GAP-PRP3_W,   t=ACTS_T[2],r=PRP3_L-GAP,b=0)
                       ,'cap=Help'
                       ])] # i=34
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,              t=DLG_H-24-GAP,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,              t=ACTS_T[2],r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Cl&ose'
                       ])] # i=35
             ), 1)    # start focus
