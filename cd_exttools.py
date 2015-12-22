@@ -107,8 +107,7 @@ class Command:
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         
         ids     = [ext['id'] for ext in self.exts]
-        ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else 1
-#       ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else -1
+        ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else -1
 
         GAP2    = GAP*2    
         ACTS_W          = 100
@@ -133,8 +132,8 @@ class Command:
                 ekeys  +=                 [  kys  ]
             pass;               LOG and log('exkys={}',exkys)
             ext     = self.exts[ext_ind] if ext_ind in range(len(self.exts)) else None
-            val_savs= self.savs_vals.index(ext['savs'] if ext is not None else 0)
-            val_rslt= self.rslt_vals.index(ext['rslt'] if ext is not None else 0)
+            val_savs= self.savs_vals.index(ext['savs']) if ext is not None else 0
+            val_rslt= self.rslt_vals.index(ext['rslt']) if ext is not None else 0
             
             ans = app.dlg_custom('Tools'   ,DLG_W, DLG_H, '\n'.join([]
             #LIST
@@ -310,6 +309,10 @@ class Command:
                 self._do_acts()                         ##?? skip?
                 
             if ans_s=='close':  break #while
+            if ans_s=='help':
+                show_help()
+                continue #while
+                
             if new_ext_ind not in range(len(self.exts)):
                 continue #while
             
@@ -443,91 +446,6 @@ class Command:
             if changed or not what:
                 self._do_acts(what)
            #while True
-        
-        
-        return #!!!
-        acts= ['Edit Tool...'
-              ,'Hotkeys for Tool...'
-              ,'Run Tool...'
-              ,'Delete Tool...'
-              ,'-----'
-              ,'Help...'
-              ,'-----'
-              ,'Add Tool...'
-              ]
-        while True:
-            act_ind = app.dlg_menu(app.MENU_LIST, '\n'.join(acts))
-            if act_ind is None or acts[act_ind][0]=='-': return
-            act     = acts[act_ind]
-            act     = act[:(act+' ').index(' ')]    # first word
-
-            if act=='Help...':
-                show_help()
-                continue # while
-
-            nms         = [ext['nm'] for ext in self.exts]
-
-            if act=='Add':
-                file4run    = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-                file4run    = file4run if file4run is not None else ''
-                id4ext      = random.randint(100000, 999999)
-                while id4ext in self.ext4id:
-                    id4ext  = random.randint(100000, 999999)
-                ext         = self._dlg_edit_ext('New Tool properties'
-                            ,   {'id':id4ext
-                                ,'file':file4run
-                                }
-                            ,   nms)
-                if ext is None: return
-                self.exts   += [ext]
-                self._do_acts('add')
-                continue # while
-
-            keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
-            keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-            kys         = []
-            for ext in self.exts:
-                ext_key = 'cuda_exttools,run,{}'.format(ext['id'])
-                ext_keys= keys.get(ext_key, {})
-                kys    += ['/'.join([' * '.join(ext_keys.get('s1', []))
-                                    ,' * '.join(ext_keys.get('s2', []))
-                                    ]).strip('/')
-                          ]
-            
-            ext     = ''
-            if False:pass
-            elif 1==len(nms):
-                ext_ind = 0
-            else:
-                ext_ind = app.dlg_menu(app.MENU_LIST
-                        , '\n'.join('{}: {}\t{}'.format(a,n,k) for (a,n,k) in list(zip([act]*len(nms), nms, kys)))
-                        )
-                if ext_ind is None: continue # while
-
-            ext     = self.exts[ext_ind]
-            ext_keys= '('+kys[ext_ind]+')' if ''!=kys[ext_ind] else ''
-
-            what    = ''        
-            if False:pass
-            elif act=='Delete': 
-                #Delete
-                if app.msg_box( 'Delete Tool\n    {} {}'.format(
-                                nms[ext_ind]
-                              , ext_keys)
-                              , app.MB_YESNO)!=app.ID_YES:  continue # while
-                what    = 'delete:'+str(ext['id'])
-                del self.exts[ext_ind]
-
-            elif act=='Hotkeys':
-                app.dlg_hotkeys('cuda_exttools,run,'+str(ext['id']))
-
-            elif act=='Edit': 
-                #Edit
-                ext     = self._dlg_edit_ext('Tool properties', ext, nms)
-
-            self._do_acts(what)
-#           break #while
-           #while
        #def dlg_config
        
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):
@@ -578,12 +496,13 @@ class Command:
             return app.msg_status('No Tool: {}'.format(ext_id))
         cmnd    = ext['file']
         prms_s  = ext['prms']
-        pass;                   LOG and log('nm="{}", cmnd="{}", prms_s="{}"',ext['nm'], cmnd, prms_s)
+        ddir    = ext['ddir']
+        pass;                   LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',ext['nm'], ddir, cmnd, prms_s)
         
         # Saving
-        if 'Y'  ==ext.get('savs', 'N'):
+        if 'Y'==ext.get('savs', 'N'):
             if not ed.file_save():  return
-        if 'ALL'==ext.get('savs', 'N'):
+        if 'A'==ext.get('savs', 'N'):
             ed.cmd(cmds.cmd_FileSaveAll)
         
         # Preparing
@@ -593,30 +512,12 @@ class Command:
         prms_l  = shlex.split(prms_s)
         for ind, prm in enumerate(prms_l):
             prm_raw = prm
-            if '{FileName}'         in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
-            if '{FileDir}'          in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
-            if '{FileNameOnly}'     in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
-            if '{FileNameNoExt}'    in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
-            if '{FileExt}'          in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
-
-            if '{CurrentLine}'      in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
-            if '{CurrentLineNum}'   in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
-            if '{CurrentColumnNum}' in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-            if '{SelectedText}'     in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
-
-            if '{Interactive}' in prm:
-                ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
-                if ans is None: return
-                prm = prm.replace('{Interactive}'     , ans)
-            if '{InteractiveFile}' in prm:
-                ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-                if ans is None: return
-                prm = prm.replace('{InteractiveFile}' , ans)
-
+            prm     = sub_props(prm, file_nm, cCrt, rCrt)
             if prm_raw != prm:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
+        ddir        = sub_props(ddir, file_nm, cCrt, rCrt)
 
         pass;                   LOG and log('ready prms_l={}',(prms_l))
 
@@ -626,13 +527,13 @@ class Command:
         # Calling
         if 'Y'!=ext.get('capt', 'N'):
             # Without capture
-            subprocess.Popen(val4call)
+            subprocess.Popen(val4call, cwd=ddir)
             return
         
         # With capture
         pass;                  #LOG and log('?? Popen',)
         pass;                  #LOG and log("'Y'==ext.get('shll', 'N')",'Y'==ext.get('shll', 'N'))
-        pipe    = subprocess.Popen(val4call
+        pipe    = subprocess.Popen(val4call, cwd=ddir
                                 , stdout=subprocess.PIPE
                                 , stderr=subprocess.STDOUT
                                #, universal_newlines = True
@@ -685,82 +586,29 @@ class Command:
                 ed.insert(cCrt, rCrt, rslt_txt)
        #def run
        
-    def _dlg_edit_ext(self, title, ext_dict, used_nms):
-        NM  = 0
-        FILE= 1
-        SHLL= 2
-        PRMS= 3
-        DDIR= 4
-        SAVS= 5
-        CAPT= 6
-        ENCD= 7
-        RSLT= 8
-        CNT = 9
-        ext_list       = list(range(CNT))
-        ext_list[NM  ] = ext_dict.get('nm'  , '') 
-        ext_list[FILE] = ext_dict.get('file', '')
-        ext_list[SHLL] = ext_dict.get('shll', 'N')
-        ext_list[PRMS] = ext_dict.get('prms', '')
-        ext_list[DDIR] = ext_dict.get('ddir', '')
-        ext_list[SAVS] = ext_dict.get('savs', 'N')
-        ext_list[CAPT] = ext_dict.get('capt', 'N')
-        ext_list[ENCD] = ext_dict.get('encd', '')
-        ext_list[RSLT] = ext_dict.get('rslt', '')
-        while True:
-            ext_list = app.dlg_input_ex(CNT, title
-                    , '*Name'                       , ext_list[NM  ]
-                    , '*File (or command) to call'  , ext_list[FILE]
-                    , 'Shell command (N/Y)'         , ext_list[SHLL]
-                    , 'Params for call'             , ext_list[PRMS]
-                    , 'Default folder'              , ext_list[DDIR]
-                    , 'Save before (N/Y/ALL)'       , ext_list[SAVS]
-                    , 'Capture output (N/Y)'        , ext_list[CAPT]
-                    , 'Encoding (empty to pick)'    , ext_list[ENCD]
-                    , 'Output usage (empty to pick)', ext_list[RSLT]
-                    )
-            if ext_list is None: return None
-            ext_list[SHLL]  = ext_list[SHLL].upper()
-            ext_list[CAPT]  = ext_list[CAPT].upper()
-            ext_list[SAVS]  = ext_list[SAVS].upper()
-
-            if ext_list[NM] in used_nms and ext_list[NM]!=ext_dict.get('nm', ''):
-                app.msg_box('Choose a name different from:\n    '+'\n    '.join(used_nms), app.MB_OK)
-                continue
-
-            if ext_list[CAPT] == 'Y' and ext_list[ENCD] == '':
-                enc_nms = get_encoding_names()
-                enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms))
-                if enc_ind is not None:
-                    ext_list[ENCD] = enc_nms[enc_ind].split('\t')[0]
-                else:
-                    ext_list[ENCD] = enc_nms[0      ].split('\t')[0]
-                continue
-        
-            if ext_list[CAPT] == 'Y' and ext_list[RSLT] == '':
-                usg_nms = self.get_usage_names()
-                usg_ind = app.dlg_menu(app.MENU_LIST, '\n'.join(usg_nms))
-                if usg_ind is not None:
-                    ext_list[RSLT] = usg_nms[usg_ind]
-                else:
-                    ext_list[RSLT] = usg_nms[0]
-                continue
-        
-            if ext_list[NM] != '' and ext_list[FILE] != '': break
-           #while True
-        ext_dict['nm']      = ext_list[NM  ]
-        ext_dict['file']    = ext_list[FILE]
-        ext_dict['shll']    = ext_list[SHLL]
-        ext_dict['prms']    = ext_list[PRMS]
-        ext_dict['ddir']    = ext_list[DDIR]
-        ext_dict['savs']    = ext_list[SAVS]
-        ext_dict['capt']    = ext_list[CAPT]
-        ext_dict['encd']    = ext_list[ENCD]
-        ext_dict['rslt']    = ext_list[RSLT]
-        return ext_dict
-       #def _dlg_edit_ext
-       
-       
    #class Command
+
+def sub_props(prm, file_nm, cCrt, rCrt):
+    if '{FileName}'         in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
+    if '{FileDir}'          in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
+    if '{FileNameOnly}'     in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
+    if '{FileNameNoExt}'    in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
+    if '{FileExt}'          in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
+
+    if '{CurrentLine}'      in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
+    if '{CurrentLineNum}'   in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
+    if '{CurrentColumnNum}' in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+    if '{SelectedText}'     in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
+
+    if '{Interactive}' in prm:
+        ans = app.dlg_input('Param for call {}'.format(ext['nm']), '')
+        if ans is None: return
+        prm = prm.replace('{Interactive}'     , ans)
+    if '{InteractiveFile}' in prm:
+        ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+        if ans is None: return
+        prm = prm.replace('{InteractiveFile}' , ans)
+    return prm
 
 def gen_ext_id(ids):
     id4ext      = random.randint(100000, 999999)
@@ -782,27 +630,28 @@ def get_usage_names():
 def show_help():
     l   = chr(13)
     hlp = (''
-        +   'In "File for call" and "Params for call"'
-        +l+ ' fields of external tools configuration'
-        +l+ ' the following macros are allowed.'
+        +   'In properties'
+        +l+ '   Parameters'
+        +l+ '   Initial folder'
+        +l+ 'the following macros will be are substituted.'
         +l+ ''
         +l+ 'Currently focused file properties:'
-        +l+ '  {FileName}           - Full path'
-        +l+ '  {FileDir}            - Folder path, without file name'
-        +l+ '  {FileNameOnly}       - Name only, without folder path'
-        +l+ '  {FileNameNoExt}      - Name without extension and path'
-        +l+ '  {FileExt}            - Extension'
+        +l+ '   {FileName}         - Full path'
+        +l+ '   {FileDir}          - Folder path, without file name'
+        +l+ '   {FileNameOnly}     - Name only, without folder path'
+        +l+ '   {FileNameNoExt}    - Name without extension and path'
+        +l+ '   {FileExt}          - Extension'
         +l+ ''
         +l+ 'Currently focused editor properties (for top caret):'
-       #+l+ '  {CurrentWord}'
-        +l+ '  {CurrentLine}        - text'
-        +l+ '  {CurrentLineNum}     - number'
-        +l+ '  {CurrentColumnNum}   - number'
-        +l+ '  {SelectedText}       - text' 
+       #+l+ '   {CurrentWord}'
+        +l+ '   {CurrentLine}      - text'
+        +l+ '   {CurrentLineNum}   - number'
+        +l+ '   {CurrentColumnNum} - number'
+        +l+ '   {SelectedText}     - text' 
         +l+ ''
         +l+ 'Prompted:'
-        +l+ '  {Interactive}        - Text will be asked at each running'
-        +l+ '  {InteractiveFile}    - File name will be asked'
+        +l+ '   {Interactive}      - Text will be asked at each running'
+        +l+ '   {InteractiveFile}  - File name will be asked'
         +'')
     app.dlg_custom( 'Tool Help', GAP*2+500, GAP*3+25+400, '\n'.join([]
         +[C1.join(['type=memo'      ,POS_FMT(l=GAP, t=GAP,          r=GAP+500,      b=GAP+400)
