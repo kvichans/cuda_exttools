@@ -188,7 +188,7 @@ class Command:
                       
             +[C1.join(['type=check'     ,POS_FMT(l=PRP2_L,  t=PROP_T[3]-2,r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&Shell command'
-                      ,'val='+((1 if 'Y'==ext['shll'] else '0') if ext is not None else '0')
+                      ,'val='+(('1' if ext['shll'] else '0') if ext is not None else '0')
                       ])] # i=14
                       
             +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[4]+3,r=PRP1_L+PRP1_W,b=0)
@@ -523,49 +523,57 @@ class Command:
         pass;                   LOG and log('val4call={}',(val4call))
 
         # Calling
+        nmargs  = {'cwd':ddir} if ddir else {}
 #       if 'Y'!=ext.get('capt', 'N'):
-        if 'Y'!=ext.get('rslt', 'N'):
+        if 'N'==ext.get('rslt', 'N'):
             # Without capture
-            if ddir:
-                subprocess.Popen(val4call, cwd=ddir)
-            else:
-                subprocess.Popen(val4call)
+            subprocess.Popen(val4call, **nmargs)
+#           if ddir:
+#               subprocess.Popen(val4call, cwd=ddir)
+#           else:
+#               subprocess.Popen(val4call)
             return
         
         # With capture
-        pass;                  #LOG and log('?? Popen',)
         pass;                  #LOG and log("'Y'==ext.get('shll', 'N')",'Y'==ext.get('shll', 'N'))
-        if ddir:
-            pipe    = subprocess.Popen(val4call, cwd=ddir
-                                , stdout=subprocess.PIPE
-                                , stderr=subprocess.STDOUT
-                               #, universal_newlines = True
-                                , shell=('Y'==ext.get('shll', 'N'))
-                                )
-        else:
-            pipe    = subprocess.Popen(val4call
-                                , stdout=subprocess.PIPE
-                                , stderr=subprocess.STDOUT
-                               #, universal_newlines = True
-                                , shell=('Y'==ext.get('shll', 'N'))
-                                )
+        nmargs['stdout']=subprocess.PIPE
+        nmargs['stderr']=subprocess.STDOUT
+        nmargs['shell'] =ext.get('shll', False)
+        pass;                   LOG and log('?? Popen nmargs={}',nmargs)
+        pipe    = subprocess.Popen(val4call, **nmargs)
+#       if ddir:
+#           pipe    = subprocess.Popen(val4call, cwd=ddir
+#                               , stdout=subprocess.PIPE
+#                               , stderr=subprocess.STDOUT
+#                              #, universal_newlines = True
+#                               , shell=ext.get('shll', False)
+#                               )
+#       else:
+#           pipe    = subprocess.Popen(val4call
+#                               , stdout=subprocess.PIPE
+#                               , stderr=subprocess.STDOUT
+#                              #, universal_newlines = True
+#                               , shell=ext.get('shll', False)
+#                               )
         if pipe is None:
-            pass;              #LOG and log('fail Popen',)
+            pass;               LOG and log('fail Popen',)
             app.msg_status('Fail call: {} {}'.format(cmnd, prms_s))
             return
-        pass;                  #LOG and log('ok Popen',)
+        pass;                   LOG and log('ok Popen',)
         app.msg_status('Call: {} {}'.format(cmnd, prms_s))
 
         rslt    = ext.get('rslt', RSLT_TO_PANEL)
         rslt_txt= ''
         if False:pass
-        elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
+        elif rslt in ('OP', 'OPA'):
+#       elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
             ed.cmd(cmds.cmd_ShowPanelOutput)
             ed.focus()
             app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
             if rslt==RSLT_TO_PANEL:
                 app.app_log(app.LOG_CLEAR, '')
-        elif rslt ==  RSLT_TO_NEWDOC:
+        elif rslt ==  'ND':
+#       elif rslt ==  RSLT_TO_NEWDOC:
             app.file_open('')
             
         while True:
@@ -574,20 +582,25 @@ class Command:
             out_ln = out_ln.strip('\r\n')
             pass;              #LOG and log('out_ln={}',out_ln)
             if False:pass
-            elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
+            elif rslt in ('OP', 'OPA'):
+#           elif rslt in (RSLT_TO_PANEL, RSLT_TO_PANEL_AP):
                 app.app_log(app.LOG_ADD, out_ln)
-            elif rslt ==  RSLT_TO_NEWDOC:
+            elif rslt ==  'ND':
+#           elif rslt ==  RSLT_TO_NEWDOC:
                 ed.set_text_line(-1, out_ln)
-            elif rslt in (RSLT_TO_CLIP
-                         ,RSLT_REPL_SEL):
+            elif rslt in ('CB', 'SEL'):
+#           elif rslt in (RSLT_TO_CLIP
+#                        ,RSLT_REPL_SEL):
                 rslt_txt+= out_ln + '\n'
            #while True
 
         rslt_txt= rslt_txt.strip('\n')
         if False:pass
-        elif rslt == RSLT_TO_CLIP:
+        elif rslt == 'CB':
+#       elif rslt == RSLT_TO_CLIP:
             app.app_proc(app.PROC_SET_CLIP, rslt_txt)
-        elif rslt == RSLT_REPL_SEL:
+        elif rslt == 'SEL':
+#       elif rslt == RSLT_REPL_SEL:
             crts    = ed.get_carets()
             for (cCrt, rCrt, cEnd, rEnd) in crts.reverse():
                 if -1!=cEnd:
