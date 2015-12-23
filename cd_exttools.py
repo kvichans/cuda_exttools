@@ -41,7 +41,8 @@ class Command:
     
     def _fill_ext(self, ext):
         ext.pop('capt', None)
-        ext['nm']   = ext.get('nm', '')         if not ext.get('nm', '')                        else 'tool'+str(random.randint(100, 999))
+        if not ext['nm']:
+            ext['nm']='tool'+str(random.randint(100, 999))
         ext['ddir'] = ext.get('ddir', '')
         ext['shll'] = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N')) in 'NY'            else ext.get('shll', False)
         ext['prms'] = ext.get('prms', '')
@@ -106,7 +107,7 @@ class Command:
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         
         ids     = [ext['id'] for ext in self.exts]
-        ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else -1
+        ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else min(0, len(ids)-1)
 
         GAP2    = GAP*2    
         ACTS_W          = 120
@@ -141,14 +142,14 @@ class Command:
                       ])] # i= 1
             # TOOLS ACTS
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[1],    t=ACTS_T[1],   r=ACTS_L[1]+ACTS_W,b=0)
-                      ,'cap=&Edit props...'
+                      ,'cap=&Edit...'
                       ,'props=1'    # default
                       ])] # i= 2
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[2],    t=ACTS_T[1],   r=ACTS_L[2]+ACTS_W,b=0)
                       ,'cap=&Add...'
                       ])] # i= 3
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[3],    t=ACTS_T[1],   r=ACTS_L[3]+ACTS_W,b=0)
-                      ,'cap=De&lete...'
+                      ,'cap=&Delete...'
                       ])] # i= 4
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[1],    t=ACTS_T[2],   r=ACTS_L[1]+ACTS_W,b=0)
                       ,'cap=Clo&ne'
@@ -205,6 +206,7 @@ class Command:
             what    = ''
 #           changed = False
             ext_ind = new_ext_ind
+            self.last_ext_id    = ids[ext_ind]
             if False:pass
             
             elif ans_s=='edit':
@@ -888,6 +890,7 @@ class Command:
     def run(self, ext_id):
         ''' Main (and single) way to run any exttool
         '''
+        self.last_ext_id = ext_id
         ext_id  = str(ext_id)
         pass;                  #LOG and log('ext_id={}',ext_id)
         ext     = self.ext4id.get(str(ext_id))
