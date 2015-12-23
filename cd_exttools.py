@@ -41,6 +41,7 @@ class Command:
     
     def _fill_ext(self, ext):
         ext.pop('capt', None)
+        ext['nm']   = ext.get('nm', '')         if not ext.get('nm', '')                        else 'tool'+str(random.randint(100, 999))
         ext['ddir'] = ext.get('ddir', '')
         ext['shll'] = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N')) in 'NY'            else ext.get('shll', False)
         ext['prms'] = ext.get('prms', '')
@@ -99,9 +100,409 @@ class Command:
             app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run,{};{}'.format(id_menu, ext['id'], ext['nm']))
        #def _adapt_menu
         
+    def dlg_config_list(self):
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
+        keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
+        keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+        
+        ids     = [ext['id'] for ext in self.exts]
+        ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else -1
+
+        GAP2    = GAP*2    
+        ACTS_W          = 120
+        WD_LST, HT_LST  = (3*ACTS_W+GAP2, 300)
+        ACTS_T          = [GAP2+HT_LST  + GAP*ind+23*(ind-1) for ind in range(20)]
+        ACTS_L          = [GAP+         + GAP*ind+ACTS_W*(ind-1) for ind in range(20)]
+        DLG_W, DLG_H    = WD_LST+GAP*4, ACTS_T[4]+GAP
+        while True:
+            exkys   = []
+            ekeys   = []
+            for ext in self.exts:
+                ext_cid = 'cuda_exttools,run,{}'.format(ext['id'])
+                ext_keys= keys.get(ext_cid, {})
+                kys     = '/'.join([' * '.join(ext_keys.get('s1', []))
+                                   ,' * '.join(ext_keys.get('s2', []))
+                                   ]).strip('/')
+                exkys  += [ext['nm'] + (' ['+kys+']' if kys else '')]
+                ekeys  +=                 [  kys  ]
+            pass;              #LOG and log('exkys={}',exkys)
+
+            ext     = self.exts[ext_ind] if ext_ind in range(len(self.exts)) else None
+            pass;              #LOG and log('ext_ind, ext={}',(ext_ind, ext))
+            
+            ans = app.dlg_custom('Tools'   ,DLG_W, DLG_H, '\n'.join([]
+            #LIST
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP2,        t=GAP,      r=GAP2+WD_LST+GAP, b=ACTS_T[3])
+                      ,'cap=&Tools'
+                      ])] # i= 0
+            +[C1.join(['type=listbox'   ,POS_FMT(l=GAP2,        t=GAP+20,   r=GAP+4+WD_LST,   b=GAP+HT_LST)
+                      ,'items=' +'\t'.join(exkys)
+                      ,'val='   +str(ext_ind)  # start sel
+                      ])] # i= 1
+            # TOOLS ACTS
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[1],    t=ACTS_T[1],   r=ACTS_L[1]+ACTS_W,b=0)
+                      ,'cap=&Edit props...'
+                      ,'props=1'    # default
+                      ])] # i= 2
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[2],    t=ACTS_T[1],   r=ACTS_L[2]+ACTS_W,b=0)
+                      ,'cap=&Add...'
+                      ])] # i= 3
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[3],    t=ACTS_T[1],   r=ACTS_L[3]+ACTS_W,b=0)
+                      ,'cap=De&lete...'
+                      ])] # i= 4
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[1],    t=ACTS_T[2],   r=ACTS_L[1]+ACTS_W,b=0)
+                      ,'cap=Clo&ne'
+                      ])] # i= 5
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[2],    t=ACTS_T[2],   r=ACTS_L[2]+ACTS_W,b=0)
+                      ,'cap=&Up'
+                      ])] # i= 6
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[3],    t=ACTS_T[2],   r=ACTS_L[3]+ACTS_W,b=0)
+                      ,'cap=Do&wn'
+                      ])] # i= 7
+            # DLG ACTS
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[3],    t=ACTS_T[3],   r=ACTS_L[3]+ACTS_W,b=0)
+                      ,'cap=Cl&ose'
+                      ])] # i= 8
+            ), 1)    # start focus
+            if ans is None:  break #while
+            (ans_i
+            ,vals)      = ans
+            vals        = vals.splitlines()
+            pass;              #LOG and log('ans_i, vals={}',(ans_i, list(enumerate(vals))))
+            ans_s       = apx.icase(False,''
+                           ,ans_i== 2,'edit'
+                           ,ans_i== 3,'add'
+                           ,ans_i== 4,'del'
+                           ,ans_i== 5,'clone'
+                           ,ans_i== 6,'up'
+                           ,ans_i== 7,'down'
+                           ,ans_i== 8,'close'
+                           ,'?')
+            if ans_s=='close':
+                break #while
+
+            new_ext_ind = int(vals[ 1])
+
+            if ans_s=='add': #New
+                file4run    = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+                file4run    = file4run if file4run is not None else ''
+                id4ext      = gen_ext_id(self.ext4id)
+                ext         = self._fill_ext({'id':id4ext
+                                    ,'nm':(os.path.basename(file4run) if file4run else 'tool{}'.format(len(self.exts)))
+                                    ,'file':file4run
+                                    ,'ddir':os.path.dirname(file4run)})
+                ed_ans      = self.dlg_config_prop(ext, keys)
+                pass;           LOG and log('fin edit={}',ed_ans)
+                if ed_ans is None:
+                    continue #while
+                self.exts   += [ext]
+                ext_ind     = len(self.exts)-1
+                new_ext_ind = ext_ind           ## need?
+
+            if new_ext_ind==-1:
+                continue #while
+                
+            what    = ''
+#           changed = False
+            ext_ind = new_ext_ind
+            if False:pass
+            
+            elif ans_s=='edit':
+                pass;          #LOG and log('?? edit self.exts[new_ext_ind]={}',self.exts[new_ext_ind])
+                ed_ans  = self.dlg_config_prop(self.exts[new_ext_ind], keys)
+                if ed_ans is None or not ed_ans:
+                    pass;      #LOG and log('// edit self.exts[new_ext_ind]={}',self.exts[new_ext_ind])
+                    continue # while
+                pass;          #LOG and log('ok edit self.exts[new_ext_ind]={}',self.exts[new_ext_ind])
+                
+            elif ans_s=='up' and new_ext_ind>0: #Up
+                pass;          #LOG and log('up',())
+                (self.exts[new_ext_ind-1]
+                ,self.exts[new_ext_ind  ])  = (self.exts[new_ext_ind  ]
+                                              ,self.exts[new_ext_ind-1])
+                ext_ind = new_ext_ind-1
+#               changed = True
+            elif ans_s=='down' and new_ext_ind<(len(self.exts)-1): #Down
+                pass;           LOG and log('dn',())
+                (self.exts[new_ext_ind  ]
+                ,self.exts[new_ext_ind+1])  = (self.exts[new_ext_ind+1]
+                                              ,self.exts[new_ext_ind  ])
+                ext_ind = new_ext_ind+1
+#               changed = True
+            
+            elif ans_s=='clone': #Clone
+                cln_ext     = copy.deepcopy(self.exts[new_ext_ind])
+                cln_ext['id']= gen_ext_id(self.ext4id)
+                cln_ext['nm']= cln_ext['nm']+' clone'
+                self.exts   += [cln_ext]
+                ext_ind     = len(self.exts)-1
+#               changed     = True
+
+            elif ans_s=='del': #Del
+                if app.msg_box( 'Delete Tool\n    {}'.format(exkys[new_ext_ind])
+                              , app.MB_YESNO)!=app.ID_YES:
+                    continue # while
+                what    = 'delete:'+str(self.exts[new_ext_ind]['id'])
+                del self.exts[new_ext_ind]
+                ext_ind = min(new_ext_ind, len(self.exts)-1)
+#               changed = True
+
+#           if changed or not what:
+            pass;               LOG and log('?? list _do_acts',)
+            self._do_acts(what)
+           #while True
+       #def dlg_config_list
+        
+    def dlg_config_prop(self, ext, keys=None):
+        if keys is None:
+            keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
+            keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+        kys         = get_keys_desc('cuda_exttools,run', ext['id'], keys)
+
+        ed_ext      = copy.deepcopy(ext)
+        
+        GAP2            = GAP*2    
+        PRP1_W, PRP1_L  = (100, GAP)
+        PRP2_W, PRP2_L  = (400, PRP1_L+    PRP1_W)
+        PRP3_W, PRP3_L  = (100, PRP2_L+GAP+PRP2_W)
+        PROP_T          = [GAP*ind+23*(ind-1) for ind in range(20)]   # max 20 rows
+        DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[13]+GAP
+        
+        focused         = 1
+        while True:
+            ed_kys  = get_keys_desc('cuda_exttools,run', ed_ext['id'], keys)
+            val_savs= self.savs_vals.index(ed_ext['savs']) if ed_ext is not None else 0
+            val_rslt= self.rslt_vals.index(ed_ext['rslt']) if ed_ext is not None else 0
+            
+            ans = app.dlg_custom('Tool properties'   ,DLG_W, DLG_H, '\n'.join([]
+            # TOOL PROPS
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[1]+3,  r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=&Name'
+                      ])] # i= 0
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[1],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_ext['nm']
+                      ])] # i= 1
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[2]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=&File name'
+                      ])] # i= 2
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[2],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_ext['file']
+                      ])] # i= 3
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[2]-1,r=PRP3_L+PRP3_W,b=0)
+                      ,'cap=&Browse...'
+                      ])] # i= 4
+                      
+            +[C1.join(['type=check'     ,POS_FMT(l=PRP2_L,  t=PROP_T[3]-2,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=&Shell command'
+                      ,'val='+('1' if ed_ext['shll'] else '0')
+                      ])] # i= 5
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[4]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=&Parameters'
+                      ])] # i= 6
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[4],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_ext['prms']
+                      ])] # i= 7
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[4]-1,r=PRP3_L+PRP3_W,b=0)
+                      ,'cap=A&dd...'
+                      ])] # i= 8
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[5]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=&Initial folder'
+                      ])] # i= 9
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[5],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_ext['ddir']
+                      ])] # i=10
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[5]-1,r=PRP3_L+PRP3_W,b=0)
+                      ,'cap=B&rowse...'
+                      ])] # i=11
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[6]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=Lexers'
+                      ])] # i=12
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[6],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_ext['lxrs']
+                      ,'props=1,0,1'    # ro,mono,border
+                      ])] # i=13
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[6]-1,r=PRP3_L+PRP3_W,b=0)
+                      ,'cap=Le&xers...'
+                      ])] # i=14
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[7]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=Save &before'
+                      ])] # i=15
+            +[C1.join(['type=combo_ro'  ,POS_FMT(l=PRP2_L,  t=PROP_T[7]-1,r=PRP2_L+PRP2_W,b=0)
+                      ,'items='+'\t'.join(self.savs_caps)
+                      ,'val='   +str(val_savs)  # start sel
+                      ])] # i=16
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[8]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=Hotkey'
+                      ])] # i=17
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[8],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_kys
+                      ,'props=1,0,1'    # ro,mono,border
+                      ])] # i=18
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[8]-1,r=PRP3_L+PRP3_W,b=0)
+                      ,'cap=Assi&gn...'
+                      ])] # i=19
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[9]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=&Capture output'
+                      ])] # i=20
+            +[C1.join(['type=combo_ro'  ,POS_FMT(l=PRP2_L,  t=PROP_T[9]-1,r=PRP2_L+PRP2_W,b=0)
+                      ,'items='+'\t'.join(self.rslt_caps)
+                      ,'val='   +str(val_rslt)  # start sel
+                      ])] # i=21
+                      
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[10]+3,r=PRP1_L+PRP1_W,b=0)
+                      ,'cap=Encoding'
+                      ])] # i=22
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[10],  r=PRP2_L+PRP2_W,b=0)
+                      ,'val='+ed_ext['encd']
+                      ,'props=1,0,1'    # ro,mono,border
+                      ])] # i=23
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[10]-1,r=PRP3_L+PRP3_W,b=0)
+                      ,'cap=S&elect...'
+                      ])] # i=24
+            # DLG ACTS
+            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*3-100*3,    t=PROP_T[12],r=DLG_W-GAP*3-100*2,b=0)
+                      ,'cap=Help'
+                      ])] # i=25
+            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*2-100*2,    t=PROP_T[12],r=DLG_W-GAP*2-100*1,b=0)
+                      ,'cap=OK'
+                      ,'props=1' #default
+                      ])] # i=26
+            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*1-100*1,    t=PROP_T[12],r=DLG_W-GAP*1-100*0,b=0)
+                      ,'cap=Cancel'
+                      ])] # i=27
+            ), focused)    # start focus
+            if ans is None:  
+                return None
+            (ans_i
+            ,vals)      = ans
+            vals        = vals.splitlines()
+            pass;              #LOG and log('ans_i, vals={}',(ans_i, list(enumerate(vals))))
+            ans_s       = apx.icase(False,''
+                           ,ans_i== 4,'file'
+                           ,ans_i== 8,'prms'
+                           ,ans_i==11,'ddir'
+                           ,ans_i==14,'lxrs'
+                           ,ans_i==19,'hotkeys'
+                           ,ans_i==24,'encd'
+                           ,ans_i==25,'help'
+                           ,ans_i==26,'save'
+                           ,ans_i==27,'cancel'
+                           ,'?')
+            ed_ext['nm']    =   vals[ 1]
+            ed_ext['file']  =   vals[ 3]
+            ed_ext['shll']  =   vals[ 5]=='1'
+            ed_ext['prms']  =   vals[ 7]
+            ed_ext['ddir']  =   vals[10]
+            ed_ext['lxrs']  =   vals[13]
+            ed_ext['savs']  = self.savs_vals[int(
+                                vals[16])]
+            ed_ext['rslt']  = self.rslt_vals[int(
+                                vals[21])]
+            ed_ext['encd']  =   vals[23]
+                
+            if ans_s=='cancel':
+                return None
+            if ans_s=='save':
+                #Checks
+                if False:pass
+                elif not ed_ext['nm']:
+                    app.msg_box('Set name', app.MB_OK)
+                    focused = 1
+                    continue #while
+                elif not ed_ext['file']:
+                    app.msg_box('Set file', app.MB_OK)
+                    focused = 3
+                    continue #while
+                    
+                pass;          #LOG and log('save    ext={}',ext)
+                pass;          #LOG and log('save ed_ext={}',ed_ext)
+                if ext==ed_ext and kys==ed_kys:
+                    return False
+                for fld in ed_ext:
+                    ext[fld] = ed_ext[fld]
+                pass;          #LOG and log('ok ext={}',ext)
+                return True
+
+            if False:pass
+            elif ans_s=='help':
+                show_help()
+                continue #while
+
+            elif ans_s=='file': #File
+                file4run= app.dlg_file(True, '!'+ed_ext['file'], '', '')# '!' to disable check "filename exists"
+                if file4run is not None:
+                    ed_ext['file'] = file4run
+            
+            elif ans_s=='ddir': #File
+                file4dir= app.dlg_file(True, '!', ed_ext['ddir'], '')   # '!' to disable check "filename exists"
+                if file4dir is not None:
+                    ed_ext['ddir'] = os.path.dirname(file4dir)
+
+            elif ans_s=='prms': #Append param {*}
+                prms_l  =([]
+                        +['{FileName}\tFull path']
+                        +['{FileDir}\tFolder path, without file name']
+                        +['{FileNameOnly}\tFile name only, without folder path']
+                        +['{FileNameNoExt}\tFile name without extension and path']
+                        +['{FileExt}\tExtension']
+                        +['{CurrentLine}\tText of current line']
+                        +['{CurrentLineNum}\tNumber of current line']
+                        +['{CurrentColumnNum}\tNumber of current column']
+                        +['{SelectedText}\tText' ]
+                        +['{Interactive}\tText will be asked at each running']
+                        +['{InteractiveFile}\tFile name will be asked'])
+                prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l))
+                if prm_i is not None:
+                    ed_ext['prms'] += (' '+prms_l[prm_i].split('\t')[0])
+
+            elif ans_s=='hotkeys': #Hotkeys
+                app.dlg_hotkeys('cuda_exttools,run,'+str(ed_ext['id']))
+                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+            
+            elif ans_s=='lxrs': #Lexers only
+                lxrs    = ','+ed_ext['lxrs']+','
+                lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
+                sels    = ['1' if ','+lxr+',' in lxrs else '0' for lxr in lxrs_l]
+                crt     = str(sels.index('1') if '1' in sels else 0)
+                ans     = app.dlg_custom('Select lexers'   ,GAP+200+GAP, GAP+400+GAP+24+GAP, '\n'.join([]
+                +[C1.join(['type=checklistbox'  ,POS_FMT(l=GAP,             t=GAP,          r=GAP+200,   b=GAP+400)
+                          ,'items=' +'\t'.join(lxrs_l)
+                          ,'val='   + crt+';'+','.join(sels)
+                          ])] # i=0
+                +[C1.join(['type=button'        ,POS_FMT(l=    200-120,      t=GAP+400+GAP,  r=    200- 60,   b=0)
+                          ,'cap=OK'
+                          ])] # i=1
+                +[C1.join(['type=button'        ,POS_FMT(l=GAP+200- 60,      t=GAP+400+GAP,  r=GAP+200,   b=0)
+                          ,'cap=Cancel'
+                          ])] # i=2
+                ), 0)    # start focus
+                if ans is not None and ans[0]==1:
+                    crt,sels= ans[1].splitlines()[0].split(';')
+                    sels    = sels.strip(',').split(',')
+                    lxrs    = [lxr for (ind,lxr) in enumerate(lxrs_l) if sels[ind]=='1']
+                    ed_ext['lxrs'] = ','.join(lxrs)
+            
+            elif ans_s=='encd': #Lexers only
+                enc_nms = get_encoding_names()
+                enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms))
+                if enc_ind is not None:
+                    ed_ext['encd'] = enc_nms[enc_ind].split('\t')[0]
+            
+           #while True
+       #def dlg_config_prop
+        
     def dlg_config(self):
         ''' Show dlg for change exts list.
         '''
+        return self.dlg_config_list()
+        
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
@@ -687,6 +1088,19 @@ def show_help():
                   ] # i=7
          )]
     ), 1)    # start focus
+
+def get_keys_desc(mdl_mth, id, keys=None):
+    if keys is None:
+        keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
+        keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+
+    cmd_id  = '{},{}'.format(mdl_mth, id)
+    cmd_keys= keys.get(cmd_id, {})
+    desc    = '/'.join([' * '.join(cmd_keys.get('s1', []))
+                       ,' * '.join(cmd_keys.get('s2', []))
+                       ]).strip('/')
+    return desc
+   #def get_keys_desc
 
 '''
 ToDo
