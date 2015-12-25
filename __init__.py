@@ -12,4 +12,5 @@ class Command:
     def on_start(self, ed_self):    return RLS.on_start(ed_self)
     def dlg_config(self):           return RLS.dlg_config()
     def run(self, ext_id):          return RLS.run(ext_id)
+    def run_lxr_main(self):         return RLS.run_lxr_main()
    #class Command

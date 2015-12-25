@@ -13,3 +13,9 @@ section=commands
 caption=ExtTools
 method=dlg_config
 menu=0
+
+[item3]
+section=commands
+caption=Run main lexer tool
+method=run_lxr_main
+menu=0
