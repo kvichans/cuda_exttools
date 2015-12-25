@@ -190,7 +190,8 @@ class Command:
         lxr_cur = ed.get_prop(app.PROP_LEXER_FILE)
         lxr_cur = lxr_cur if lxr_cur else '(none)' 
         pass;                   LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
-        if not (','+lxr_cur+',' in ','+lxrs+','):
+        if (lxrs
+        and not (','+lxr_cur+',' in ','+lxrs+',')):
             return app.msg_status('Tool "{}" is not suitable for lexer "{}". It works only with "{}"'.format(nm, lxr_cur, lxrs))
         cmnd    = ext['file']
         prms_s  = ext['prms']
