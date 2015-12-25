@@ -85,6 +85,7 @@ class Command:
             # Adapt to new format
             pass
         self.dlg_prs        = ver_exts.get('dlg_prs', {})
+        self.ext4lxr        = ver_exts.get('ext4lxr', {})
         self.exts           = ver_exts['list']
         for ext in self.exts:
             self._fill_ext(ext)
@@ -132,6 +133,7 @@ class Command:
             open(EXTS_JSON, 'w').write(json.dumps(
                 {'ver':JSON_FORMAT_VER
                 ,'dlg_prs':self.dlg_prs
+                ,'ext4lxr':self.ext4lxr
                 ,'list':self.exts
                 }, indent=4))
         
@@ -175,10 +177,17 @@ class Command:
         ext     = self.ext4id.get(str(ext_id))
         if ext is None:
             return app.msg_status('No Tool: {}'.format(ext_id))
+        nm      = ext['nm']
+        lxrs    = ext['lxrs']
+        lxr_cur = ed.get_prop(app.PROP_LEXER_FILE)
+        lxr_cur = lxr_cur if lxr_cur else '(none)' 
+        pass;                   LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
+        if not (','+lxr_cur+',' in ','+lxrs+','):
+            return app.msg_status('Tool "{}" is not suitable for lexer "{}". It works only with "{}"'.format(nm, lxr_cur, lxrs))
         cmnd    = ext['file']
         prms_s  = ext['prms']
         ddir    = ext['ddir']
-        pass;                   LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',ext['nm'], ddir, cmnd, prms_s)
+        pass;                   LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, ddir, cmnd, prms_s)
         
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
@@ -193,12 +202,12 @@ class Command:
         prms_l  = shlex.split(prms_s)
         for ind, prm in enumerate(prms_l):
             prm_raw = prm
-            prm     = sub_props(prm, file_nm, cCrt, rCrt)
+            prm     = subst_props(prm, file_nm, cCrt, rCrt)
             if prm_raw != prm:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
-        ddir        = sub_props(ddir, file_nm, cCrt, rCrt)
+        ddir        = subst_props(ddir, file_nm, cCrt, rCrt)
 
         pass;                   LOG and log('ready prms_l={}',(prms_l))
 
@@ -282,14 +291,15 @@ class Command:
         pass;                  #LOG and log('prs={}',prs)
         while True:
             ext_nz_d        = collections.OrderedDict([
-                           ('Name'          ,prs.get('nm'  , '120'))    #L
-                          ,('Keys'          ,prs.get('keys',  '80'))    #L
-                          ,('File | >cmd'   ,prs.get('file', '150'))    #R
-                          ,('Params'        ,prs.get('prms', '150'))    #L
-                          ,('Folder'        ,prs.get('ddir', '150'))    #R
-                          ,('Lexers'        ,prs.get('lxrs',  '50'))    #L
-                          ,('Capture'       ,prs.get('rslt',  '50'))    #C
-                          ,('Saving'        ,prs.get('savs',  '30'))])  #C
+                           ('Name'          ,prs.get('nm'  , '150'))
+                          ,('Keys'          ,prs.get('keys', '100'))
+                          ,('File|>cmd'     ,prs.get('file', '180'))
+                          ,('Params'        ,prs.get('prms', '100'))
+                          ,('Folder'        ,prs.get('ddir', '100'))
+                          ,('Lexers'        ,prs.get('lxrs', 'C50'))
+                          ,('Capture'       ,prs.get('rslt', 'C50'))
+                          ,('Saving'        ,prs.get('savs', 'C30'))
+                          ])
             WD_LST, HT_LST  = (sum([int(w.lstrip('LRC')) for w in ext_nz_d.values()])+len(ext_nz_d)
                               ,prs.get('h_list', 300))
             ACTS_T          = [GAP+HT_LST   + GAP*ind+23*(ind-1)     for ind in range(20)]
@@ -348,13 +358,16 @@ class Command:
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[4],    t=ACTS_T[2],   r=ACTS_L[4]+ACTS_W,b=0)
                       ,'cap=Do&wn'
                       ])] # i= 7
+            +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[6],    t=ACTS_T[1],   r=ACTS_L[7]+ACTS_W,b=0)
+                      ,'cap=Set &main tool for lexers...'
+                      ])] # i= 8
             # DLG ACTS
             +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP2-ACTS_W,    t=ACTS_T[1],   r=DLG_W-GAP2,b=0)
-                      ,'cap=Custo&m...'
-                      ])] # i= 8
+                      ,'cap=Ad&just...'
+                      ])] # i= 9
             +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP2-ACTS_W,    t=ACTS_T[2],   r=DLG_W-GAP2,b=0)
                       ,'cap=Cl&ose'
-                      ])] # i= 9
+                      ])] # i=10
             ), 1)    # start focus
             if ans is None:  break #while
             (ans_i
@@ -368,41 +381,52 @@ class Command:
                            ,ans_i== 5,'del'
                            ,ans_i== 6,'up'
                            ,ans_i== 7,'down'
-                           ,ans_i== 8,'custom'
-                           ,ans_i== 9,'close'
+                           ,ans_i== 8,'main'
+                           ,ans_i== 9,'custom'
+                           ,ans_i==10,'close'
                            ,'?')
             if ans_s=='close':
                 break #while
             if ans_s=='custom': #Custom
-                custs   = app.dlg_input_ex(9, 'Custom dialog Tools. Use L,R,C before width to align'
-                    , 'Height of list   (min 300)'  , str(self.dlg_prs.get('h_list', 300))
-                    , 'Width of Name    (min 100)'  , prs.get('nm'  , '100')
-                    , 'Width of Keys    (min  50)'  , prs.get('keys',  '50')
-                    , 'Width of File    (min 150)'  , prs.get('file', '150')
-                    , 'Width of Params  (min 150)'  , prs.get('prms', '150')
+                custs   = app.dlg_input_ex(9, 'Custom dialog Tools. Use L,R,C before width to align (empty=L).'
+                    , 'Width of Name    (min 100)'  , prs.get('nm'  , '150')
+                    , 'Width of Keys    (min  50)'  , prs.get('keys', '100')
+                    , 'Width of File    (min 150)'  , prs.get('file', '180')
+                    , 'Width of Params  (min 150)'  , prs.get('prms', '100')
                     , 'Width of Folder  (min 100)'  , prs.get('ddir', '100')
-                    , 'Width of Lexers  (min  50)'  , prs.get('lxrs',  '50')
-                    , 'Width of Capture (min  50)'  , prs.get('rslt',  '50')
-                    , 'Width of Saving  (min  30)'  , prs.get('savs',  '30')
+                    , 'Width of Lexers  (min  50)'  , prs.get('lxrs', 'C50')
+                    , 'Width of Capture (min  50)'  , prs.get('rslt', 'C50')
+                    , 'Width of Saving  (min  30)'  , prs.get('savs', 'C30')
+                    , 'Height of list   (min 200)'  , str(self.dlg_prs.get('h_list', 300))
                     )
                 if custs is not None:
-                    self.dlg_prs['h_list']  = max(300, int(custs[0]));  self.dlg_prs['h_acts'] = self.dlg_prs['h_list']
-                    self.dlg_prs['nm']      = str(max(100, int(custs[1])))
-                    self.dlg_prs['keys']    = str(max( 50, int(custs[2])))
-                    self.dlg_prs['file']    = str(max(150, int(custs[3])))
-                    self.dlg_prs['prms']    = str(max(150, int(custs[4])))
-                    self.dlg_prs['ddir']    = str(max(100, int(custs[5])))
-                    self.dlg_prs['lxrs']    = str(max( 50, int(custs[6])))
-                    self.dlg_prs['rslt']    = str(max( 50, int(custs[7])))
-                    self.dlg_prs['savs']    = str(max( 30, int(custs[8])))
+                    def adapt2min(vmin, cval):
+                        cval    = cval.upper()
+                        c1st    = cval[0] if cval[0] in 'LRC' else ''
+                        cval    = cval.lstrip('LRC')
+                        return    c1st + str(max(vmin, int(cval)))
+                    self.dlg_prs['nm']      = adapt2min(100, custs[0])
+                    self.dlg_prs['keys']    = adapt2min( 50, custs[1])
+                    self.dlg_prs['file']    = adapt2min(150, custs[2])
+                    self.dlg_prs['prms']    = adapt2min(150, custs[3])
+                    self.dlg_prs['ddir']    = adapt2min(100, custs[4])
+                    self.dlg_prs['lxrs']    = adapt2min( 50, custs[5])
+                    self.dlg_prs['rslt']    = adapt2min( 50, custs[6])
+                    self.dlg_prs['savs']    = adapt2min( 30, custs[7])
+                    self.dlg_prs['h_list']  =       max(200, int(custs[8]))
                     open(EXTS_JSON, 'w').write(json.dumps(
                         {'ver':JSON_FORMAT_VER
                         ,'list':self.exts
+                        ,'ext4lxr':self.ext4lxr
                         ,'dlg_prs':self.dlg_prs}, indent=4))
                 continue #while
 
             new_ext_ind = int(vals[ 1])
 
+            if ans_s=='main': #Main lexer tool
+#               self.dlg_main_tool()
+                continue #while
+            
             if ans_s=='add': #New
                 file4run    = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
                 file4run    = file4run if file4run is not None else ''
@@ -473,6 +497,52 @@ class Command:
             self._do_acts(what)
            #while True
        #def dlg_config_list
+        
+    def dlg_main_tool(self):
+        lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
+        lxrs_l += ['(none)']
+        nms     = [ext['nm'] for ext in self.exts]
+        self.ext4lxr
+        lxrs_enm    = ['"{}"{}'.format(lxr, ' - "{}"'.format(self.ext4lxr[lxr]) if lxr in self.ext4lxr else '')
+                        for lxr in lxrs_l]
+        lxr_ind     = 0
+        tool_ind    = 0
+        focused     = 1
+        while True:
+            ans = app.dlg_custom('Tool properties'   ,GAP*3+200*2, GAP*4+300+23*2, '\n'.join([]
+            # TOOL PROPS
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,         t=3+GAP,   r=GAP+200,        b=0)
+                      ,'cap=&Lexer - main tool'
+                      ])] # i= 0
+            +[C1.join(['type=listbox'   ,POS_FMT(l=GAP,         t=GAP+23,  r=GAP+200,        b=GAP+23+300)
+                      ,'items=' +'\t'.join(lxrs_enm)
+                      ,'val='   +str(lxr_ind)  # start sel
+                      ])] # i= 1
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP+200+GAP, t=3+GAP,   r=GAP+200+GAP+200,b=0)
+                      ,'cap=&Tools'
+                      ])] # i= 2
+            +[C1.join(['type=listbox'   ,POS_FMT(l=GAP+200+GAP, t=GAP+23,  r=GAP+200+GAP+200,b=GAP+23+300)
+                      ,'items=' +'\t'.join(nms)
+                      ,'val='   +str(tool_ind)  # start sel
+                      ])] # i= 3
+            +[C1.join(['type=button'    ,POS_FMT(l=GAP,         t=GAP+23+300+GAP,r=GAP+90,b=0)
+                      ,'cap=&Assign'
+                      ])] # i= 4
+            +[C1.join(['type=button'    ,POS_FMT(l=GAP,         t=GAP+23+300+GAP,r=GAP+90,b=0)
+                      ,'cap=&Assign'
+                      ])] # i= 4
+            ), focused)    # start focus
+            if ans is None:  
+                return None
+            (ans_i
+            ,vals)      = ans
+            vals        = vals.splitlines()
+            pass;              #LOG and log('ans_i, vals={}',(ans_i, list(enumerate(vals))))
+            ans_s       = apx.icase(False,''
+                           ,ans_i== 4,'file'
+                           )
+           #while True
+       #def dlg_main_tool
         
     def dlg_config_prop(self, ext, keys=None):
         if keys is None:
@@ -690,6 +760,7 @@ class Command:
             elif ans_s=='lxrs': #Lexers only
                 lxrs    = ','+ed_ext['lxrs']+','
                 lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
+                lxrs_l += ['(none)']
                 sels    = ['1' if ','+lxr+',' in lxrs else '0' for lxr in lxrs_l]
                 crt     = str(sels.index('1') if '1' in sels else 0)
                 ans     = app.dlg_custom('Select lexers'   ,GAP+200+GAP, GAP+400+GAP+24+GAP, '\n'.join([]
@@ -721,7 +792,7 @@ class Command:
         
    #class Command
 
-def sub_props(prm, file_nm, cCrt, rCrt):
+def subst_props(prm, file_nm, cCrt, rCrt):
     if '{FileName}'         in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
     if '{FileDir}'          in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
     if '{FileNameOnly}'     in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
