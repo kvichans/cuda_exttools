@@ -212,7 +212,7 @@ class Command:
         prms_l  = shlex.split(prms_s)
         for ind, prm in enumerate(prms_l):
             prm_raw = prm
-            prm     = subst_props(prm, file_nm, cCrt, rCrt)
+            prm     = subst_props(prm, file_nm, cCrt, rCrt, ext['nm'])
             if prm_raw != prm:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
@@ -457,7 +457,7 @@ class Command:
                 if ed_ans is None:
                     continue #while
                 self.exts  += [ext]
-#               ids         = [ext['id'] for ext in self.exts]
+                ids         = [ext['id'] for ext in self.exts]
                 ext_ind     = len(self.exts)-1
                 new_ext_ind = ext_ind           ## need?
 
