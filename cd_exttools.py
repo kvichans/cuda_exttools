@@ -310,8 +310,8 @@ class Command:
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
         if not grp_dic:                 return app.msg_status('Tool "{}" could not find a file in output line'.format(ext['nm'])) # '
         nav_file=     grp_dic.get('file',  '')
-        nav_line= int(grp_dic.get('line', '0'))
-        nav_col = int(grp_dic.get('col' , '0'))
+        nav_line= int(grp_dic.get('line', '0'))-1
+        nav_col = int(grp_dic.get('col' , '0'))-1
         pass;                   LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
         nav_file= ed.get_filename() if not nav_file else nav_file
         bs_dir  = ext['ddir']
