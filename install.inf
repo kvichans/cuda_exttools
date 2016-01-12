@@ -6,16 +6,16 @@ subdir=cuda_exttools
 
 [item1]
 section=events
-events=on_start
+events=on_start,on_output_nav
 
 [item2]
 section=commands
-caption=ExtTools
+caption=External Tools...
 method=dlg_config
 menu=0
 
 [item3]
 section=commands
-caption=Run main lexer tool
+caption=Run lexer main tool
 method=run_lxr_main
 menu=0
