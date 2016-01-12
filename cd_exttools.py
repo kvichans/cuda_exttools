@@ -15,7 +15,7 @@ from    cudax_lib   import log
 from    .encodings  import *
 
 pass;                           # Logging
-pass;                           LOG = (-2== 2)  # Do or dont logging.
+pass;                           LOG = (-2==-2)  # Do or dont logging.
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
@@ -301,7 +301,7 @@ class Command:
        #def run
        
     def on_output_nav(self, ed_self, output_line, crc_tag):
-        pass;                  #LOG and log('output_line, crc_tag={}',(output_line, crc_tag))
+        pass;                   LOG and log('output_line, crc_tag={}',(output_line, crc_tag))
         ext_lst = [ext for ext in self.exts if self.id2crc[ext['id']]==crc_tag]
         if not ext_lst:                 return app.msg_status('No Tool to parse output line')
         ext     = ext_lst[0]
@@ -312,11 +312,12 @@ class Command:
         nav_file=     grp_dic.get('file',  '')
         nav_line= int(grp_dic.get('line', '0'))
         nav_col = int(grp_dic.get('col' , '0'))
-        pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
+        pass;                   LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
+        nav_file= ed.get_filename() if not nav_file else nav_file
         bs_dir  = ext['ddir']
         bs_dir  = os.path.dirname(ed.get_filename()) if not bs_dir else bs_dir
         nav_file= os.path.join(bs_dir, nav_file)
-        pass;                  #LOG and log('nav_file={}',(nav_file))
+        pass;                   LOG and log('nav_file={}',(nav_file))
         if not os.path.exists(nav_file):return app.msg_status('Cannot open: {}'.format(nav_file))
         nav_ed  = _file_open(nav_file)
         if nav_ed is None:              return app.msg_status('Cannot open: {}'.format(nav_file))
