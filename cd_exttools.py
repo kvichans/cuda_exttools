@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.1 2016-01-12'
+    '1.0.2 2016-01-13'
 ToDo: (see end of file)
 '''
 
@@ -15,7 +15,7 @@ from    cudax_lib   import log
 from    .encodings  import *
 
 pass;                           # Logging
-pass;                           LOG = (-2==-2)  # Do or dont logging.
+pass;                           LOG = (-2== 2)  # Do or dont logging.
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
@@ -309,9 +309,11 @@ class Command:
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
         if not grp_dic:                 return app.msg_status('Tool "{}" could not find a file in output line'.format(ext['nm'])) # '
-        nav_file=     grp_dic.get('file',  '')
-        nav_line= int(grp_dic.get('line', '0'))-1
-        nav_col = int(grp_dic.get('col' , '0'))-1
+        nav_file=     grp_dic.get('file' ,  '')
+        nav_line= int(grp_dic.get('line' , '1'))-1
+        nav_col = int(grp_dic.get('col'  , '1'))-1
+        nav_lin0= int(grp_dic.get('line0', '0'))
+        nav_col0= int(grp_dic.get('col0' , '0'))
         pass;                   LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
         nav_file= ed.get_filename() if not nav_file else nav_file
         bs_dir  = ext['ddir']
@@ -322,7 +324,11 @@ class Command:
         nav_ed  = _file_open(nav_file)
         if nav_ed is None:              return app.msg_status('Cannot open: {}'.format(nav_file))
         nav_ed.focus()
-        nav_ed.set_caret(nav_col, nav_line)
+        if False:pass
+        elif 'line'  in grp_dic:
+            nav_ed.set_caret(nav_col , nav_line)
+        elif 'line0' in grp_dic:
+            nav_ed.set_caret(nav_col0, nav_lin0)
        #def on_output_nav
        
     def dlg_config(self):
@@ -1035,10 +1041,12 @@ class Command:
             
             elif ans_s == 'help':
                 app.msg_box(''
-                           +'Three structures will be recognized for navigation:'
-                           +'\n   (?P<file>_) group with filename,'
-                           +'\n   (?P<line>_) group with number of line,'
-                           +'\n   (?P<col>_) group with number of column (optional).'
+                           +'These groups will be used for navigation:'
+                           +'\n   (?P<file>_) for filename (default - current file name),'
+                           +'\n   (?P<line>_) for number of line (default - 1),'
+                           +'\n   (?P<col>_) for number of column (default - 1).'
+                           +'\n   (?P<line0>_) for number of line (0-based, default - 0),'
+                           +'\n   (?P<col0>_) for number of column (0-based, default - 0).'
                            +'\n'
                            +'\nFull syntax documentation: https://docs.python.org/3/library/re.html'
                 , app.MB_OK)
