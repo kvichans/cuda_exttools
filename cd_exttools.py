@@ -15,7 +15,7 @@ from    cudax_lib   import log
 from    .encodings  import *
 
 pass;                           # Logging
-pass;                           LOG = (-2==-2)  # Do or dont logging.
+pass;                           LOG = (-2== 2)  # Do or dont logging.
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
@@ -230,7 +230,7 @@ class Command:
             # Without capture
             try:
                 subprocess.Popen(val4call, **nmargs)
-            except ValueError as ex:
+            except Exception as ex:
                 app.msg_box('{}: {}'.format(type(ex), ex), app.MB_OK)
             return
         
@@ -242,7 +242,7 @@ class Command:
         pass;                  #LOG and log('?? Popen nmargs={}',nmargs)
         try:
             pipe    = subprocess.Popen(val4call, **nmargs)
-        except ValueError as ex:
+        except Exception as ex:
             app.msg_box('{}: {}'.format(type(ex), ex), app.MB_OK)
             pass;               LOG and log('fail Popen',)
             return
@@ -935,8 +935,8 @@ class Command:
 
             elif ans_s=='prms': #Append param {*}
                 prms_l  =([]
-                        +['{AppDir}\tCudaText path']
-                        +['{AppDrive}\tAs "C:" for Win as "" for others']
+                        +['{AppDir}\tDirectory with app executable']
+                        +['{AppDrive}\t(Win only) Disk of app executable, eg "C:"']
                         +['{FileName}\tFull path']
                         +['{FileDir}\tFolder path, without file name']
                         +['{FileNameOnly}\tFile name only, without folder path']
@@ -1287,8 +1287,8 @@ def show_help():
         +l+ 'the following macros are processed:'
         +l+ ''
         +l+ 'Aplication properties:'
-        +l+ '   {AppDir}           - Full path '
-        +l+ '   {AppDrive}         - As "C:" for WIN platform, "" for others '
+        +l+ '   {AppDir}           - Directory with app executable'
+        +l+ '   {AppDrive}         - (Win only) Disk of app executable, eg "C:"'
         +l+ 'Currently focused file properties:'
         +l+ '   {FileName}         - Full path'
         +l+ '   {FileDir}          - Folder path, without file name'
