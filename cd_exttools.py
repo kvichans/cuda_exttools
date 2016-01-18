@@ -195,7 +195,7 @@ class Command:
         cmnd    = ext['file']
         prms_s  = ext['prms']
         ddir    = ext['ddir']
-        pass;                   LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, ddir, cmnd, prms_s)
+        pass;                   LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, cmnd, ddir, prms_s)
         
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
@@ -215,6 +215,7 @@ class Command:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
+        cmnd        = subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'])
         ddir        = subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'])
 
         pass;                   LOG and log('ready prms_l={}',(prms_l))
@@ -229,7 +230,7 @@ class Command:
             # Without capture
             try:
                 subprocess.Popen(val4call, **nmargs)
-            except ValueError as exc:
+            except ValueError as ex:
                 app.msg_box('{}: {}'.format(type(ex), ex), app.MB_OK)
             return
         
@@ -241,7 +242,7 @@ class Command:
         pass;                  #LOG and log('?? Popen nmargs={}',nmargs)
         try:
             pipe    = subprocess.Popen(val4call, **nmargs)
-        except ValueError as exc:
+        except ValueError as ex:
             app.msg_box('{}: {}'.format(type(ex), ex), app.MB_OK)
             pass;               LOG and log('fail Popen',)
             return
@@ -934,6 +935,8 @@ class Command:
 
             elif ans_s=='prms': #Append param {*}
                 prms_l  =([]
+                        +['{AppDir}\tCudaText path']
+                        +['{AppDrive}\tAs "C:" for Win as "" for others']
                         +['{FileName}\tFull path']
                         +['{FileDir}\tFolder path, without file name']
                         +['{FileNameOnly}\tFile name only, without folder path']
