@@ -1281,21 +1281,21 @@ def get_usage_names():
 def show_help():
     l   = chr(13)
     hlp = (''
-        +   'In tools\' properties'
+        +   'In tool properties'
+        +l+ '   File name'
         +l+ '   Parameters'
         +l+ '   Initial folder'
-        +l+ 'the following macros are processed:'
-        +l+ ''
-        +l+ 'Aplication properties:'
+        +l+ 'the following macros are processed.'
+        +l+ '- Application macros:'
         +l+ '   {AppDir}           - Directory with app executable'
         +l+ '   {AppDrive}         - (Win only) Disk of app executable, eg "C:"'
-        +l+ 'Currently focused file properties:'
+        +l+ '- Currently focused file macros:'
         +l+ '   {FileName}         - Full path'
         +l+ '   {FileDir}          - Folder path, without file name'
         +l+ '   {FileNameOnly}     - Name only, without folder path'
         +l+ '   {FileNameNoExt}    - Name without extension and path'
         +l+ '   {FileExt}          - Extension'
-        +l+ 'Currently focused editor properties (for top caret):'
+        +l+ '- Currently focused editor macros (for top caret):'
        #+l+ '   {CurrentWord}'
         +l+ '   {CurrentLine}      - text'
         +l+ '   {CurrentLineNum}   - number'
@@ -1303,17 +1303,17 @@ def show_help():
         +l+ '   {CurrentColumnNum} - number'
         +l+ '   {CurrentColumnNum0}- number'
         +l+ '   {SelectedText}     - text' 
-        +l+ 'Prompted:'
+        +l+ '- Prompted macros:'
         +l+ '   {Interactive}      - Text will be asked at each running'
         +l+ '   {InteractiveFile}  - File name will be asked'
         +'')
-    app.dlg_custom( 'Tool Help', GAP*2+500, GAP*3+25+400, '\n'.join([]
-        +[C1.join(['type=memo'      ,POS_FMT(l=GAP, t=GAP,          r=GAP+500,      b=GAP+400)
+    app.dlg_custom( 'Tool macros', GAP*2+550, GAP*3+25+450, '\n'.join([]
+        +[C1.join(['type=memo'      ,POS_FMT(l=GAP, t=GAP,          r=GAP+550,      b=GAP+450)
                   ,'val='+hlp
                   ,'props=1,1,1'    # ro,mono,border
                   ] # i=1
          )]
-         +[C1.join(['type=button'   ,POS_FMT(l=GAP+500-90, t=GAP+400+GAP,  r=GAP+500, b=0)
+         +[C1.join(['type=button'   ,POS_FMT(l=GAP+550-90, t=GAP+450+GAP,  r=GAP+550, b=0)
                   ,'cap=&Close'
                   ] # i=7
          )]
