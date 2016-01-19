@@ -231,7 +231,8 @@ class Command:
             try:
                 subprocess.Popen(val4call, **nmargs)
             except Exception as ex:
-                app.msg_box('{}: {}'.format(type(ex), ex), app.MB_OK)
+                app.msg_box('{}: {}'.format(str(type(ex)).split("'")[1], ex), app.MB_OK)
+                pass;           LOG and log('fail Popen',)
             return
         
         # With capture
@@ -243,7 +244,7 @@ class Command:
         try:
             pipe    = subprocess.Popen(val4call, **nmargs)
         except Exception as ex:
-            app.msg_box('{}: {}'.format(type(ex), ex), app.MB_OK)
+            app.msg_box('{}: {}'.format(str(type(ex)).split("'")[1], ex), app.MB_OK)
             pass;               LOG and log('fail Popen',)
             return
         if pipe is None:
