@@ -15,7 +15,7 @@ from    cudax_lib   import log
 from    .encodings  import *
 
 pass;                           # Logging
-pass;                           LOG = (-2== 2)  # Do or dont logging.
+pass;                           LOG = (-2==-2)  # Do or dont logging.
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
@@ -186,7 +186,7 @@ class Command:
         lxrs    = ext['lxrs']
         lxr_cur = ed.get_prop(app.PROP_LEXER_FILE)
         lxr_cur = lxr_cur if lxr_cur else '(none)' 
-        pass;                   LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
+        pass;                  #LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
         if (lxrs
         and not (','+lxr_cur+',' in ','+lxrs+',')):
             return app.msg_status('Tool "{}" is not suitable for lexer "{}". It works only with "{}"'.format(nm, lxr_cur, lxrs))
@@ -195,7 +195,7 @@ class Command:
         cmnd    = ext['file']
         prms_s  = ext['prms']
         ddir    = ext['ddir']
-        pass;                   LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, cmnd, ddir, prms_s)
+        pass;                  #LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, cmnd, ddir, prms_s)
         
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
@@ -218,7 +218,7 @@ class Command:
         cmnd        = subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'])
         ddir        = subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'])
 
-        pass;                   LOG and log('ready prms_l={}',(prms_l))
+        pass;                  #LOG and log('ready prms_l={}',(prms_l))
 
         val4call  = [cmnd] + prms_l
         pass;                   LOG and log('val4call={}',(val4call))
@@ -231,7 +231,7 @@ class Command:
             try:
                 subprocess.Popen(val4call, **nmargs)
             except Exception as ex:
-                app.msg_box('{}: {}'.format(str(type(ex)).split("'")[1], ex), app.MB_OK)
+                app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_WARN)
                 pass;           LOG and log('fail Popen',)
             return
         
@@ -244,7 +244,7 @@ class Command:
         try:
             pipe    = subprocess.Popen(val4call, **nmargs)
         except Exception as ex:
-            app.msg_box('{}: {}'.format(str(type(ex)).split("'")[1], ex), app.MB_OK)
+            app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_WARN)
             pass;               LOG and log('fail Popen',)
             return
         if pipe is None:
@@ -301,7 +301,7 @@ class Command:
        #def run
        
     def on_output_nav(self, ed_self, output_line, crc_tag):
-        pass;                   LOG and log('output_line, crc_tag={}',(output_line, crc_tag))
+        pass;                  #LOG and log('output_line, crc_tag={}',(output_line, crc_tag))
         ext_lst = [ext for ext in self.exts if self.id2crc[ext['id']]==crc_tag]
         if not ext_lst:                 return app.msg_status('No Tool to parse output line')
         ext     = ext_lst[0]
@@ -316,7 +316,7 @@ class Command:
         nav_col0= int(grp_dic.get('col0' , '0'))
         nav_line= nav_lin0 if 'line' not in grp_dic  and 'line0' in grp_dic else nav_line
         nav_col = nav_col0 if 'col'  not in grp_dic  and 'col0'  in grp_dic else nav_col
-        pass;                   LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
+        pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
         nav_file= ed.get_filename() if not nav_file else nav_file
         bs_dir  = ext['ddir']
         bs_dir  = os.path.dirname(ed.get_filename()) if not bs_dir else bs_dir
@@ -349,7 +349,7 @@ class Command:
     def show_next_result(self): self._show_result('next')
     def show_prev_result(self): self._show_result('prev')
     def _show_result(self, what):
-        pass;                   LOG and log('what, last_run_id, self.last_op_ind={}',(what, self.last_run_id, self.last_op_ind))
+        pass;                  #LOG and log('what, last_run_id, self.last_op_ind={}',(what, self.last_run_id, self.last_op_ind))
         if self.last_run_id==-1:
             return app.msg_status('No any results for navigation')
         if str(self.last_run_id) not in self.ext4id:
@@ -699,13 +699,13 @@ class Command:
            #while True
        #def dlg_main_tool
         
-    def _dlg_config_prop(self, ext, keys=None):
+    def _dlg_config_prop(self, src_ext, keys=None):
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
             keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-        kys         = get_keys_desc('cuda_exttools,run', ext['id'], keys)
+        src_kys     = get_keys_desc('cuda_exttools,run', src_ext['id'], keys)
 
-        ed_ext      = copy.deepcopy(ext)
+        ed_ext      = copy.deepcopy(src_ext)
         
         GAP2            = GAP*2    
         PRP1_W, PRP1_L  = (100, GAP)
@@ -905,14 +905,16 @@ class Command:
                     focused = 3
                     continue #while
                     
-                pass;          #LOG and log('save    ext={}',ext)
+                pass;          #LOG and log('save    src_ext={}',src_ext)
                 pass;          #LOG and log('save ed_ext={}',ed_ext)
-                if ext==ed_ext and kys==ed_kys:
+                if src_ext==ed_ext and src_kys==ed_kys:
+                    pass;      #LOG and log('ok, no chngs')
                     return False
-                for fld in ed_ext:
-                    ext[fld]= ed_ext[fld]
-                pass;          #LOG and log('ok ext={}',ext)
-                self._gen_ext_crc(ext)
+                src_ext.update(ed_ext)
+                for fld in [k for k in src_ext if k not in ed_ext]:
+                    src_ext.pop(fld, None)
+                pass;          #LOG and log('ok, fill src_ext={}',src_ext)
+                self._gen_ext_crc(src_ext)
                 return True
 
             if False:pass
@@ -1052,7 +1054,7 @@ class Command:
        #def dlg_config_prop
 
     def _dlg_pattern(self, pttn_re, pttn_test, run_nm):
-        pass;                   LOG and log('pttn_re, pttn_test={}',(pttn_re, pttn_test))
+        pass;                  #LOG and log('pttn_re, pttn_test={}',(pttn_re, pttn_test))
         grp_dic     = {}
         if pttn_re and pttn_test:
             grp_dic = re.search(pttn_re, pttn_test).groupdict('') if re.search(pttn_re, pttn_test) is not None else {}
@@ -1222,6 +1224,7 @@ def _adv_prop(act, ext, par=''):
         adv = json.loads(js)
         adv = {k:v for k,v in adv.items() 
                    if  k not in core_props}
+        pass;                  #LOG and log('ext, adv={}',(ext, adv))
         ext.update(adv)
    #def _adv_prop
 
@@ -1280,7 +1283,8 @@ def get_usage_names():
    #def get_usage_names
 
 def show_help():
-    l   = chr(13)
+    l   = chr(13)   ##?? why?
+#   l   = chr(9)
     hlp = (''
         +   'In tool properties'
         +l+ '   File name'
