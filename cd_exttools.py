@@ -6,7 +6,7 @@ Version:
 ToDo: (see end of file)
 '''
 
-import  os, json, random, subprocess, shlex, copy, collections, re, zlib, traceback
+import  os, json, random, subprocess, shlex, copy, collections, re, zlib, sys
 import  cudatext        as app
 from    cudatext    import ed
 import  cudatext_cmd    as cmds
@@ -46,6 +46,46 @@ C1      = chr(1)
 C2      = chr(2)
 POS_FMT = 'pos={l},{t},{r},{b}'.format
 GAP     = 5
+def top_plus_for_os(what_control, base_control='edit'):
+    ''' Addition for what_top to align text with base.
+        Params
+            what_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
+            base_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
+    '''
+    base_control    = apx.icase(base_control=='combo',      'edit'
+                               ,base_control=='combo_ro',   'button'
+                               ,base_control)
+    what_control    = apx.icase(what_control=='combo',      'edit'
+                               ,what_control=='combo_ro',   'button'
+                               ,what_control)
+    if what_control==base_control:
+        return 0
+    env = sys.platform
+    if base_control=='edit': 
+        if env=='win32':
+            return apx.icase(what_control=='check',   1
+                            ,what_control=='label',   3
+                            ,what_control=='button', -1
+                            ,True,                    0)
+        if env=='linux':
+            return apx.icase(what_control=='check',   1
+                            ,what_control=='label',   5
+                            ,what_control=='button',  1
+                            ,True,                    0)
+        if env=='darwin':
+            return apx.icase(what_control=='check',   1
+                            ,what_control=='label',   3
+                            ,what_control=='button',  0
+                            ,True,                    0)
+        return 0
+       #if base_control=='edit'
+    return top_plus_for_os(what_control, 'edit') - top_plus_for_os(base_control, 'edit')
+   #def top_plus_for_os
+
+at4chk  = top_plus_for_os('check')
+at4lbl  = top_plus_for_os('label')
+at4btn  = top_plus_for_os('button')
+at4cbo  = top_plus_for_os('combo_ro')
 
 class Command:
     def __init__(self):
@@ -231,7 +271,7 @@ class Command:
             try:
                 subprocess.Popen(val4call, **nmargs)
             except Exception as ex:
-                app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_WARN)
+                app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_ICONWARNING)
                 pass;           LOG and log('fail Popen',)
             return
         
@@ -244,7 +284,7 @@ class Command:
         try:
             pipe    = subprocess.Popen(val4call, **nmargs)
         except Exception as ex:
-            app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_WARN)
+            app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_ICONWARNING)
             pass;               LOG and log('fail Popen',)
             return
         if pipe is None:
@@ -408,7 +448,7 @@ class Command:
             ACTS_W          = prs.get('w_btn', 90)
             WD_LST, HT_LST  = (sum([int(w.lstrip('LRC')) for w in ext_nz_d.values() if w[0]!='-'])+len(ext_nz_d)+10
                               ,prs.get('h_list', 300))
-            ACTS_T          = [GAP+HT_LST   + GAP*ind+23*(ind-1)     for ind in range(20)]
+            ACTS_T          = [GAP2+HT_LST  + GAP*ind+25*(ind-1)     for ind in range(20)]
             ACTS_L          = [GAP+         + GAP*ind+ACTS_W*(ind-1) for ind in range(20)]
             WD_LST_MIN      = GAP*10+ACTS_W*8
             if WD_LST < WD_LST_MIN:
@@ -711,7 +751,7 @@ class Command:
         PRP1_W, PRP1_L  = (100, GAP)
         PRP2_W, PRP2_L  = (400, PRP1_L+    PRP1_W)
         PRP3_W, PRP3_L  = (100, PRP2_L+GAP+PRP2_W)
-        PROP_T          = [GAP*ind+23*(ind-1) for ind in range(20)]   # max 20 rows
+        PROP_T          = [GAP*ind+25*(ind-1) for ind in range(20)]   # max 20 rows
         DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[17]+GAP
         
         focused         = 1
@@ -722,128 +762,128 @@ class Command:
             
             ans = app.dlg_custom('Tool properties'   ,DLG_W, DLG_H, '\n'.join([]
             # TOOL PROPS
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[1]+3,  r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[1]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&Name'
                       ])] # i= 0
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[1],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[1],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['nm']
                       ])] # i= 1
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[2]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[2]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&File name'
                       ])] # i= 2
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[2],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[2],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['file']
                       ])] # i= 3
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[2]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[2]+at4btn, r=PRP3_L+PRP3_W,b=0)
                       ,'cap=&Browse...'
                       ])] # i= 4
                       
-            +[C1.join(['type=check'     ,POS_FMT(l=PRP2_L,  t=PROP_T[3]-2,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=check'     ,POS_FMT(l=PRP2_L,  t=PROP_T[3]-2,      r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&Shell command'
                       ,'val='+('1' if ed_ext['shll'] else '0')
                       ])] # i= 5
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[4]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[4]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&Parameters'
                       ])] # i= 6
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[4],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[4],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['prms']
                       ])] # i= 7
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[4]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[4]+at4btn, r=PRP3_L+PRP3_W,b=0)
                       ,'cap=A&dd...'
                       ])] # i= 8
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[5]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[5]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&Initial folder'
                       ])] # i= 9
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[5],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[5],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['ddir']
                       ])] # i=10
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[5]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[5]+at4btn, r=PRP3_L+PRP3_W,b=0)
                       ,'cap=B&rowse...'
                       ])] # i=11
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[6]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[6]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Lexers'
                       ])] # i=12
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[6],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[6],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['lxrs']
                       ,'props=1,0,1'    # ro,mono,border
                       ])] # i=13
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[6]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[6]+at4btn, r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Le&xers...'
                       ])] # i=14
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[7]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[7]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Main for'
                       ])] # i=15
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[7],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[7],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ ','.join([lxr for (lxr,eid) in self.ext4lxr.items() if eid==ed_ext['id']])
                       ,'props=1,0,1'    # ro,mono,border
                       ])] # i=16
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[7]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[7]+at4btn, r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Set &main...'
                       ])] # i=17
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[8]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[8]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Sa&ve before'
                       ])] # i=18
-            +[C1.join(['type=combo_ro'  ,POS_FMT(l=PRP2_L,  t=PROP_T[8]-1,r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=combo_ro'  ,POS_FMT(l=PRP2_L,  t=PROP_T[8]+at4cbo,  r=PRP2_L+PRP2_W,b=0)
                       ,'items='+'\t'.join(self.savs_caps)
                       ,'val='   +str(val_savs)  # start sel
                       ])] # i=19
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[9]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[9]+at4lbl, r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Hotkey'
                       ])] # i=20
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[9],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[9],        r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_kys
                       ,'props=1,0,1'    # ro,mono,border
                       ])] # i=21
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[9]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[9]+at4btn, r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Assi&gn...'
                       ])] # i=22
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[11]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[11]+at4lbl,r=PRP1_L+PRP1_W,b=0)
                       ,'cap=&Capture output'
                       ])] # i=23
-            +[C1.join(['type=combo_ro'  ,POS_FMT(l=PRP2_L,  t=PROP_T[11]-1,r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=combo_ro'  ,POS_FMT(l=PRP2_L,  t=PROP_T[11]+at4cbo,r=PRP2_L+PRP2_W,b=0)
                       ,'items='+'\t'.join(self.rslt_caps)
                       ,'val='   +str(val_rslt)  # start sel
                       ])] # i=24
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[12]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[12]+at4lbl,r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Encoding'
                       ])] # i=25
             +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[12],  r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['encd']
                       ,'props=1,0,1'    # ro,mono,border
                       ])] # i=26
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[12]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[12]+at4btn,r=PRP3_L+PRP3_W,b=0)
                       ,'cap=S&elect...'
                       ])] # i=27
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[13]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[13]+at4lbl,r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Pattern'
                       ])] # i=28
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[13],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[13],       r=PRP2_L+PRP2_W,b=0)
                       ,'val='+ed_ext['pttn']
                       ,'props=1,0,1'    # ro,mono,border
                       ])] # i=29
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[13]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[13]+at4btn,r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Se&t...'
                       ])] # i=30
                       
-            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[14]+3,r=PRP1_L+PRP1_W,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=PRP1_L,  t=PROP_T[15]+at4lbl,r=PRP1_L+PRP1_W,b=0)
                       ,'cap=Advanced'
                       ])] # i=31
-            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[14],  r=PRP2_L+PRP2_W,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=PRP2_L,  t=PROP_T[15],       r=PRP2_L+PRP2_W,b=0)
                       ,'val='+json.dumps(_adv_prop('get-dict', ed_ext)).strip('{}')
 #                     ,'val='#+_adv_prop('dict2json', ed_ext).strip('{}')
                       ,'props=1,0,1'    # ro,mono,border
                       ])] # i=32
-            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[14]-1,r=PRP3_L+PRP3_W,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=PRP3_L,  t=PROP_T[15]+at4btn,r=PRP3_L+PRP3_W,b=0)
                       ,'cap=Set...'
                       ])] # i=33
             # DLG ACTS
@@ -1064,46 +1104,46 @@ class Command:
             DLG_W, DLG_H= GAP+550+GAP, GAP+250+GAP
             ans = app.dlg_custom('Tool output pattern'   ,DLG_W, DLG_H, '\n'.join([]
             # RE
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=GAP+3,    r=GAP+300, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=GAP+at4lbl,   r=GAP+300, b=0)
                       ,'cap=&Regular expression'
                       ])] # i= 0
-            +[C1.join(['type=edit'      ,POS_FMT(l=GAP,             t=GAP+23,   r=DLG_W-GAP*2-60, b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=GAP,             t=GAP+18,       r=DLG_W-GAP*2-60, b=0)
                       ,'val='+pttn_re
                       ])] # i= 1
-            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*1-60,  t=GAP+23-1,  r=DLG_W-GAP,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*1-60,  t=GAP+18+at4btn,r=DLG_W-GAP,b=0)
                       ,'cap=&?..'
                       ])] # i= 2
             # Testing
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t= 60+3,      r=GAP+300, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t= 60+at4lbl,   r=GAP+300, b=0)
                       ,'cap=Test &output line'
                       ])] # i= 3
-            +[C1.join(['type=edit'      ,POS_FMT(l=GAP,             t= 60+23,     r=DLG_W-GAP*2-60, b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=GAP,             t= 60+18,       r=DLG_W-GAP*2-60, b=0)
                       ,'val='+pttn_test
                       ])] # i= 4
-            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*1-60,  t= 60+23-1,   r=DLG_W-GAP,b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP*1-60,  t= 60+18+at4btn,r=DLG_W-GAP,b=0)
                       ,'cap=&Test'
                       ])] # i= 5
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP+ 80,         t=110+GAP*0+23*0+3, r=GAP+300, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP+ 80,         t=110+GAP*0+23*0+at4lbl,    r=GAP+300, b=0)
                       ,'cap=Testing results'
                       ])] # i= 6
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=110+GAP*0+23*1+3, r=GAP+80,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=110+GAP*0+23*1+at4lbl,    r=GAP+80,b=0)
                       ,'cap=Filename:'
                       ])] # i= 7
-            +[C1.join(['type=edit'      ,POS_FMT(l=GAP+ 80,         t=110+GAP*0+23*1,   r=DLG_W-GAP*2-60,b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=GAP+ 80,         t=110+GAP*0+23*1,           r=DLG_W-GAP*2-60,b=0)
                       ,'props=1,0,1'    # ro,mono,border
                       ,'val='+grp_dic.get('file', '')
                       ])] # i= 8
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=110+GAP*1+23*2+3, r=GAP+ 80, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=110+GAP*1+23*2+at4lbl,    r=GAP+ 80, b=0)
                       ,'cap=Line:'
                       ])] # i= 9
-            +[C1.join(['type=edit'      ,POS_FMT(l=GAP+ 80,         t=110+GAP*1+23*2,   r=GAP+ 80+50, b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=GAP+ 80,         t=110+GAP*1+23*2,           r=GAP+ 80+50, b=0)
                       ,'props=1,0,1'    # ro,mono,border
                       ,'val='+grp_dic.get('line', '')
                       ])] # i=10
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=110+GAP*2+23*3+3, r=GAP+300, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=110+GAP*2+23*3+at4lbl,    r=GAP+300, b=0)
                       ,'cap=Column:'
                       ])] # i=11
-            +[C1.join(['type=edit'      ,POS_FMT(l=GAP+ 80,         t=110+GAP*2+23*3,   r=GAP+ 80+50, b=0)
+            +[C1.join(['type=edit'      ,POS_FMT(l=GAP+ 80,         t=110+GAP*2+23*3,           r=GAP+ 80+50, b=0)
                       ,'props=1,0,1'    # ro,mono,border
                       ,'val='+grp_dic.get('col' , '')
                       ])] # i=12
@@ -1349,7 +1389,9 @@ def _file_open(op_file):
 
 '''
 ToDo
-[ ][kv-kv][09dec15] Run test cmd
-[ ][kv-kv][11jan16] Parse output with re
+[-][kv-kv][09dec15] Run test cmd
+[+][kv-kv][11jan16] Parse output with re
 [?][kv-kv][11jan16] Use PROC_SET_ESCAPE
+[ ][kv-kv][19jan16] Use control top with sys.platform
+[ ][kv-kv][19jan16] Opt for auto-to-first_rslt
 '''
