@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.3 2016-01-18'
+    '1.0.4 2016-01-22'
 ToDo: (see end of file)
 '''
 
@@ -41,7 +41,7 @@ SAVS_N          = 'N'
 SAVS_Y          = 'Y'
 SAVS_A          = 'A'
 
-FROM_API_VERSION= '1.0.117' # add: app_log: LOG_GET_LINES, LOG_GET_LINEINDEX, LOG_SET_LINEINDEX 
+FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
 C1      = chr(1)
 C2      = chr(2)
 POS_FMT = 'pos={l},{t},{r},{b}'.format
@@ -497,22 +497,27 @@ class Command:
                       ])] # i= 3
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[1],    t=ACTS_T[2],   r=ACTS_L[1]+ACTS_W,b=0)
                       ,'cap=Clo&ne'
+                      ,'hint=Clone current tool with appending "clone" to name.'
                       ])] # i= 4
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[2],    t=ACTS_T[2],   r=ACTS_L[2]+ACTS_W,b=0)
                       ,'cap=&Delete...'
                       ])] # i= 5
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[4],    t=ACTS_T[1],   r=ACTS_L[4]+ACTS_W,b=0)
                       ,'cap=&Up'
+                      ,'hint=Move current tool to upper position.'
                       ])] # i= 6
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[4],    t=ACTS_T[2],   r=ACTS_L[4]+ACTS_W,b=0)
                       ,'cap=Do&wn'
+                      ,'hint=Move current tool to lower position.'
                       ])] # i= 7
             +[C1.join(['type=button'    ,POS_FMT(l=ACTS_L[6],    t=ACTS_T[1],   r=ACTS_L[7]+ACTS_W,b=0)
                       ,'cap=Set &main for lexers...'
+                      ,'hint=For call by command "Run lexer main tool".'
                       ])] # i= 8
             # DLG ACTS
             +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP2-ACTS_W,    t=ACTS_T[1],   r=DLG_W-GAP2,b=0)
                       ,'cap=Ad&just...'
+                      ,'hint=Change this dialog sizes.'
                       ])] # i= 9
             +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP2-ACTS_W,    t=ACTS_T[2],   r=DLG_W-GAP2,b=0)
                       ,'cap=Cl&ose'
@@ -650,9 +655,12 @@ class Command:
                                                        ])
                               , app.MB_YESNO)!=app.ID_YES:
                     continue # while
-                what    = 'delete:'+str(self.exts[new_ext_ind]['id'])
+                id4del  = self.exts[new_ext_ind]['id']
+                for lxr in [lxr for lxr,ext_id in self.ext4lxr.items() if ext_id==id4del]:
+                    del self.ext4lxr[lxr]
                 del self.exts[new_ext_ind]
                 ext_ind = min(new_ext_ind, len(self.exts)-1)
+                what    = 'delete:'+str(id4del)
 
             pass;              #LOG and log('?? list _do_acts',)
             self._do_acts(what)
@@ -695,7 +703,7 @@ class Command:
                       ,'cap=&Assign tool'
                       ])] # i= 4
             +[C1.join(['type=button'    ,POS_FMT(l=GAP+97+GAP,  t=GAP+23+300+GAP,r=GAP+97+GAP+97,b=0)
-                      ,'cap=&Break tool'
+                      ,'cap=&Break join'
                       ])] # i= 5
  
             +[C1.join(['type=button'    ,POS_FMT(l=DLG_W-GAP-80,t=GAP+23+300+GAP,r=DLG_W-GAP,b=0)
