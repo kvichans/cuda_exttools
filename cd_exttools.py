@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.4 2016-01-22'
+    '1.1.0 2016-01-22'
 ToDo: (see end of file)
 '''
 
@@ -52,31 +52,31 @@ def top_plus_for_os(what_control, base_control='edit'):
             what_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
             base_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
     '''
-    base_control    = apx.icase(base_control=='combo',      'edit'
-                               ,base_control=='combo_ro',   'button'
-                               ,base_control)
-    what_control    = apx.icase(what_control=='combo',      'edit'
-                               ,what_control=='combo_ro',   'button'
-                               ,what_control)
     if what_control==base_control:
         return 0
     env = sys.platform
     if base_control=='edit': 
         if env=='win32':
-            return apx.icase(what_control=='check',   1
-                            ,what_control=='label',   3
-                            ,what_control=='button', -1
-                            ,True,                    0)
+            return apx.icase(what_control=='check',    1
+                            ,what_control=='label',    3
+                            ,what_control=='button',  -1
+                            ,what_control=='combo_ro',-1
+                            ,what_control=='combo',    0
+                            ,True,                     0)
         if env=='linux':
-            return apx.icase(what_control=='check',   1
-                            ,what_control=='label',   5
-                            ,what_control=='button',  1
-                            ,True,                    0)
+            return apx.icase(what_control=='check',    1
+                            ,what_control=='label',    5
+                            ,what_control=='button',   1
+                            ,what_control=='combo_ro', 0
+                            ,what_control=='combo',   -1
+                            ,True,                     0)
         if env=='darwin':
-            return apx.icase(what_control=='check',   1
-                            ,what_control=='label',   3
-                            ,what_control=='button',  0
-                            ,True,                    0)
+            return apx.icase(what_control=='check',    2
+                            ,what_control=='label',    3
+                            ,what_control=='button',   0
+                            ,what_control=='combo_ro', 1
+                            ,what_control=='combo',    0
+                            ,True,                     0)
         return 0
        #if base_control=='edit'
     return top_plus_for_os(what_control, 'edit') - top_plus_for_os(base_control, 'edit')
@@ -182,7 +182,7 @@ class Command:
         # Register new subcommands
         if '|reg|' in acts:
             reg_subs        = 'cuda_exttools;run;{}'.format('\n'.join(
-                             'exttool: {}\t{}'.format(ext['nm'],ext['id']) 
+                             'Tools: {}\t{}'.format(ext['nm'],ext['id']) 
                                  for ext in self.exts)
                              )
             pass;              #LOG and log('reg_subs={}',reg_subs)
@@ -1058,14 +1058,14 @@ class Command:
                               ,'val='+js_more.replace('\t',chr(2)).replace('\r\n','\n').replace('\r','\n').replace('\n','\t')
                              #,'props=0,0,1'    # ro,mono,border
                               ])] # i= 0
-                     +[C1.join(['type=button'   ,POS_FMT(l=GAP,         t=GAP+300+GAP,  r=GAP+20, b=0)
+                    +[C1.join(['type=button'   ,POS_FMT(l=GAP,         t=GAP+300+GAP,  r=GAP+20, b=0)
                               ,'cap=?'
                               ])] # i= 1
-                     +[C1.join(['type=button'   ,POS_FMT(l=GAP+20+GAP,  t=GAP+300+GAP,  r=GAP+20+GAP+85, b=0)
+                    +[C1.join(['type=button'   ,POS_FMT(l=GAP+20+GAP,  t=GAP+300+GAP,  r=GAP+20+GAP+85, b=0)
                               ,'cap=OK'
                               ,'props=1'        #default
                               ])] # i= 2
-                     +[C1.join(['type=button'   ,POS_FMT(l=GAP+200-85,  t=GAP+300+GAP,  r=GAP+200, b=0)
+                    +[C1.join(['type=button'   ,POS_FMT(l=GAP+200-85,  t=GAP+300+GAP,  r=GAP+200, b=0)
                               ,'cap=Cancel'
                               ])] # i= 3
                     ), 0)    # start focus

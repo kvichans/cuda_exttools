@@ -1,4 +1,7 @@
 
+1.1.0 (2016-01-22)
+change: rename cmds with "Tools: ..."
+
 1.0.3 (2016-01-18)
 added: navigation from output result to source by DblClick/Enter/menu/cmds
 added: adaption to tidy tab-size with advance props

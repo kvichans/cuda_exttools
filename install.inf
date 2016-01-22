@@ -10,24 +10,24 @@ events=on_start,on_output_nav
 
 [item2]
 section=commands
-caption=External Tools...
+caption=Tools: Config...
 method=dlg_config
 menu=0
 
 [item3]
 section=commands
-caption=Run lexer main tool
+caption=Tools: Run lexer main tool
 method=run_lxr_main
 menu=0
 
 [item4]
 section=commands
-caption=Next tool result
+caption=Tools: Next result
 method=show_next_result
 menu=0
 
 [item5]
 section=commands
-caption=Previous tool result
+caption=Tools: Previous result
 method=show_prev_result
 menu=0
