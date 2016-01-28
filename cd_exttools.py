@@ -308,7 +308,7 @@ class Command:
             else: # rslt==RSLT_OPA
                 self.id2crc[ext['id']] += 1         # For separate serial runnings of same tool
                 crc     = self.id2crc[ext['id']]
-        elif rslt ==  'ND':
+        elif rslt ==  RSLT_ND:
             app.file_open('')
 
         while True:
@@ -1112,7 +1112,7 @@ class Command:
             DLG_W, DLG_H= GAP+550+GAP, GAP+250+GAP
             ans = app.dlg_custom('Tool output pattern'   ,DLG_W, DLG_H, '\n'.join([]
             # RE
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=GAP+at4lbl,   r=GAP+300, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=GAP,          r=GAP+300, b=0)
                       ,'cap=&Regular expression'
                       ])] # i= 0
             +[C1.join(['type=edit'      ,POS_FMT(l=GAP,             t=GAP+18,       r=DLG_W-GAP*2-60, b=0)
@@ -1122,7 +1122,7 @@ class Command:
                       ,'cap=&?..'
                       ])] # i= 2
             # Testing
-            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t= 60+at4lbl,   r=GAP+300, b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t= 60,          r=GAP+300, b=0)
                       ,'cap=Test &output line'
                       ])] # i= 3
             +[C1.join(['type=edit'      ,POS_FMT(l=GAP,             t= 60+18,       r=DLG_W-GAP*2-60, b=0)
