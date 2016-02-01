@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.0 2016-01-22'
+    '1.1.1 2016-02-01'
 ToDo: (see end of file)
 '''
 
@@ -130,6 +130,14 @@ class Command:
         # Adjust
         for ext in self.exts:
             self._fill_ext(ext)
+
+        # Actualize lexer-tool 
+        lxrs_l  = _get_lexers()
+        for i_lxr in range(len(self.ext4lxr)-1,-1,-1):
+            lxr = list(self.ext4lxr.keys())[i_lxr]
+            if lxr                    not in lxrs_l \
+            or str(self.ext4lxr[lxr]) not in self.ext4id:
+                del self.ext4lxr[lxr]
         pass;                  #LOG and log('self.preset={}',self.preset)
        #def __init__
        
@@ -668,9 +676,7 @@ class Command:
        #def dlg_config_list
         
     def _dlg_main_tool(self, ext_id=0):
-        lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
-        lxrs_l  = [lxr for lxr in lxrs_l if app.lexer_proc(app.LEXER_GET_ENABLED, lxr)]
-        lxrs_l += ['(none)']
+        lxrs_l  = _get_lexers()
         nm4ids  = {ext['id']:ext['nm'] for ext in self.exts}
         nms     = [ext['nm'] for ext in self.exts]
         ids     = [ext['id'] for ext in self.exts]
@@ -1011,8 +1017,7 @@ class Command:
             
             elif ans_s=='lxrs': #Lexers only
                 lxrs    = ','+ed_ext['lxrs']+','
-                lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
-                lxrs_l += ['(none)']
+                lxrs_l  = _get_lexers()
                 sels    = ['1' if ','+lxr+',' in lxrs else '0' for lxr in lxrs_l]
                 crt     = str(sels.index('1') if '1' in sels else 0)
                 ans     = app.dlg_custom('Select lexers'   ,GAP+200+GAP, GAP+400+GAP+24+GAP, '\n'.join([]
@@ -1394,6 +1399,13 @@ def _file_open(op_file):
             return op_ed
     return None
    #def _file_open
+
+def _get_lexers():
+    lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
+    lxrs_l  = [lxr for lxr in lxrs_l if app.lexer_proc(app.LEXER_GET_ENABLED, lxr)]
+    lxrs_l += ['(none)']
+    return lxrs_l
+   #def _get_lexers
 
 '''
 ToDo
