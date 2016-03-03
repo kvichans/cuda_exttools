@@ -1,4 +1,7 @@
 
+1.1.2 (2016-03-03)
+fixed: output navigation with {FileDir} in Folder
+
 1.1.1 (2016-02-01)
 fixed: correct work after hide some lexer
 

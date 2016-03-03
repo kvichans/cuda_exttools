@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.1 2016-02-01'
+    '1.1.2 2016-03-03'
 ToDo: (see end of file)
 '''
 
@@ -19,7 +19,7 @@ pass;                           LOG = (-2==-2)  # Do or dont logging.
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
-PRESET_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools-preset.json'
+#PRESET_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools-preset.json'
 
 RSLT_NO         = 'Ignore'
 RSLT_TO_PANEL   = 'Output panel'
@@ -42,6 +42,7 @@ SAVS_Y          = 'Y'
 SAVS_A          = 'A'
 
 FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
+def F(s, *args, **kwargs):return s.format(*args, **kwargs)
 C1      = chr(1)
 C2      = chr(2)
 POS_FMT = 'pos={l},{t},{r},{b}'.format
@@ -122,9 +123,11 @@ class Command:
             
         # Runtime data
         self.ext4id     = {str(ext['id']):ext for ext in self.exts}
-        self.id2crc     = {}
+#       self.id2crc     = {}
+        self.crcs       = {}
+        self.last_crc   = -1
         self.last_ext_id= 0
-        self.last_run_id= -1
+#       self.last_run_id= -1
         self.last_op_ind= -1
 
         # Adjust
@@ -239,7 +242,7 @@ class Command:
         and not (','+lxr_cur+',' in ','+lxrs+',')):
             return app.msg_status('Tool "{}" is not suitable for lexer "{}". It works only with "{}"'.format(nm, lxr_cur, lxrs))
         
-        self.last_run_id = ext_id
+#       self.last_run_id = ext_id
         cmnd    = ext['file']
         prms_s  = ext['prms']
         ddir    = ext['ddir']
@@ -268,8 +271,8 @@ class Command:
 
         pass;                  #LOG and log('ready prms_l={}',(prms_l))
 
-        val4call  = [cmnd] + prms_l
-        pass;                   LOG and log('val4call={}',(val4call))
+        val4call= [cmnd] + prms_l
+        pass;                  #LOG and log('val4call={}',(val4call))
 
         # Calling
         rslt    = ext.get('rslt', RSLT_N)
@@ -303,19 +306,36 @@ class Command:
         app.msg_status('Call: {} {}'.format(cmnd, prms_s))
 
         rslt_txt= ''
-        crc     = 0
+        crc_tag = 0
+        def gen_save_crc(ext, cwd='', filepath='', filecol=0, filerow=0):
+            ''' Generate 32-bit int for each ext running '''
+            text    = '|'.join([str(ext[k]) for k in ext]
+                              +[F('{}|{}|{}|{}|{}', cwd, filepath, cCrt, rCrt, len(self.crcs))]
+                              )
+            crc     = zlib.crc32(text.encode()) & 0x0fffffff
+            self.last_crc   = crc
+            self.crcs[crc]  = {  'ext':ext
+                                ,'cwd':cwd
+                                ,'pth':filepath
+                                ,'col':cCrt
+                                ,'row':rCrt
+                                }
+            return crc
         if False:pass
         elif rslt in (RSLT_OP, RSLT_OPA):
+            crc_tag = gen_save_crc(ext, os.path.abspath('.'), file_nm, cCrt, rCrt)
+            self.last_op_ind = -1
             ed.cmd(cmds.cmd_ShowPanelOutput)
             app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
             ed.focus()
             if rslt==RSLT_OP:
                 app.app_log(app.LOG_CLEAR, '')
-                self.last_op_ind = -1
-                crc     = self.id2crc[ext['id']]
+#               self.last_op_ind = -1
+#               crc     = self.id2crc[ext['id']]
             else: # rslt==RSLT_OPA
-                self.id2crc[ext['id']] += 1         # For separate serial runnings of same tool
-                crc     = self.id2crc[ext['id']]
+                pass
+#               self.id2crc[ext['id']] += 1         # For separate serial runnings of same tool
+#               crc     = self.id2crc[ext['id']]
         elif rslt ==  RSLT_ND:
             app.file_open('')
 
@@ -326,7 +346,7 @@ class Command:
             pass;              #LOG and log('out_ln={}',out_ln)
             if False:pass
             elif rslt in (RSLT_OP, RSLT_OPA):
-               app.app_log(app.LOG_ADD, out_ln, crc)
+                app.app_log(app.LOG_ADD, out_ln, crc_tag)
             elif rslt ==  RSLT_ND:
                 ed.set_text_line(-1, out_ln)
             elif rslt in (RSLT_CB, RSLT_SEL):
@@ -350,33 +370,41 @@ class Command:
        
     def on_output_nav(self, ed_self, output_line, crc_tag):
         pass;                  #LOG and log('output_line, crc_tag={}',(output_line, crc_tag))
-        ext_lst = [ext for ext in self.exts if self.id2crc[ext['id']]==crc_tag]
-        if not ext_lst:                 return app.msg_status('No Tool to parse output line')
-        ext     = ext_lst[0]
-        if not ext['pttn']:             return app.msg_status('Tool "{}" has empty Pattern property')
+#       ext_lst = [ext for ext in self.exts if self.id2crc[ext['id']]==crc_tag]
+#       if not ext_lst:                 return app.msg_status('No Tool to parse output line')
+#       ext     = ext_lst[0]
+        
+        crc_inf = self.crcs.get(crc_tag, {})
+        ext     = crc_inf.get('ext')
+        if not ext:                         app.msg_status('No Tool to parse the output line');return
+        if not ext['pttn']:                 app.msg_status('Tool "{}" has not Pattern property'.format(ext['nm']));return
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
-        if not grp_dic:                 return app.msg_status('Tool "{}" could not find a file/line in output line'.format(ext['nm'])) # '
-        nav_file=     grp_dic.get('file' ,  '')
-        nav_line= int(grp_dic.get('line' , '1'))-1
-        nav_col = int(grp_dic.get('col'  , '1'))-1
-        nav_lin0= int(grp_dic.get('line0', '0'))
-        nav_col0= int(grp_dic.get('col0' , '0'))
+        if not grp_dic:                     app.msg_status('Tool "{}" could not find a file/line in output line'.format(ext['nm']));return # '
+        nav_file=     grp_dic.get('file' , crc_inf['pth']  )
+        nav_line= int(grp_dic.get('line' , crc_inf['row']+1))-1
+        nav_col = int(grp_dic.get('col'  , crc_inf['col']+1))-1
+        nav_lin0= int(grp_dic.get('line0', crc_inf['row']  ))
+        nav_col0= int(grp_dic.get('col0' , crc_inf['col']  ))
         nav_line= nav_lin0 if 'line' not in grp_dic  and 'line0' in grp_dic else nav_line
         nav_col = nav_col0 if 'col'  not in grp_dic  and 'col0'  in grp_dic else nav_col
         pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
-        nav_file= ed.get_filename() if not nav_file else nav_file
+#       nav_file= crc_inf['file'] \
+#                   if not nav_file else 
+#                 nav_file
         bs_dir  = ext['ddir']
-        bs_dir  = os.path.dirname(ed.get_filename()) if not bs_dir else bs_dir
+        bs_dir  = os.path.dirname(crc_inf['pth']) \
+                    if not bs_dir else  \
+                  subst_props(bs_dir, crc_inf['pth'])
         nav_file= os.path.join(bs_dir, nav_file)
         pass;                  #LOG and log('nav_file={}',(nav_file))
-        if not os.path.exists(nav_file):return app.msg_status('Cannot open: {}'.format(nav_file))
+        if not os.path.exists(nav_file):    app.msg_status('Cannot open: {}'.format(nav_file));return
         
         app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
         self.last_op_ind = app.app_log(app. LOG_GET_LINEINDEX, '')
         
         nav_ed  = _file_open(nav_file)
-        if nav_ed is None:              return app.msg_status('Cannot open: {}'.format(nav_file))
+        if nav_ed is None:                  app.msg_status('Cannot open: {}'.format(nav_file));return
         nav_ed.focus()
         if 'source_tab_as_blanks' in ext:
             # ReCount nav_col for the tab_size
@@ -397,14 +425,17 @@ class Command:
     def show_next_result(self): self._show_result('next')
     def show_prev_result(self): self._show_result('prev')
     def _show_result(self, what):
-        pass;                  #LOG and log('what, last_run_id, self.last_op_ind={}',(what, self.last_run_id, self.last_op_ind))
-        if self.last_run_id==-1:
+        pass;                  #LOG and log('what, last_crc, self.last_op_ind={}',(what, self.last_crc, self.last_op_ind))
+        if self.last_crc==-1:
             return app.msg_status('No any results for navigation')
-        if str(self.last_run_id) not in self.ext4id:
-            return app.msg_status('No Tool for navigation')
+#       if str(self.last_run_id) not in self.ext4id:
+#           return app.msg_status('No Tool for navigation')
         c10,c13     = chr(10),chr(13)
-        ext         = self.ext4id[str(self.last_run_id)]
-        ext_crc     = self.id2crc[ext['id']]
+
+        crc_inf     = self.crcs.get(self.last_crc, {})
+        ext         = crc_inf.get('ext')
+#       ext         = self.ext4id[str(self.last_run_id)]
+#       ext_crc     = self.id2crc[ext['id']]
         ext_pttn    = ext['pttn']
         app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
         op_line_tags=app.app_log(app.LOG_GET_LINES, '')
@@ -419,13 +450,15 @@ class Command:
                        range(self.last_op_ind-1, -1, -1) 
                       ):
             line, crc   = op_line_tags[op_ind]
-            if ext_crc != crc:                  continue    #for
+            if crc != self.last_crc:            continue    #for
             if not re.search(ext_pttn, line):   continue    #for
             self.last_op_ind = op_ind
             app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
             app.app_log(app. LOG_SET_LINEINDEX, str(op_ind))
             self.on_output_nav(ed, line, crc)
             break   #for
+        else:#for
+            app.msg_status('No more results for navigation')
        #def _show_result
        
     def dlg_config(self):
@@ -609,7 +642,7 @@ class Command:
                 pass;          #LOG and log('fin edit={}',ed_ans)
                 if ed_ans is None:
                     continue #while
-                self._gen_ext_crc(ext)
+#               self._gen_ext_crc(ext)
                 self.exts  += [ext]
                 ids         = [ext['id'] for ext in self.exts]
                 ext_ind     = len(self.exts)-1
@@ -650,7 +683,7 @@ class Command:
                 cln_ext     = copy.deepcopy(self.exts[new_ext_ind])
                 cln_ext['id']= gen_ext_id(self.ext4id)
                 cln_ext['nm']= cln_ext['nm']+' clone'
-                self._gen_ext_crc(cln_ext)
+#               self._gen_ext_crc(cln_ext)
                 self.exts   += [cln_ext]
                 ext_ind     = len(self.exts)-1
 
@@ -968,7 +1001,7 @@ class Command:
                 for fld in [k for k in src_ext if k not in ed_ext]:
                     src_ext.pop(fld, None)
                 pass;          #LOG and log('ok, fill src_ext={}',src_ext)
-                self._gen_ext_crc(src_ext)
+#               self._gen_ext_crc(src_ext)
                 return True
 
             if False:pass
@@ -1115,7 +1148,7 @@ class Command:
         while True:
             focused     = 1
             DLG_W, DLG_H= GAP+550+GAP, GAP+250+GAP
-            ans = app.dlg_custom('Tool output pattern'   ,DLG_W, DLG_H, '\n'.join([]
+            ans = app.dlg_custom('Tool "{}" output pattern'.format(run_nm)   ,DLG_W, DLG_H, '\n'.join([]
             # RE
             +[C1.join(['type=label'     ,POS_FMT(l=GAP,             t=GAP,          r=GAP+300, b=0)
                       ,'cap=&Regular expression'
@@ -1226,7 +1259,7 @@ class Command:
                 if not pttn_re:
                     app.msg_box('Set "Regular expression"', app.MB_OK)
                     continue #while
-                nm_ps  = app.dlg_input('Name for preset ({})'.format(run_nm), '')
+                nm_ps  = app.dlg_input('Name for preset ({})'.format(run_nm), run_nm)
                 if nm_ps is None or not nm_ps:
                     continue #while
                 self.preset    += [{'name':nm_ps
@@ -1239,12 +1272,12 @@ class Command:
         pass
        #def dlg_pattern
         
-    def _gen_ext_crc(self, ext):
-        ''' Generate 32-bit int by ext-props '''
-        text    = '|'.join([str(ext[k]) for k in ext])
-        data    = text.encode()
-        crc     = zlib.crc32(data) & 0x0fffffff
-        self.id2crc[ext['id']] = crc
+#   def _gen_ext_crc(self, ext):
+#       ''' Generate 32-bit int by ext-props '''
+#       text    = '|'.join([str(ext[k]) for k in ext])
+#       data    = text.encode()
+#       crc     = zlib.crc32(data) & 0x0fffffff
+#       self.id2crc[ext['id']] = crc
 
     def _fill_ext(self, ext):
         ext.pop('capt', None)
@@ -1259,7 +1292,7 @@ class Command:
         ext['encd'] = ext.get('encd', '')
         ext['lxrs'] = ext.get('lxrs', '')
         ext['pttn'] = ext.get('pttn', '')
-        self._gen_ext_crc(ext)
+#       self._gen_ext_crc(ext)
         return ext
 
    #class Command
@@ -1290,23 +1323,25 @@ def _test_json(js):
     return True
    #def _test_json
 
-def subst_props(prm, file_nm, cCrt, rCrt, ext_nm):
+def subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm=''):
+    if '{' not in prm:  return prm
     app_dir = app.app_path(app.APP_DIR_EXE)
-    if '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
-    if '{AppDrive}'          in prm: prm = prm.replace('{AppDrive}'     ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
+    if      '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
+    if      '{AppDrive}'          in prm: prm = prm.replace('{AppDrive}'     ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
+            
+    if      '{FileName}'          in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
+    if      '{FileDir}'           in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
+    if      '{FileNameOnly}'      in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
+    if      '{FileNameNoExt}'     in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
+    if      '{FileExt}'           in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
 
-    if '{FileName}'          in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
-    if '{FileDir}'           in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
-    if '{FileNameOnly}'      in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
-    if '{FileNameNoExt}'     in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
-    if '{FileExt}'           in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
-
-    if '{CurrentLine}'       in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
-    if '{CurrentLineNum}'    in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
-    if '{CurrentLineNum0}'   in prm: prm = prm.replace('{CurrentLineNum0}' , str(  rCrt))
-    if '{CurrentColumnNum}'  in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-    if '{CurrentColumnNum0}' in prm: prm = prm.replace('{CurrentColumnNum0}',str(  ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-    if '{SelectedText}'      in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
+    if rCrt!=-1:
+        if  '{CurrentLine}'       in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
+        if  '{CurrentLineNum}'    in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
+        if  '{CurrentLineNum0}'   in prm: prm = prm.replace('{CurrentLineNum0}' , str(  rCrt))
+        if  '{CurrentColumnNum}'  in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+        if  '{CurrentColumnNum0}' in prm: prm = prm.replace('{CurrentColumnNum0}',str(  ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+        if  '{SelectedText}'      in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
 
     if '{Interactive}' in prm:
         ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
@@ -1407,6 +1442,9 @@ def _get_lexers():
     return lxrs_l
    #def _get_lexers
 
+if __name__ == '__main__' :     # Tests
+    Command().dlg_config()    #??
+        
 '''
 ToDo
 [-][kv-kv][09dec15] Run test cmd
