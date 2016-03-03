@@ -380,14 +380,16 @@ class Command:
         if not ext['pttn']:                 app.msg_status('Tool "{}" has not Pattern property'.format(ext['nm']));return
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
-        if not grp_dic:                     app.msg_status('Tool "{}" could not find a file/line in output line'.format(ext['nm']));return # '
+        if not grp_dic or not (
+            'line'  in grp_dic 
+        or  'line0' in grp_dic):            app.msg_status('Tool "{}" could not find a line-number into output line'.format(ext['nm']));return # '
         nav_file=     grp_dic.get('file' , crc_inf['pth']  )
-        nav_line= int(grp_dic.get('line' , crc_inf['row']+1))-1
-        nav_col = int(grp_dic.get('col'  , crc_inf['col']+1))-1
-        nav_lin0= int(grp_dic.get('line0', crc_inf['row']  ))
-        nav_col0= int(grp_dic.get('col0' , crc_inf['col']  ))
-        nav_line= nav_lin0 if 'line' not in grp_dic  and 'line0' in grp_dic else nav_line
-        nav_col = nav_col0 if 'col'  not in grp_dic  and 'col0'  in grp_dic else nav_col
+        nav_line= int(grp_dic.get('line' , 1+int(grp_dic.get('line0', 0))))-1
+        nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
+#       nav_lin0= int(grp_dic.get('line0', 0))
+#       nav_col0= int(grp_dic.get('col0' , 0))
+#       nav_line= nav_lin0 if 'line' not in grp_dic  and 'line0' in grp_dic else nav_line
+#       nav_col = nav_col0 if 'col'  not in grp_dic  and 'col0'  in grp_dic else nav_col
         pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
 #       nav_file= crc_inf['file'] \
 #                   if not nav_file else 
