@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.2 2016-03-03'
+    '1.1.3 2016-03-08'
 ToDo: (see end of file)
 '''
 
@@ -162,7 +162,10 @@ class Command:
             # Create AFTER Plugins
             top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top').splitlines()
             pass;              #LOG and log('top_nms={}',top_nms)
-            plg_ind = top_nms.index('&Plugins|')        ##?? 
+            if app.app_exe_version() >= '1.2.28.0':
+                plg_ind = [i for (i,nm) in enumerate(top_nms) if '|plugins' in nm][0]     ##?? 
+            else: # old, pre i18n
+                plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
             id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', 0, '&Tools', 1+plg_ind))
             ed.exttools_id_menu = id_menu               ##?? dirty hack!
 
