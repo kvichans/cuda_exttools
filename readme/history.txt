@@ -1,4 +1,8 @@
 
+1.1.3 (2016-03-11)
+rework: adv-props dlg
+fixed: position in main menu
+
 1.1.2 (2016-03-03)
 fixed: output navigation with {FileDir} in Folder
 
