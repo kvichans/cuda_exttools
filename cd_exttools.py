@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.0 2016-03-12'
+    '1.2.1 2016-03-14'
 ToDo: (see end of file)
 '''
 
@@ -33,11 +33,6 @@ c10,c13,l= chr(10),chr(13),chr(13)
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
 #PRESET_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools-preset.json'
-
-DTLS_MVUP_H     = _('Move current tool to upper position')
-DTLS_MVDN_H     = _('Move current tool to lower position')
-DTLS_MNLX_H     = _('For call by command "Run lexer main tool"')
-DTLS_CUST_H     = _('Change this dialog sizes')
 
 EXT_HELP_CAP    = _('Tool macros')
 EXT_HELP_BODY   = _(
@@ -193,6 +188,7 @@ class Command:
                             ,'dlg_prs':{}
                             ,'ext4lxr':{}
                             ,'preset':[]
+                            ,'umacrs':[]
                             }
         if self.saving.setdefault('ver', '') < JSON_FORMAT_VER:
             # Adapt to new format
@@ -200,6 +196,7 @@ class Command:
         self.dlg_prs    = self.saving.setdefault('dlg_prs', {})
         self.ext4lxr    = self.saving.setdefault('ext4lxr', {})
         self.preset     = self.saving.setdefault('preset', [])
+        self.umacrs     = self.saving.setdefault('umacrs', [])
         self.exts       = self.saving['list']
             
         # Runtime data
@@ -342,16 +339,17 @@ class Command:
         file_nm = ed.get_filename()
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
+        umc_vals= self._calc_umc_vals()
         prms_l  = shlex.split(prms_s)
         for ind, prm in enumerate(prms_l):
             prm_raw = prm
-            prm     = subst_props(prm, file_nm, cCrt, rCrt, ext['nm'])
+            prm     = _subst_props(prm,  file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals)
             if prm_raw != prm:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
-        cmnd        = subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'])
-        ddir        = subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'])
+        cmnd        = _subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals)
+        ddir        = _subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals)
 
         pass;                  #LOG and log('ready prms_l={}',(prms_l))
 
@@ -470,18 +468,11 @@ class Command:
         nav_file=     grp_dic.get('file' , crc_inf['pth']  )
         nav_line= int(grp_dic.get('line' , 1+int(grp_dic.get('line0', 0))))-1
         nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
-#       nav_lin0= int(grp_dic.get('line0', 0))
-#       nav_col0= int(grp_dic.get('col0' , 0))
-#       nav_line= nav_lin0 if 'line' not in grp_dic  and 'line0' in grp_dic else nav_line
-#       nav_col = nav_col0 if 'col'  not in grp_dic  and 'col0'  in grp_dic else nav_col
         pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
-#       nav_file= crc_inf['file'] \
-#                   if not nav_file else 
-#                 nav_file
         bs_dir  = ext['ddir']
         bs_dir  = os.path.dirname(crc_inf['pth']) \
                     if not bs_dir else  \
-                  subst_props(bs_dir, crc_inf['pth'])
+                  _subst_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals())
         nav_file= os.path.join(bs_dir, nav_file)
         pass;                  #LOG and log('nav_file={}',(nav_file))
         if not os.path.exists(nav_file):    app.msg_status(_('Cannot open: {}').format(nav_file));return
@@ -557,6 +548,12 @@ class Command:
         ids     = [ext['id'] for ext in self.exts]
         ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else min(0, len(ids)-1)
 
+        DTLS_MVUP_H     = _('Move current tool to upper position')
+        DTLS_MVDN_H     = _('Move current tool to lower position')
+        DTLS_MNLX_H     = _('For call by command "Run lexer main tool"')
+        DTLS_USMS_H     = _("Edit list of user's macros to use in tool properties")
+        DTLS_CUST_H     = _('Change this dialog sizes')
+
         GAP2    = GAP*2    
         prs     = self.dlg_prs
         pass;                  #LOG and log('prs={}',prs)
@@ -574,13 +571,14 @@ class Command:
             ACTS_W          = prs.get('w_btn', 90)
             WD_LST, HT_LST  = (sum([int(w.lstrip('LRC')) for w in ext_nz_d.values() if w[0]!='-'])+len(ext_nz_d)+10
                               ,prs.get('h_list', 300))
-            ACTS_T          = [GAP2+HT_LST  + GAP*ind+25*(ind-1)     for ind in range(20)]
-            ACTS_L          = [GAP+         + GAP*ind+ACTS_W*(ind-1) for ind in range(20)]
+            ACTS_T          = [GAP2+HT_LST  +         25*(ind-1)     for ind in range(20)]
+#           ACTS_T          = [GAP2+HT_LST  + GAP*ind+25*(ind-1)     for ind in range(20)]
+            ACTS_L          = [             + GAP*ind+ACTS_W*(ind-1) for ind in range(20)]
             WD_LST_MIN      = GAP*10+ACTS_W*8
             if WD_LST < WD_LST_MIN:
                 ext_nz_d['Name']    = str(WD_LST_MIN-WD_LST + int(ext_nz_d['Name']))
                 WD_LST              = WD_LST_MIN
-            DLG_W, DLG_H    = max(WD_LST, ACTS_L[9])+GAP*4, ACTS_T[3]#+GAP
+            DLG_W, DLG_H    = max(WD_LST, ACTS_L[9])+GAP*3, ACTS_T[3]#+GAP
             ext_hnzs    = ['{}={}'.format(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()]
             ext_vlss    = []
             for ext in self.exts:
@@ -617,9 +615,11 @@ class Command:
  +[cust_it(tp='button'  ,t=ACTS_T[2],l=ACTS_L[4],w=ACTS_W               ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   )] #  7 &w
  +[cust_it(tp='button'  ,t=ACTS_T[1],l=ACTS_L[6],r=ACTS_L[7]+ACTS_W     ,cap=_('Set &main for lexers...')
                                                                                             ,hint=DTLS_MNLX_H   )] #  8 &m
+ +[cust_it(tp='button'  ,t=ACTS_T[2],l=ACTS_L[6],r=ACTS_L[7]+ACTS_W     ,cap=_('User macro &vars...')
+                                                                                            ,hint=DTLS_USMS_H   )] #  9 &v
             # DLG ACTS
- +[cust_it(tp='button'  ,t=ACTS_T[1],l=DLG_W-GAP2-ACTS_W,w=ACTS_W       ,cap=_('Ad&just...'),hint=DTLS_CUST_H   )] #  9 &j
- +[cust_it(tp='button'  ,t=ACTS_T[2],l=DLG_W-GAP2-ACTS_W,w=ACTS_W       ,cap=_('Close')                         )] # 10
+ +[cust_it(tp='button'  ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H   )] # 10 &j
+ +[cust_it(tp='button'  ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                         )] # 11
             ), 1)    # start focus
             if ans is None:  break #while
             (ans_i
@@ -636,8 +636,9 @@ class Command:
                            ,ans_i==  6,'up'
                            ,ans_i==  7,'down'
                            ,ans_i==  8,'main'
-                           ,ans_i==  9,'custom'
-                           ,ans_i== 10,'close'
+                           ,ans_i==  9,'umcr'
+                           ,ans_i== 10,'custom'
+                           ,ans_i== 11,'close'
                            ,'?')
             if ans_s=='close':
                 break #while
@@ -680,6 +681,10 @@ class Command:
             if ans_s=='main': #Main lexer tool
                 self._dlg_main_tool(0 if new_ext_ind==-1 else ids[new_ext_ind])
                 ext_ind     = new_ext_ind
+                continue #while
+            
+            if ans_s=='umcr': #Main lexer tool
+                self._dlg_usr_mcrs()
                 continue #while
             
             if ans_s=='add': #New
@@ -830,7 +835,151 @@ class Command:
             if changed:
                 open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
            #while True
-       #def dlg_main_tool
+       #def _dlg_main_tool
+        
+    def _dlg_usr_mcrs(self):
+        um_ind      = 0
+        focused     = 1
+        while True:
+            DLG_W, DLG_H= GAP*2+605, GAP+20+300+GAP+25+25
+
+            itms    = [ '\r'.join([_('Name=')+'100', _('Expression=')+'300', _('Comment=')+'200'])] \
+                    + [' \r'.join([um['nm'],      um['ex'],            um['co']]) for um in self.umacrs]
+
+            bt_t1   = GAP+18+300+GAP
+            bt_t2   = GAP+18+300+GAP+25
+            bt_l1   = GAP
+            bt_l2   = GAP+120+GAP
+            bt_l3   = GAP+120+GAP+120+GAP
+            bt_l4   = GAP+120+GAP+120+GAP+120+GAP
+            ans = app.dlg_custom(_('User macro vars')   ,DLG_W, DLG_H, '\n'.join([]
+ +[cust_it(tp='label'   ,t=GAP          ,l=GAP      ,w=400      ,cap=_('User macro &vars')      )] #  0 &v
+ +[cust_it(tp='listview',t=GAP+18       ,l=GAP      ,r=GAP+605
+                        ,b=GAP+18+300                           ,items=itms         ,val=um_ind )] #  1     start sel
+
+ +[cust_it(tp='button'  ,t=bt_t1        ,l=bt_l1        ,w=120  ,cap=_('&Edit...')  ,props='1'  )] #  2 &e  default
+ +[cust_it(tp='button'  ,t=bt_t1        ,l=bt_l2        ,w=120  ,cap=_('&Add...')               )] #  3 &a
+ +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l1        ,w=120  ,cap=_('Clo&ne')                )] #  4 &n
+ +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l2        ,w=120  ,cap=_('&Delete...')            )] #  5 &d
+ +[cust_it(tp='button'  ,t=bt_t1        ,l=bt_l3        ,w=120  ,cap=_('&Up')                   )] #  6 &u
+ +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l3        ,w=120  ,cap=_('Do&wn')                 )] #  7 &w
+ +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l4        ,w=120  ,cap=_('&Calculate...')         )] #  8 &c
+ 
+ +[cust_it(tp='button'  ,t=bt_t2        ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 )] #  9
+            ), focused)    # start focus
+            if ans is None:  
+                return None
+            (ans_i
+            ,vals)      = ans
+            vals        = vals.splitlines()
+            ans_s       = apx.icase(False,''
+                           ,ans_i==  2,'edit'
+                           ,ans_i==  3,'add'
+                           ,ans_i==  4,'clone'
+                           ,ans_i==  5,'del'
+                           ,ans_i==  6,'up'
+                           ,ans_i==  7,'down'
+                           ,ans_i==  8,'calc'
+                           ,ans_i==  9,'close'
+                           )
+            um_ind      = int(vals[  1])    if 0!=len(vals[  1]) else -1
+            if ans_s=='close':  return
+            
+            if ans_s=='calc':
+                umc_vals    = self._calc_umc_vals()
+                app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(
+                    ['{}: {}\t{}'.format(umc['nm'], umc['ex'], umc_vals[umc['nm']]) for umc in self.umacrs]
+                ))
+
+            if ans_s=='add' or                          ans_s=='edit' and  um_ind!=-1:
+                umc = self.umacrs[um_ind].copy()   if   ans_s=='edit' else   {'nm':'', 'ex':'', 'co':''}
+                um_fcsd=  1
+                while True:
+                    um_ans = app.dlg_custom(_('Edit user macro var')   ,GAP+400+GAP, GAP+125, '\n'.join([]
+ +[cust_it(tp='label'   ,t=GAP+at4lbl       ,l=GAP          ,w=100  ,cap=_('&Name:')        )] #  0 &n
+ +[cust_it(tp='edit'    ,t=GAP              ,l=GAP+100      ,w=300  ,val=umc['nm']          )] #  1
+ +[cust_it(tp='label'   ,t=GAP+25+at4lbl    ,l=GAP          ,w=100  ,cap=_('&Expression:')  )] #  2 &e
+ +[cust_it(tp='edit'    ,t=GAP+25           ,l=GAP+100      ,w=300  ,val=umc['ex']          )] #  3
+ +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+100      ,w=100  ,cap=_('Add &file...')  )] #  4 &.
+ +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+200      ,w=100  ,cap=_('Add &dir...')   )] #  5 &.
+ +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+300      ,w=100  ,cap=_('Add &var...')   )] #  6 &.
+ +[cust_it(tp='label'   ,t=GAP+75+at4lbl    ,l=GAP          ,w=100  ,cap=_('&Comment:')     )] #  7 &c
+ +[cust_it(tp='edit'    ,t=GAP+75           ,l=GAP+100      ,w=300  ,val=umc['co']          )] #  8
+ +[cust_it(tp='button'  ,t=GAP+100          ,l=    400-140  ,w=70   ,cap=_('OK'),props='1'  )] #  9     default
+ +[cust_it(tp='button'  ,t=GAP+100          ,l=GAP+400- 70  ,w=70   ,cap=_('Cancel')        )] # 10
+                    ), um_fcsd)    # start focus
+                    if um_ans is None or um_ans[0]== 10:
+                        umc     = None  # ='No changes'
+                        break #while um
+                    um_ans_i, \
+                    um_vals     = um_ans[0], um_ans[1].splitlines()
+                    umc['nm']   = '{'+um_vals[  1].strip().strip('{}')+'}'
+                    umc['ex']   = um_vals[  3]
+                    umc['co']   = um_vals[  8]
+                    
+                    if um_ans_i==  4: # browse file
+                        ans_file = app.dlg_file(True, '', '', '')
+                        if ans_file is not None: 
+                            umc['ex']   = (umc['ex'] +' '+ ans_file).lstrip()
+                        um_fcsd  =  3
+                    if um_ans_i==  5: # browse dir
+                        ans_dir = app.dlg_dir('')
+                        if ans_dir is not None: 
+                            umc['ex']   = (umc['ex'] +' '+ ans_dir).lstrip()
+                        um_fcsd  =  3
+                    if um_ans_i==  6: # ok
+                        umc['ex']  = append_prmt(umc['ex'], self.umacrs, excl_umc=umc['nm'])
+                        um_fcsd  =  3
+                    
+                    if um_ans_i==  9: # ok
+                        if not umc['nm']:
+                            app.msg_box(_('Set Name'), app.MB_OK)
+                            um_fcsd     =  1
+                            continue #while um
+                        if not umc['ex']:
+                            app.msg_box(_('Set Expression'), app.MB_OK)
+                            um_fcsd     =  3
+                            continue #while um
+                        break #while um
+               #while um
+                if umc is None: # =='No changes'
+                    continue #while    No changes    
+                if ans_s=='edit':
+                    self.umacrs[um_ind].update(umc)
+                else: #   'add'
+                    self.umacrs += [umc]
+                    um_ind      = len(self.umacrs)-1
+
+            if ans_s=='clone' and  um_ind!=-1: #Clone
+                umc         = self.umacrs[um_ind].copy()
+                umc['nm']  += ' clone'
+                self.umacrs+= [umc]
+                um_ind      = len(self.umacrs)-1
+
+            if ans_s=='del' and  um_ind!=-1: 
+                if app.msg_box( _('Delete Macro?\n\n')
+                    + '\n'.join([_('Name: {}').format(   self.umacrs[um_ind]['nm'])
+                                ,_('Expr: {}').format(   self.umacrs[um_ind]['ex']) 
+                                ,_('Comment: {}').format(self.umacrs[um_ind]['co'])]), app.MB_YESNO)!=app.ID_YES:
+                    continue #while    No changes
+                del self.umacrs[um_ind]
+                um_ind  = min(um_ind, len(self.umacrs)-1)
+
+            elif ans_s=='up' and um_ind>0: #Up
+                (self.umacrs[um_ind-1]
+                ,self.umacrs[um_ind  ]) = (self.umacrs[um_ind  ]
+                                          ,self.umacrs[um_ind-1])
+                um_ind  = um_ind-1
+            elif ans_s=='down' and um_ind<(len(self.umacrs)-1): #Down
+                (self.umacrs[um_ind  ]
+                ,self.umacrs[um_ind+1]) = (self.umacrs[um_ind+1]
+                                          ,self.umacrs[um_ind  ])
+                um_ind  = um_ind+1
+
+            # Save changes
+            open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+           #while True
+       #def _dlg_usr_mcrs
         
     def _dlg_config_prop(self, src_ext, keys=None):
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
@@ -949,11 +1098,11 @@ class Command:
                 #Checks
                 if False:pass
                 elif not ed_ext['nm']:
-                    app.msg_box(_('Set name'), app.MB_OK)
+                    app.msg_box(_('Set Name'), app.MB_OK)
                     focused = 1
                     continue #while
                 elif not ed_ext['file']:
-                    app.msg_box(_('Set file'), app.MB_OK)
+                    app.msg_box(_('Set File name'), app.MB_OK)
                     focused = 3
                     continue #while
                     
@@ -993,25 +1142,7 @@ class Command:
                     ed_ext['ddir'] = os.path.dirname(file4dir)
 
             elif ans_s=='prms': #Append param {*}
-                prms_l  =([]
-                        +[_('{AppDir}\tDirectory with app executable')]
-                        +[_('{AppDrive}\t(Win only) Disk of app executable, eg "C:"')]
-                        +[_('{FileName}\tFull path')]
-                        +[_('{FileDir}\tFolder path, without file name')]
-                        +[_('{FileNameOnly}\tFile name only, without folder path')]
-                        +[_('{FileNameNoExt}\tFile name without extension and path')]
-                        +[_('{FileExt}\tExtension')]
-                        +[_('{CurrentLine}\tText of current line')]
-                        +[_('{CurrentLineNum}\tNumber of current line')]
-                        +[_('{CurrentLineNum0}\tNumber of current line (0-based)')]
-                        +[_('{CurrentColumnNum}\tNumber of current column')]
-                        +[_('{CurrentColumnNum0}\tNumber of current column (0-based)')]
-                        +[_('{SelectedText}\tText')]
-                        +[_('{Interactive}\tText will be asked at each running')]
-                        +[_('{InteractiveFile}\tFile name will be asked')])
-                prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l))
-                if prm_i is not None:
-                    ed_ext['prms']  = (ed_ext['prms'] + (' '+prms_l[prm_i].split('\t')[0])).lstrip()
+                ed_ext['prms']  = append_prmt(ed_ext['prms'], self.umacrs)
 
             elif ans_s=='hotkeys': #Hotkeys
                 app.dlg_hotkeys('cuda_exttools,run,'+str(ed_ext['id']))
@@ -1171,7 +1302,7 @@ class Command:
                 open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
            #while True
         pass
-       #def dlg_pattern
+       #def _dlg_pattern
         
 #   def _gen_ext_crc(self, ext):
 #       ''' Generate 32-bit int by ext-props '''
@@ -1196,6 +1327,16 @@ class Command:
 #       self._gen_ext_crc(ext)
         return ext
 
+    def _calc_umc_vals(self, file_nm=None):
+        file_nm         = file_nm   if file_nm is not None else     ed.get_filename()
+        (cCrt, rCrt
+        ,cEnd, rEnd)    = ed.get_carets()[0]
+        umc_vals        = {}            
+        for umc in self.umacrs:
+            umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, umcs=umc_vals)
+        return umc_vals
+       #def _calc_umc_vals
+       
    #class Command
 
 def _adv_prop(act, ext, par=''):
@@ -1215,7 +1356,7 @@ def _adv_prop(act, ext, par=''):
 #       ext.update(adv)
    #def _adv_prop
 
-def subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm=''):
+def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}):
     if '{' not in prm:  return prm
     app_dir = app.app_path(app.APP_DIR_EXE)
     if      '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
@@ -1243,7 +1384,41 @@ def subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm=''):
         ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
         if ans is None: return
         prm = prm.replace('{InteractiveFile}' , ans)
+        
+    if '{' not in prm:  return prm
+    for umc_k,umc_v in umcs.items():
+        prm = prm.replace(umc_k, umc_v)
+        if '{' not in prm:  return prm
+        
     return prm
+   #def _subst_props
+
+def append_prmt(tostr, umacrs, excl_umc=None):
+    prms_l  =([]
+            +[_('{AppDir}\tDirectory with app executable')]
+            +[_('{AppDrive}\t(Win only) Disk of app executable, eg "C:"')]
+            +[_('{FileName}\tFull path')]
+            +[_('{FileDir}\tFolder path, without file name')]
+            +[_('{FileNameOnly}\tFile name only, without folder path')]
+            +[_('{FileNameNoExt}\tFile name without extension and path')]
+            +[_('{FileExt}\tExtension')]
+            +[_('{CurrentLine}\tText of current line')]
+            +[_('{CurrentLineNum}\tNumber of current line')]
+            +[_('{CurrentLineNum0}\tNumber of current line (0-based)')]
+            +[_('{CurrentColumnNum}\tNumber of current column')]
+            +[_('{CurrentColumnNum0}\tNumber of current column (0-based)')]
+            +[_('{SelectedText}\tText')]
+            +[_('{Interactive}\tText will be asked at each running')]
+            +[_('{InteractiveFile}\tFile name will be asked')])
+    prms_l +=['{}\t{}'.format(umc['nm'], umc['ex']) 
+                for umc in umacrs 
+                if (excl_umc is None or umc['nm']!=excl_umc)]
+                        
+    prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l))
+    if prm_i is not None:
+        tostr  = (tostr + (' '+prms_l[prm_i].split('\t')[0])).lstrip()
+    return tostr
+   #def append_prmt
 
 def gen_ext_id(ids):
     id4ext      = random.randint(100000, 999999)

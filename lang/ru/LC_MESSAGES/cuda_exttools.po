@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-03-12 15:11+0300\n"
-"PO-Revision-Date: 2016-03-12 16:21+0300\n"
+"POT-Creation-Date: 2016-03-14 14:16+0300\n"
+"PO-Revision-Date: 2016-03-14 14:38+0300\n"
 "Last-Translator: kvichans <kvichans@mail.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -18,27 +18,11 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: cd_exttools.py:28
-msgid "Move current tool to upper position"
-msgstr "Пеместить на одну позицию вверх"
-
-#: cd_exttools.py:29
-msgid "Move current tool to lower position"
-msgstr "Пеместить на одну позицию вниз"
-
-#: cd_exttools.py:30
-msgid "For call by command \"Run lexer main tool\""
-msgstr "Установки для применения команды \"Главный запуск лексера\""
-
-#: cd_exttools.py:31
-msgid "Change this dialog sizes"
-msgstr "Настроить размеры этого диалога"
-
-#: cd_exttools.py:33
+#: cd_exttools.py:37
 msgid "Tool macros"
 msgstr "Подстановки"
 
-#: cd_exttools.py:34
+#: cd_exttools.py:38
 msgid ""
 "In tool properties\n"
 "   File name\n"
@@ -90,79 +74,79 @@ msgstr ""
 "   {Interactive}      - Свободный текст\n"
 "   {InteractiveFile}  - Имя файла"
 
-#: cd_exttools.py:73
+#: cd_exttools.py:77
 msgid "Ignore"
 msgstr "Не сохранять"
 
-#: cd_exttools.py:74
+#: cd_exttools.py:78
 msgid "Output panel"
 msgstr "Вывести в панель Вывод"
 
-#: cd_exttools.py:75
+#: cd_exttools.py:79
 msgid "Output panel (append)"
 msgstr "Добавить в панель Вывод"
 
-#: cd_exttools.py:76
+#: cd_exttools.py:80
 msgid "Copy to new document"
 msgstr "Вывести в новый документ"
 
-#: cd_exttools.py:77
+#: cd_exttools.py:81
 msgid "Copy to clipboard"
 msgstr "Сохранить в буфере"
 
-#: cd_exttools.py:78
+#: cd_exttools.py:82
 msgid "Replace selection"
 msgstr "Подставить вместо выделения"
 
-#: cd_exttools.py:86
+#: cd_exttools.py:90
 msgid "Nothing"
 msgstr "Ничего не сохранять"
 
-#: cd_exttools.py:87
+#: cd_exttools.py:91
 msgid "Current document"
 msgstr "Только текущий документ"
 
-#: cd_exttools.py:88
+#: cd_exttools.py:92
 msgid "All documents"
 msgstr "Все документы"
 
-#: cd_exttools.py:241 cd_exttools.py:599 cd_exttools.py:780
+#: cd_exttools.py:247 cd_exttools.py:606 cd_exttools.py:794
 msgid "&Tools"
 msgstr "За&пуски"
 
-#: cd_exttools.py:245
+#: cd_exttools.py:251
 msgid "Con&fig..."
 msgstr "Н&астроить"
 
-#: cd_exttools.py:246
+#: cd_exttools.py:252
 msgid "R&un lexer main tool"
 msgstr "Основной &запуск для лексера"
 
-#: cd_exttools.py:247
+#: cd_exttools.py:253
 msgid "Resul&ts"
 msgstr "Р&езультаты"
 
-#: cd_exttools.py:248
+#: cd_exttools.py:254
 msgid "Nex&t tool result"
 msgstr "Сл&едующий результат"
 
-#: cd_exttools.py:249
+#: cd_exttools.py:255
 msgid "&Previous tool result"
 msgstr "Предыдущий ре&зультат"
 
-#: cd_exttools.py:318
+#: cd_exttools.py:324
 msgid "Tool \"{}\" is not suitable for lexer \"{}\". It works only with \"{}\""
 msgstr "Запуск \"{}\" не сочетается с лексером \"{}\". Только для \"{}\""
 
-#: cd_exttools.py:454
+#: cd_exttools.py:461
 msgid "No Tool to parse the output line"
 msgstr "Строка не ассоциирована ни с одним Запуском"
 
-#: cd_exttools.py:455
+#: cd_exttools.py:462
 msgid "Tool \"{}\" has not Pattern property"
 msgstr "У запуска \"{}\" нет Шаблона для разбора вывода"
 
-#: cd_exttools.py:460
+#: cd_exttools.py:467
 msgid "Tool \"{}\" could not find a line-number into output line"
 msgstr "Не найдена информация о номере строки после Запуска \"{}\""
 
@@ -178,43 +162,67 @@ msgstr "Нет результатов вывода для перехода"
 msgid "Need update CudaText"
 msgstr "Необходимо обновить CudaText"
 
-#: cd_exttools.py:603
+#: cd_exttools.py:551
+msgid "Move current tool to upper position"
+msgstr "Пеместить на одну позицию вверх"
+
+#: cd_exttools.py:552
+msgid "Move current tool to lower position"
+msgstr "Пеместить на одну позицию вниз"
+
+#: cd_exttools.py:553
+msgid "For call by command \"Run lexer main tool\""
+msgstr "Установки для применения команды \"Главный запуск лексера\""
+
+#: cd_exttools.py:554
+msgid "Edit list of user's macros to use in tool properties"
+msgstr "Список пользов. макроподстановое для вставки в парам. вызова"
+
+#: cd_exttools.py:555
+msgid "Change this dialog sizes"
+msgstr "Настроить размеры этого диалога"
+
+#: cd_exttools.py:610 cd_exttools.py:860
 msgid "&Edit..."
 msgstr "&Изменить..."
 
-#: cd_exttools.py:604
+#: cd_exttools.py:611 cd_exttools.py:861
 msgid "&Add..."
 msgstr "&Создать..."
 
-#: cd_exttools.py:605
+#: cd_exttools.py:612 cd_exttools.py:862
 msgid "Clo&ne"
 msgstr "&Дублировать"
 
-#: cd_exttools.py:606
+#: cd_exttools.py:613 cd_exttools.py:863
 msgid "&Delete..."
 msgstr "&Удалить..."
 
-#: cd_exttools.py:607
+#: cd_exttools.py:614 cd_exttools.py:864
 msgid "&Up"
-msgstr "&Поднять"
+msgstr "Подн&ять"
 
-#: cd_exttools.py:608
+#: cd_exttools.py:615 cd_exttools.py:865
 msgid "Do&wn"
 msgstr "&Опустить"
 
-#: cd_exttools.py:609
+#: cd_exttools.py:616
 msgid "Set &main for lexers..."
-msgstr "Задать основные для &лексеров"
+msgstr "Основные для &лексеров..."
 
-#: cd_exttools.py:612
+#: cd_exttools.py:618
+msgid "User macro &vars..."
+msgstr "Пользов. &макроподстановки..."
+
+#: cd_exttools.py:621
 msgid "Ad&just..."
 msgstr "Подстроит&ь..."
 
-#: cd_exttools.py:613 cd_exttools.py:787
+#: cd_exttools.py:622 cd_exttools.py:801 cd_exttools.py:868
 msgid "Close"
 msgstr "Закрыть"
 
-#: cd_exttools.py:637
+#: cd_exttools.py:647
 msgid ""
 "Custom dialog Tools. Start Widths with \"R\"/\"C\" to align. Start with \"-"
 "\" to hide column."
@@ -222,294 +230,376 @@ msgstr ""
 "Подстройка диалога. Начните с \"R\"/\"C\" для выравнивания. Начните с \"-\", "
 "чтобы спрятать колонку."
 
-#: cd_exttools.py:639
+#: cd_exttools.py:649
 msgid "Width of Name    (min 100)"
 msgstr "Ширина Имя       (мин 100)"
 
-#: cd_exttools.py:640
+#: cd_exttools.py:650
 msgid "Width of Keys    (min  50)"
 msgstr "Ширина Сочетания (мин  50)"
 
-#: cd_exttools.py:641
+#: cd_exttools.py:651
 msgid "Width of File    (min 150)"
 msgstr "Ширина Файл      (мин 150)"
 
-#: cd_exttools.py:642
+#: cd_exttools.py:652
 msgid "Width of Params  (min 150)"
 msgstr "Ширина Параметры (мин 150)"
 
-#: cd_exttools.py:643
+#: cd_exttools.py:653
 msgid "Width of Folder  (min 100)"
 msgstr "Ширина Папка     (мин 100)"
 
-#: cd_exttools.py:644
+#: cd_exttools.py:654
 msgid "Width of Lexers  (min  50)"
 msgstr "Ширина Лексеры   (мин  50)"
 
-#: cd_exttools.py:645
+#: cd_exttools.py:655
 msgid "Width of Capture (min  50)"
 msgstr "Ширина Вывод     (мин  50)"
 
-#: cd_exttools.py:646
+#: cd_exttools.py:656
 msgid "Width of Saving  (min  30)"
 msgstr "Ширина Сохранять (мин  30)"
 
-#: cd_exttools.py:647
+#: cd_exttools.py:657
 msgid "List height  (min 200)"
 msgstr "Высота списка    (мин 200)"
 
-#: cd_exttools.py:648
+#: cd_exttools.py:658
 msgid "Button width (min 70)"
 msgstr "Ширина кнопок    (мин  70)"
 
-#: cd_exttools.py:744
+#: cd_exttools.py:758
 msgid ""
 "Delete Tool?\n"
 "\n"
 msgstr "Удалить Вызов?\n"
 
-#: cd_exttools.py:775
+#: cd_exttools.py:789
 msgid "Main Tool for lexers"
 msgstr "Основные вызовы для лексеров"
 
-#: cd_exttools.py:777
+#: cd_exttools.py:791
 msgid "&Lexer  >>>  main Tool"
 msgstr "&Лексер  >>>  основной Вызов"
 
-#: cd_exttools.py:784
+#: cd_exttools.py:798
 msgid "&Assign tool"
 msgstr "&Назначить Вызов"
 
-#: cd_exttools.py:785
+#: cd_exttools.py:799
 msgid "&Break join"
 msgstr "&Освободить Вызов"
 
-#: cd_exttools.py:849
-msgid "Tool properties"
-msgstr "Свойства Вызова"
+#: cd_exttools.py:846
+msgid "Comment="
+msgstr "Комментарий="
 
-#: cd_exttools.py:851
-msgid "&Name"
-msgstr "&Имя"
+#: cd_exttools.py:846
+msgid "Expression="
+msgstr "Выражение="
 
-#: cd_exttools.py:854
-msgid "&File name"
-msgstr "&Файл"
+#: cd_exttools.py:846
+msgid "Name="
+msgstr "Имя="
+
+#: cd_exttools.py:855
+msgid "User macro vars"
+msgstr "Пользов. макроподстановки"
 
 #: cd_exttools.py:856
-msgid "&Browse..."
-msgstr "&Найти..."
-
-#: cd_exttools.py:857
-msgid "&Shell command"
-msgstr ""
-
-#: cd_exttools.py:860
-msgid "&Parameters"
-msgstr "Парамет&ры"
-
-#: cd_exttools.py:862
-msgid "A&dd..."
-msgstr "&Добавить..."
-
-#: cd_exttools.py:864
-msgid "&Initial folder"
-msgstr "&Папка"
+msgid "User macro &vars"
+msgstr "Пользов. &макроподстановки"
 
 #: cd_exttools.py:866
-msgid "B&rowse..."
-msgstr "Выбрат&ь..."
-
-#: cd_exttools.py:868
-msgid "Lexers"
-msgstr "Лексеры"
-
-#: cd_exttools.py:870
-msgid "Le&xers..."
-msgstr "Лексер&ы..."
-
-#: cd_exttools.py:872
-msgid "Main for"
-msgstr "Основной для"
-
-#: cd_exttools.py:874
-msgid "Set &main..."
-msgstr "Назна&чить..."
-
-#: cd_exttools.py:876
-msgid "Sa&ve before"
-msgstr "Со&хранить до"
-
-#: cd_exttools.py:880
-msgid "Hotkey"
-msgstr "Сочетание"
-
-#: cd_exttools.py:882
-msgid "Assi&gn..."
-msgstr "Назначить..."
-
-#: cd_exttools.py:884
-msgid "&Capture output"
-msgstr "&Вывод"
-
-#: cd_exttools.py:888
-msgid "Encoding"
-msgstr "Кодировка"
-
-#: cd_exttools.py:890
-msgid "S&elect..."
-msgstr "Выбрать..."
-
-#: cd_exttools.py:892
-msgid "Pattern"
-msgstr "Шаблон"
-
-#: cd_exttools.py:894
-msgid "Se&t..."
-msgstr "Настроить..."
-
-#: cd_exttools.py:896
-msgid "Advanced"
-msgstr "Доп.свойства"
+msgid "&Calculate..."
+msgstr "&Рассчитать..."
 
 #: cd_exttools.py:898
-msgid "Set..."
-msgstr "Задать..."
+msgid "Edit user macro var"
+msgstr "Изменить польз. макроподстановку"
 
-#: cd_exttools.py:900
-msgid "Help"
-msgstr "Справка"
+#: cd_exttools.py:899
+msgid "&Name:"
+msgstr "&Имя:"
 
-#: cd_exttools.py:901 cd_exttools.py:1020 cd_exttools.py:1053
-#: cd_exttools.py:1101
+#: cd_exttools.py:901
+msgid "&Expression:"
+msgstr "&Выражение:"
+
+#: cd_exttools.py:903
+msgid "Add &file..."
+msgstr "&Файл..."
+
+#: cd_exttools.py:904
+msgid "Add &dir..."
+msgstr "&Папка..."
+
+#: cd_exttools.py:905
+msgid "Add &var..."
+msgstr "&Макро..."
+
+#: cd_exttools.py:906
+msgid "&Comment:"
+msgstr "&Комментарий:"
+
+#: cd_exttools.py:908 cd_exttools.py:1059 cd_exttools.py:1160
+#: cd_exttools.py:1193 cd_exttools.py:1241
 msgid "OK"
 msgstr "OK"
 
-#: cd_exttools.py:902 cd_exttools.py:1021 cd_exttools.py:1054
-#: cd_exttools.py:1102
+#: cd_exttools.py:909 cd_exttools.py:1060 cd_exttools.py:1161
+#: cd_exttools.py:1194 cd_exttools.py:1242
 msgid "Cancel"
 msgstr "Отмена"
 
-#: cd_exttools.py:943
-msgid "Set name"
-msgstr "Задайте имя"
+#: cd_exttools.py:936 cd_exttools.py:1101
+msgid "Set Name"
+msgstr "Задайте Имя"
 
-#: cd_exttools.py:947
-msgid "Set file"
-msgstr "Задайте файл"
+#: cd_exttools.py:940
+msgid "Set Expression"
+msgstr "Задайте Выражение"
 
-#: cd_exttools.py:988
-msgid "{AppDir}\tDirectory with app executable"
+#: cd_exttools.py:960
+msgid ""
+"Delete Macro?\n"
+"\n"
+msgstr ""
+"Удалить макроподстановку?\n"
+"\n"
+
+#: cd_exttools.py:961
+msgid "Name: {}"
+msgstr "Имя: {}"
+
+#: cd_exttools.py:962
+msgid "Expr: {}"
+msgstr "Выраж.: {}"
+
+#: cd_exttools.py:963
+msgid "Comment: {}"
+msgstr "Коммент.: {}"
+
+#: cd_exttools.py:1007
+msgid "Tool properties"
+msgstr "Свойства Вызова"
+
+#: cd_exttools.py:1009
+msgid "&Name"
+msgstr "&Имя"
+
+#: cd_exttools.py:1012
+msgid "&File name"
+msgstr "&Файл"
+
+#: cd_exttools.py:1014
+msgid "&Browse..."
+msgstr "&Найти..."
+
+#: cd_exttools.py:1015
+msgid "&Shell command"
 msgstr ""
 
-#: cd_exttools.py:989
-msgid "{AppDrive}\t(Win only) Disk of app executable, eg \"C:\""
-msgstr ""
+#: cd_exttools.py:1018
+msgid "&Parameters"
+msgstr "Парамет&ры"
 
-#: cd_exttools.py:990
-msgid "{FileName}\tFull path"
-msgstr ""
+#: cd_exttools.py:1020
+msgid "A&dd..."
+msgstr "&Добавить..."
 
-#: cd_exttools.py:991
-msgid "{FileDir}\tFolder path, without file name"
-msgstr ""
+#: cd_exttools.py:1022
+msgid "&Initial folder"
+msgstr "&Папка"
 
-#: cd_exttools.py:992
-msgid "{FileNameOnly}\tFile name only, without folder path"
-msgstr ""
+#: cd_exttools.py:1024
+msgid "B&rowse..."
+msgstr "Выбрат&ь..."
 
-#: cd_exttools.py:993
-msgid "{FileNameNoExt}\tFile name without extension and path"
-msgstr ""
+#: cd_exttools.py:1026
+msgid "Lexers"
+msgstr "Лексеры"
 
-#: cd_exttools.py:994
-msgid "{FileExt}\tExtension"
-msgstr ""
+#: cd_exttools.py:1028
+msgid "Le&xers..."
+msgstr "Лексер&ы..."
 
-#: cd_exttools.py:995
-msgid "{CurrentLine}\tText of current line"
-msgstr ""
+#: cd_exttools.py:1030
+msgid "Main for"
+msgstr "Основной для"
 
-#: cd_exttools.py:996
-msgid "{CurrentLineNum}\tNumber of current line"
-msgstr ""
+#: cd_exttools.py:1032
+msgid "Set &main..."
+msgstr "Назна&чить..."
 
-#: cd_exttools.py:997
-msgid "{CurrentLineNum0}\tNumber of current line (0-based)"
-msgstr ""
+#: cd_exttools.py:1034
+msgid "Sa&ve before"
+msgstr "Со&хранить до"
 
-#: cd_exttools.py:998
-msgid "{CurrentColumnNum}\tNumber of current column"
-msgstr ""
+#: cd_exttools.py:1038
+msgid "Hotkey"
+msgstr "Сочетание"
 
-#: cd_exttools.py:999
-msgid "{CurrentColumnNum0}\tNumber of current column (0-based)"
-msgstr ""
+#: cd_exttools.py:1040
+msgid "Assi&gn..."
+msgstr "Назначить..."
 
-#: cd_exttools.py:1000
-msgid "{SelectedText}\tText"
-msgstr ""
+#: cd_exttools.py:1042
+msgid "&Capture output"
+msgstr "&Вывод"
 
-#: cd_exttools.py:1001
-msgid "{Interactive}\tText will be asked at each running"
-msgstr ""
+#: cd_exttools.py:1046
+msgid "Encoding"
+msgstr "Кодировка"
 
-#: cd_exttools.py:1002
-msgid "{InteractiveFile}\tFile name will be asked"
-msgstr ""
+#: cd_exttools.py:1048
+msgid "S&elect..."
+msgstr "Выбрать..."
 
-#: cd_exttools.py:1016
+#: cd_exttools.py:1050
+msgid "Pattern"
+msgstr "Шаблон"
+
+#: cd_exttools.py:1052
+msgid "Se&t..."
+msgstr "Настроить..."
+
+#: cd_exttools.py:1054
+msgid "Advanced"
+msgstr "Доп.свойства"
+
+#: cd_exttools.py:1056
+msgid "Set..."
+msgstr "Задать..."
+
+#: cd_exttools.py:1058
+msgid "Help"
+msgstr "Справка"
+
+#: cd_exttools.py:1105
+msgid "Set File name"
+msgstr "Задайте Имя файла"
+
+#: cd_exttools.py:1156
 msgid "Select lexers"
 msgstr "Задать лексеры"
 
-#: cd_exttools.py:1051
+#: cd_exttools.py:1191
 msgid "Advanced properties"
 msgstr "Доп. свойства"
 
-#: cd_exttools.py:1077
+#: cd_exttools.py:1217
 msgid "Tool \"{}\" output pattern"
 msgstr "Шаблон выходных строк для Вызова \"{}\""
 
-#: cd_exttools.py:1079
+#: cd_exttools.py:1219
 msgid "&Regular expression"
 msgstr "&Регулярное выражение"
 
-#: cd_exttools.py:1083
+#: cd_exttools.py:1223
 msgid "Test &output line"
 msgstr "Строка &для проверки"
 
-#: cd_exttools.py:1085
+#: cd_exttools.py:1225
 msgid "&Test"
 msgstr "&Протестировать"
 
-#: cd_exttools.py:1087
+#: cd_exttools.py:1227
 msgid "Testing results"
 msgstr "Результаты тестирования"
 
-#: cd_exttools.py:1088
+#: cd_exttools.py:1228
 msgid "Filename"
 msgstr "Файл"
 
-#: cd_exttools.py:1091
+#: cd_exttools.py:1231
 msgid "Line"
 msgstr "Строка"
 
-#: cd_exttools.py:1094
+#: cd_exttools.py:1234
 msgid "Column"
 msgstr "Колонка"
 
-#: cd_exttools.py:1098
+#: cd_exttools.py:1238
 msgid "Load &preset..."
 msgstr "&Загрузить пресет"
 
-#: cd_exttools.py:1099
+#: cd_exttools.py:1239
 msgid "&Save as preset..."
 msgstr "Сохранить &как пресет"
 
-#: cd_exttools.py:1152
+#: cd_exttools.py:1292
 msgid "Set \"Regular expression\""
 msgstr "Задайте рег.выражение"
 
-#: cd_exttools.py:1154
+#: cd_exttools.py:1294
 msgid "Name for preset ({})"
 msgstr "Имя для пресета ({})"
+
+#: cd_exttools.py:1398
+msgid "{AppDir}\tDirectory with app executable"
+msgstr ""
+
+#: cd_exttools.py:1399
+msgid "{AppDrive}\t(Win only) Disk of app executable, eg \"C:\""
+msgstr ""
+
+#: cd_exttools.py:1400
+msgid "{FileName}\tFull path"
+msgstr ""
+
+#: cd_exttools.py:1401
+msgid "{FileDir}\tFolder path, without file name"
+msgstr ""
+
+#: cd_exttools.py:1402
+msgid "{FileNameOnly}\tFile name only, without folder path"
+msgstr ""
+
+#: cd_exttools.py:1403
+msgid "{FileNameNoExt}\tFile name without extension and path"
+msgstr ""
+
+#: cd_exttools.py:1404
+msgid "{FileExt}\tExtension"
+msgstr ""
+
+#: cd_exttools.py:1405
+msgid "{CurrentLine}\tText of current line"
+msgstr ""
+
+#: cd_exttools.py:1406
+msgid "{CurrentLineNum}\tNumber of current line"
+msgstr ""
+
+#: cd_exttools.py:1407
+msgid "{CurrentLineNum0}\tNumber of current line (0-based)"
+msgstr ""
+
+#: cd_exttools.py:1408
+msgid "{CurrentColumnNum}\tNumber of current column"
+msgstr ""
+
+#: cd_exttools.py:1409
+msgid "{CurrentColumnNum0}\tNumber of current column (0-based)"
+msgstr ""
+
+#: cd_exttools.py:1410
+msgid "{SelectedText}\tText"
+msgstr ""
+
+#: cd_exttools.py:1411
+msgid "{Interactive}\tText will be asked at each running"
+msgstr ""
+
+#: cd_exttools.py:1412
+msgid "{InteractiveFile}\tFile name will be asked"
+msgstr ""
+
+#~ msgid "Set name"
+#~ msgstr "Задайте имя"
+
+#~ msgid "Set file"
+#~ msgstr "Задайте файл"
