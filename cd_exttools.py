@@ -843,7 +843,7 @@ class Command:
         while True:
             DLG_W, DLG_H= GAP*2+605, GAP+20+300+GAP+25+25
 
-            itms    = [ '\r'.join([_('Name=')+'100', _('Expression=')+'300', _('Comment=')+'200'])] \
+            itms    = [ '\r'.join([_('Name=')+'100', _('Value=')+'300', _('Comment=')+'200'])] \
                     + [' \r'.join([um['nm'],      um['ex'],            um['co']]) for um in self.umacrs]
 
             bt_t1   = GAP+18+300+GAP
@@ -863,7 +863,7 @@ class Command:
  +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l2        ,w=120  ,cap=_('&Delete...')            )] #  5 &d
  +[cust_it(tp='button'  ,t=bt_t1        ,l=bt_l3        ,w=120  ,cap=_('&Up')                   )] #  6 &u
  +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l3        ,w=120  ,cap=_('Do&wn')                 )] #  7 &w
- +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l4        ,w=120  ,cap=_('&Calculate...')         )] #  8 &c
+ +[cust_it(tp='button'  ,t=bt_t2        ,l=bt_l4        ,w=120  ,cap=_('Eva&luate...')          )] #  8 &v
  
  +[cust_it(tp='button'  ,t=bt_t2        ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 )] #  9
             ), focused)    # start focus
@@ -895,18 +895,18 @@ class Command:
                 umc = self.umacrs[um_ind].copy()   if   ans_s=='edit' else   {'nm':'', 'ex':'', 'co':''}
                 um_fcsd=  1
                 while True:
-                    um_ans = app.dlg_custom(_('Edit user macro var')   ,GAP+400+GAP, GAP+125, '\n'.join([]
+                    um_ans = app.dlg_custom(_('Edit user macro var')   ,GAP+400+GAP, GAP+135, '\n'.join([]
  +[cust_it(tp='label'   ,t=GAP+at4lbl       ,l=GAP          ,w=100  ,cap=_('&Name:')        )] #  0 &n
  +[cust_it(tp='edit'    ,t=GAP              ,l=GAP+100      ,w=300  ,val=umc['nm']          )] #  1
- +[cust_it(tp='label'   ,t=GAP+25+at4lbl    ,l=GAP          ,w=100  ,cap=_('&Expression:')  )] #  2 &e
+ +[cust_it(tp='label'   ,t=GAP+25+at4lbl    ,l=GAP          ,w=100  ,cap=_('Val&ue:')       )] #  2 &u
  +[cust_it(tp='edit'    ,t=GAP+25           ,l=GAP+100      ,w=300  ,val=umc['ex']          )] #  3
- +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+100      ,w=100  ,cap=_('Add &file...')  )] #  4 &.
- +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+200      ,w=100  ,cap=_('Add &dir...')   )] #  5 &.
- +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+300      ,w=100  ,cap=_('Add &var...')   )] #  6 &.
+ +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+100      ,w=100  ,cap=_('Add &file...')  )] #  4 &f
+ +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+200      ,w=100  ,cap=_('Add &dir...')   )] #  5 &d
+ +[cust_it(tp='button'  ,t=GAP+50           ,l=GAP+300      ,w=100  ,cap=_('Add &var...')   )] #  6 &v
  +[cust_it(tp='label'   ,t=GAP+75+at4lbl    ,l=GAP          ,w=100  ,cap=_('&Comment:')     )] #  7 &c
  +[cust_it(tp='edit'    ,t=GAP+75           ,l=GAP+100      ,w=300  ,val=umc['co']          )] #  8
- +[cust_it(tp='button'  ,t=GAP+100          ,l=    400-140  ,w=70   ,cap=_('OK'),props='1'  )] #  9     default
- +[cust_it(tp='button'  ,t=GAP+100          ,l=GAP+400- 70  ,w=70   ,cap=_('Cancel')        )] # 10
+ +[cust_it(tp='button'  ,t=GAP+110          ,l=    400-140  ,w=70   ,cap=_('OK'),props='1'  )] #  9     default
+ +[cust_it(tp='button'  ,t=GAP+110          ,l=GAP+400- 70  ,w=70   ,cap=_('Cancel')        )] # 10
                     ), um_fcsd)    # start focus
                     if um_ans is None or um_ans[0]== 10:
                         umc     = None  # ='No changes'
@@ -937,7 +937,7 @@ class Command:
                             um_fcsd     =  1
                             continue #while um
                         if not umc['ex']:
-                            app.msg_box(_('Set Expression'), app.MB_OK)
+                            app.msg_box(_('Set Value'), app.MB_OK)
                             um_fcsd     =  3
                             continue #while um
                         break #while um
