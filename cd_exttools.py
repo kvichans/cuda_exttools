@@ -578,7 +578,7 @@ class Command:
             if WD_LST < WD_LST_MIN:
                 ext_nz_d['Name']    = str(WD_LST_MIN-WD_LST + int(ext_nz_d['Name']))
                 WD_LST              = WD_LST_MIN
-            DLG_W, DLG_H    = max(WD_LST, ACTS_L[9])+GAP*3, ACTS_T[3]#+GAP
+            DLG_W, DLG_H    = max(WD_LST, ACTS_L[9])+GAP*3, ACTS_T[3]+3#+GAP
             ext_hnzs    = ['{}={}'.format(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()]
             ext_vlss    = []
             for ext in self.exts:
@@ -781,7 +781,7 @@ class Command:
         tool_ind    = ids.index(ext_id) if ext_id in ids else 0
         focused     = 1
         while True:
-            DLG_W, DLG_H= GAP*3+300+400, GAP*4+300+23*2 -GAP
+            DLG_W, DLG_H= GAP*3+300+400, GAP*4+300+23*2 -GAP+3
 
             lxrs_enm    = ['{}{}'.format(lxr, '  >>>  {}'.format(nm4ids[self.ext4lxr[lxr]]) if lxr in self.ext4lxr else '')
                             for lxr in lxrs_l]
@@ -841,7 +841,7 @@ class Command:
         um_ind      = 0
         focused     = 1
         while True:
-            DLG_W, DLG_H= GAP*2+605, GAP+20+300+GAP+25+25
+            DLG_W, DLG_H= GAP*2+605, GAP+20+300+GAP+25+25+3
 
             itms    = [ '\r'.join([_('Name=')+'100', _('Value=')+'300', _('Comment=')+'200'])] \
                     + [' \r'.join([um['nm'],      um['ex'],            um['co']]) for um in self.umacrs]
@@ -895,7 +895,7 @@ class Command:
                 umc = self.umacrs[um_ind].copy()   if   ans_s=='edit' else   {'nm':'', 'ex':'', 'co':''}
                 um_fcsd=  1
                 while True:
-                    um_ans = app.dlg_custom(_('Edit user macro var')   ,GAP+400+GAP, GAP+135, '\n'.join([]
+                    um_ans = app.dlg_custom(_('Edit user macro var')   ,GAP+400+GAP, GAP+135+GAP, '\n'.join([]
  +[cust_it(tp='label'   ,t=GAP+at4lbl       ,l=GAP          ,w=100  ,cap=_('&Name:')        )] #  0 &n
  +[cust_it(tp='edit'    ,t=GAP              ,l=GAP+100      ,w=300  ,val=umc['nm']          )] #  1
  +[cust_it(tp='label'   ,t=GAP+25+at4lbl    ,l=GAP          ,w=100  ,cap=_('Val&ue:')       )] #  2 &u
@@ -994,7 +994,7 @@ class Command:
         PRP2_W, PRP2_L  = (400, PRP1_L+    PRP1_W)
         PRP3_W, PRP3_L  = (100, PRP2_L+GAP+PRP2_W)
         PROP_T          = [GAP*ind+25*(ind-1) for ind in range(20)]   # max 20 rows
-        DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[17]#+GAP
+        DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[17]-2
         
         focused         = 1
         while True:
@@ -1188,7 +1188,7 @@ class Command:
  +[cust_it(tp='edit'    ,t=GAP+i*50+18  ,l=GAP  ,w=500  ,val=ed_ext.get(    a['key'], a['def'])                 )]) # i*2+1
                    #for (i, a)
                 avd_h   = len(ADV_PROPS)*50
-                ans     = app.dlg_custom(_('Advanced properties'), GAP+500+GAP, GAP+avd_h+GAP+24+GAP, '\n'.join([]
+                ans     = app.dlg_custom(_('Advanced properties'), GAP+500+GAP, GAP+avd_h+GAP+24+GAP+3, '\n'.join([]
  +lbeds
  +[cust_it(tp='button'  ,t=GAP+avd_h+GAP,l=    500-140  ,w=70   ,cap=_('OK'),props='1'                          )]  # 2*len()    default
  +[cust_it(tp='button'  ,t=GAP+avd_h+GAP,l=GAP+500- 70  ,w=70   ,cap=_('Cancel')                                )]  # 2*len()+1
@@ -1213,7 +1213,7 @@ class Command:
         
         while True:
             focused     = 1
-            DLG_W, DLG_H= GAP+550+GAP, GAP+250#+GAP
+            DLG_W, DLG_H= GAP+550+GAP, GAP+250+3#+GAP
             ans = app.dlg_custom(_('Tool "{}" output pattern').format(run_nm)   ,DLG_W, DLG_H, '\n'.join([]
             # RE
  +[cust_it(tp='label'   ,t=GAP          ,l=GAP              ,w=300              ,cap=_('&Regular expression'))]#  0 &r
