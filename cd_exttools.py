@@ -14,15 +14,14 @@ import  cudax_lib       as apx
 from    cudax_lib   import log
 from    .encodings  import *
 
-THIS    = 'cuda_exttools'
-THIS_DIR= app.app_path(app.APP_DIR_EXE)+'/py/{0}/'.format(THIS)
-
-# Localization
+# I18N
 _       = lambda x: x
-lng     = app.app_proc(app.PROC_GET_LANG, '')[:2].lower()
-lng_mo  = THIS_DIR+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, THIS)
+this_dir= os.path.dirname(__file__)
+this_plg= os.path.basename(this_dir)
+lng     = app.app_proc(app.PROC_GET_LANG, '')
+lng_mo  = this_dir+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, this_plg)
 if os.path.isfile(lng_mo):
-    t   = gettext.translation(THIS, THIS_DIR+'/lang', languages=[lng])
+    t   = gettext.translation(this_plg, this_dir+'/lang', languages=[lng])
     _   = t.gettext
     t.install()
 
