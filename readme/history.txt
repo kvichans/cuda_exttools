@@ -1,5 +1,8 @@
+1.2.3 (2016-05-04)
+added: hotkeys in submenu
+
 1.2.2 (2016-04-04)
-added: joined tool (tool serail)
+added: joined tool (tool serial)
 
 1.2.1 (2016-03-14)
 added: user macro vars

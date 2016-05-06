@@ -279,6 +279,32 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
     return  btn_cid, an_vals
    #def dlg_wrapper
 
+def get_hotkeys_desc(cmd_id, ext_id=None, keys_js=None, def_ans=''):
+    """ Read one or two hotkeys for command 
+            cmd_id [+ext_id]
+        from 
+            settings\keys.json
+        Return 
+            def_ans                     If no  hotkeys for the command
+            'Ctrl+Q'            
+            'Ctrl+Q * Ctrl+W'           If one hotkey  for the command
+            'Ctrl+Q/Ctrl+T'            
+            'Ctrl+Q * Ctrl+W/Ctrl+T'    If two hotkeys for the command
+    """
+    if keys_js is None:
+        keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
+        keys_js     = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+
+    cmd_id  = f('{},{}', cmd_id, ext_id) if ext_id else cmd_id
+    if cmd_id not in keys_js:
+        return def_ans
+    cmd_keys= keys_js[cmd_id]
+    desc    = '/'.join([' * '.join(cmd_keys.get('s1', []))
+                       ,' * '.join(cmd_keys.get('s2', []))
+                       ]).strip('/')
+    return desc
+   #def get_hotkeys_desc
+
 if __name__ == '__main__' :     # Tests
     def ask_number(ask, def_val):
         cnts=[dict(        tp='lb',tid='v',l=3 ,w=70,cap=ask)

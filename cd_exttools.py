@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.2 2016-04-04'
+    '1.2.3 2016-05-06'
 ToDo: (see end of file)
 '''
 
@@ -152,16 +152,25 @@ class Command:
                     plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
                 id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', PLUG_HINT, _('&Tools'), 1+plg_ind))
         # Fill
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,dlg_config;{}'.format(    id_menu,    _('Con&fig...')))
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run_lxr_main;{}'.format(  id_menu,    _('R&un lexer main Tool')))
+        def hotkeys_desc(cmd_id):
+            hk_s= get_hotkeys_desc(cmd_id)
+            hk_s= '\t\t'+hk_s if hk_s else hk_s
+            return hk_s
+        hk_s    = hotkeys_desc(            'cuda_exttools,dlg_config')
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,dlg_config;{}'.format(    id_menu,    _('Con&fig...')+hk_s))
+        hk_s    = hotkeys_desc(            'cuda_exttools,run_lxr_main')
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run_lxr_main;{}'.format(  id_menu,    _('R&un lexer main Tool')+hk_s))
         id_rslt = app.app_proc( app.PROC_MENU_ADD, '{};{};{}'.format(               id_menu, 0, _('Resul&ts')))
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_next_result;{}'.format(id_rslt,  _('Nex&t Tool result')))
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_prev_result;{}'.format(id_rslt,  _('&Previous Tool result')))
+        hk_s    = hotkeys_desc(            'cuda_exttools,show_next_result')
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_next_result;{}'.format(id_rslt,  _('Nex&t Tool result')+hk_s))
+        hk_s    = hotkeys_desc(            'cuda_exttools,show_prev_result')
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_prev_result;{}'.format(id_rslt,  _('&Previous Tool result'+hk_s)))
         if 0==len(self.exts):
             return
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
         for ext in self.exts:
-            app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run,{};{}'.format(id_menu, ext['id'], ext['nm']))
+            hk_s= hotkeys_desc(              f('cuda_exttools,run,{}',                   ext['id']))
+            app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run,{};{}'.format(id_menu, ext['id'], ext['nm']+hk_s))
        #def adapt_menu
         
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):
@@ -450,7 +459,6 @@ class Command:
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
 
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
-        keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         
         ids     = [ext['id'] for ext in self.exts]
         ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else min(0, len(ids)-1)
@@ -466,6 +474,7 @@ class Command:
         prs     = self.dlg_prs
         pass;                  #LOG and log('prs={}',prs)
         while True:
+            keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
             ext_nz_d    = collections.OrderedDict([
                            (_('Name')           ,prs.get('nm'  , '150'))
                           ,(_('Keys')           ,prs.get('keys', '100'))
@@ -765,17 +774,17 @@ class Command:
             if btn=='add' or                          btn=='edt' and  um_ind!=-1:
                 umc = self.umacrs[um_ind].copy()   if btn=='edt' else   {'nm':'', 'ex':'', 'co':''}
                 um_cnts= [
-                      dict(          tp='label'   ,tid='nm'     ,l=GAP          ,w=100  ,cap=_('&Name:')        ) # &n
-                     ,dict(cid='nm' ,tp='edit'    ,t=GAP        ,l=GAP+100      ,w=300                          ) #
-                     ,dict(          tp='label'   ,tid='ex'     ,l=GAP          ,w=100  ,cap=_('Val&ue:')       ) # &u
-                     ,dict(cid='ex' ,tp='edit'    ,t=GAP+25     ,l=GAP+100      ,w=300                          ) #
-                     ,dict(cid='fil',tp='button'  ,t=GAP+50     ,l=GAP+100      ,w=100  ,cap=_('Add &file...')  ) # &f
-                     ,dict(cid='dir',tp='button'  ,t=GAP+50     ,l=GAP+200      ,w=100  ,cap=_('Add &dir...')   ) # &d
-                     ,dict(cid='var',tp='button'  ,t=GAP+50     ,l=GAP+300      ,w=100  ,cap=_('Add &var...')   ) # &v
-                     ,dict(          tp='label'   ,tid='co'     ,l=GAP          ,w=100  ,cap=_('&Comment:')     ) # &c
-                     ,dict(cid='co' ,tp='edit'    ,t=GAP+75     ,l=GAP+100      ,w=300                          ) #
-                     ,dict(cid='!'  ,tp='button'  ,t=GAP+110    ,l=    400-140  ,w=70   ,cap=_('OK'),props='1'  ) #     default
-                     ,dict(cid='-'  ,tp='button'  ,t=GAP+110    ,l=GAP+400- 70  ,w=70   ,cap=_('Cancel')        ) #
+                      dict(          tp='lb'    ,tid='nm'     ,l=GAP          ,w=100  ,cap=_('&Name:')        ) # &n
+                     ,dict(cid='nm' ,tp='ed'    ,t=GAP        ,l=GAP+100      ,w=300                          ) #
+                     ,dict(          tp='lb'    ,tid='ex'     ,l=GAP          ,w=100  ,cap=_('Val&ue:')       ) # &u
+                     ,dict(cid='ex' ,tp='ed'    ,t=GAP+25     ,l=GAP+100      ,w=300                          ) #
+                     ,dict(cid='fil',tp='bt'    ,t=GAP+50     ,l=GAP+100      ,w=100  ,cap=_('Add &file...')  ) # &f
+                     ,dict(cid='dir',tp='bt'    ,t=GAP+50     ,l=GAP+200      ,w=100  ,cap=_('Add &dir...')   ) # &d
+                     ,dict(cid='var',tp='bt'    ,t=GAP+50     ,l=GAP+300      ,w=100  ,cap=_('Add &var...')   ) # &v
+                     ,dict(          tp='lb'    ,tid='co'     ,l=GAP          ,w=100  ,cap=_('&Comment:')     ) # &c
+                     ,dict(cid='co' ,tp='ed'    ,t=GAP+75     ,l=GAP+100      ,w=300                          ) #
+                     ,dict(cid='!'  ,tp='bt'    ,t=GAP+110    ,l=    400-140  ,w=70   ,cap=_('OK'),props='1'  ) #     default
+                     ,dict(cid='-'  ,tp='bt'    ,t=GAP+110    ,l=GAP+400- 70  ,w=70   ,cap=_('Cancel')        ) #
                         ]
                 um_fcsd = 'nm'
                 while True:
@@ -1422,4 +1431,5 @@ ToDo
 [+][kv-kv][19jan16] Use control top with sys.platform
 [?][kv-kv][19jan16] Opt for auto-to-first_rslt
 [?][kv-kv][19mar16] wrapper: cals l=r-w
+[ ][kv-kv][11apr16] Restore keys if Cancel
 '''
