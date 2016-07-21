@@ -537,7 +537,7 @@ class Command:
                      ,dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                         ) #
                     ]
             vals    = dict(lst=ext_ind)
-            btn, vals = dlg_wrapper(_('Tools'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            btn, vals, chds = dlg_wrapper(_('Tools'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':  return
             new_ext_ind = vals['lst']
             if btn=='adj':  #Custom
@@ -710,7 +710,7 @@ class Command:
                      ,dict(cid='del' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP+97+GAP   ,w=97   ,cap=_('&Break link')           ) #  &b
                      ,dict(cid='-'   ,tp='bt'   ,t=GAP+23+300+GAP   ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 ) #  
                     ]
-            btn, vals = dlg_wrapper(_('Main Tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
+            btn, vals, chds = dlg_wrapper(_('Main Tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
             if btn is None or btn=='-':    return
             lxr_ind     = vals['lxs']
             tool_ind    = vals['tls']
@@ -762,7 +762,8 @@ class Command:
                      ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 )   # 
                     ]
             btn,    \
-            vals    = dlg_wrapper(_('User macro vars'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            vals,   \
+            chds    = dlg_wrapper(_('User macro vars'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':    return
             um_ind  = vals['lst']
             if btn=='evl':
@@ -789,7 +790,8 @@ class Command:
                 um_fcsd = 'nm'
                 while True:
                     um_btn, \
-                    umc     = dlg_wrapper(_('Edit user macro var'), GAP+400+GAP, GAP+135+GAP, um_cnts, umc, focus_cid=um_fcsd)
+                    umc,    \
+                    umch    = dlg_wrapper(_('Edit user macro var'), GAP+400+GAP, GAP+135+GAP, um_cnts, umc, focus_cid=um_fcsd)
                     if um_btn is None or um_btn=='-':
                         umc     = None  # ='No changes'
                         break #while um
@@ -874,7 +876,8 @@ class Command:
                 ]
         vals    = dict(exs=(crt,sels))
         btn,    \
-        vals    = dlg_wrapper(_('Select Tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
+        vals,   \
+        chds    = dlg_wrapper(_('Select Tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
         if btn is None or btn=='-': return None
         crt,sels= vals['exs']
         ext_ids = [ext4jn[ind]['id'] for ind in range(len(sels)) if sels[ind]=='1']
@@ -986,7 +989,8 @@ class Command:
                      +[dict(cid='-'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                    )] #
                     )
             btn,    \
-            vals    = dlg_wrapper(_('Tool properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
+            vals,   \
+            chds    = dlg_wrapper(_('Tool properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
             if btn is None or btn=='-': return None
             ed_ext['nm']        =   vals[  'nm']
             ed_ext['lxrs']      =   vals['lxrs']
@@ -1112,7 +1116,8 @@ the following macros are processed.
                         ]
                 lx_vals = dict(lxs=(crt,sels))
                 lx_btn, \
-                lx_vals = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
+                lx_vals,\
+                lx_chds = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
                 if lx_btn=='!':
                     crt,sels= lx_vals['lxs']
                     lxrs    = [lxr for (ind,lxr) in enumerate(lxrs_l) if sels[ind]=='1']
@@ -1149,7 +1154,8 @@ the following macros are processed.
                     ,dict(cid='-'   ,tp='bt',t=GAP+avd_h+GAP,l=GAP+500- 70  ,w=70   ,cap=_('Cancel')                                    )
                             ]
                 ad_btn, \
-                ad_vals = dlg_wrapper(_('Advanced properties'), GAP+500+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
+                ad_vals,\
+                ad_chds = dlg_wrapper(_('Advanced properties'), GAP+500+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
                 if ad_btn is None or ad_btn=='-':   continue#while
                 for a in enumerate(ADV_PROPS):
                     if ad_vals[a['key']]==a['def']:
@@ -1203,7 +1209,8 @@ the following macros are processed.
             ,col        =grp_dic.get('col', '')
                         )
             btn,    \
-            vals    = dlg_wrapper(_('Tool "{}" output pattern').format(run_nm), DLG_W, DLG_H, cnts, vals, focus_cid='pttn_re')
+            vals,   \
+            chds    = dlg_wrapper(_('Tool "{}" output pattern').format(run_nm), DLG_W, DLG_H, cnts, vals, focus_cid='pttn_re')
             if btn is None or btn=='cancel':    return (None, None)
             pttn_re = vals['pttn_re']
             pttn_test=vals['pttn_test']
