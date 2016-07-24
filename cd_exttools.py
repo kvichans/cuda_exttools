@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.3 2016-05-06'
+    '1.2.4 2016-07-24'
 ToDo: (see end of file)
 '''
 
@@ -542,7 +542,8 @@ class Command:
             new_ext_ind = vals['lst']
             if btn=='adj':  #Custom
 #               custs   = app.dlg_input_ex(10, 'Custom dialog Tools. Align cols with "R"/"C" starts Widths. Start with "-" to hide column.'
-                custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Start Widths with "R"/"C" to align. Start with "-" to hide column.')
+#               custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Start Widths with "R"/"C" to align. Start with "-" to hide column.')
+                custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Widths prefix "C"/"R" to align, "-" to hide.')
 #               custs   = app.dlg_input_ex(10, 'Custom dialog Tools. Use L,R,C before width to align (empty=L). Use "-" to hide column.'
                     , _('Width of Name    (min 100)')  , prs.get('nm'  , '150')
                     , _('Width of Keys    (min  50)')  , prs.get('keys', '100')
@@ -673,7 +674,7 @@ class Command:
                                                             for ind in range(len(flds))
                                                        ])
                               + ('\n\n'+'!'*50+_('\nDelete with joined Tool(s)\n   ')+'\n   '.join([ex['nm'] for ex in jex4dl]) if jex4dl else '')
-                              , app.MB_YESNO)!=app.ID_YES:
+                              , app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:
                     continue # while
                 for lxr in [lxr for lxr,ext_id in self.ext4lxr.items() if ext_id==id4del]:
                     del self.ext4lxr[lxr]
@@ -840,7 +841,7 @@ class Command:
                 if app.msg_box(  _('Delete Macro?\n\n')+ '\n'.join([
                                  _('Name: {}').format(   self.umacrs[um_ind]['nm'])
                                 ,_('Value: {}').format(  self.umacrs[um_ind]['ex']) 
-                                ,_('Comment: {}').format(self.umacrs[um_ind]['co'])]), app.MB_YESNO)!=app.ID_YES:
+                                ,_('Comment: {}').format(self.umacrs[um_ind]['co'])]), app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:
                     continue #while    No changes
                 del self.umacrs[um_ind]
                 um_ind      = min(um_ind, len(self.umacrs)-1)
@@ -1072,12 +1073,12 @@ the following macros are processed.
                     jex_ids = ed_ext['jext'] = jex_ids_new
                 continue #while
 
-            if joined and btn==  'up' and sel_jext>0:
+            if joined and btn=='up' and sel_jext>0:
                 (jex_ids[sel_jext-1] 
                 ,jex_ids[sel_jext  ])   =   (jex_ids[sel_jext  ] 
                                             ,jex_ids[sel_jext-1])
                 sel_jext               -= 1
-            if joined and btn=='down' and sel_jext<len(jex_ids):
+            if joined and btn=='dn' and sel_jext<len(jex_ids):
                 (jex_ids[sel_jext  ] 
                 ,jex_ids[sel_jext+1])   =   (jex_ids[sel_jext+1] 
                                             ,jex_ids[sel_jext  ])
