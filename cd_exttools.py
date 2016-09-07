@@ -14,9 +14,16 @@ import  cudax_lib           as apx
 from    cudax_lib       import log
 from    .encodings      import *
 from    .cd_plug_lib    import *
+
+get_proj_vars   = lambda:{}
 try:
     import cuda_project_man
-    get_proj_vars   = cuda_project_man.project_variables
+    def get_proj_vars():
+        prj_vars = cuda_project_man.project_variables()
+        if prj_vars.get('ProjDir', ''):
+            # Project loaded
+            return prj_vars
+        return {}
 except:
     pass;                       LOG and log('No proj vars',())
     get_proj_vars   = lambda:{}
