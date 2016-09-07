@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.4 2016-07-24'
+    '1.2.5 2016-09-07'
 ToDo: (see end of file)
 '''
 
@@ -14,6 +14,12 @@ import  cudax_lib           as apx
 from    cudax_lib       import log
 from    .encodings      import *
 from    .cd_plug_lib    import *
+try:
+    import cuda_project_man
+    get_proj_vars   = cuda_project_man.project_variables
+except:
+    pass;                       LOG and log('No proj vars',())
+    get_proj_vars   = lambda:{}
 
 # I18N
 _       = get_translation(__file__)
@@ -64,6 +70,38 @@ FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
 
 def F(s, *args, **kwargs):return s.format(*args, **kwargs)
 GAP     = 5
+
+def dlg_help_vars():
+    EXT_HELP_BODY   = \
+_('''In Tool properties
+   File name
+   Parameters
+   Initial folder
+the following macros are processed.
+- Application macros:
+   {AppDir}           - Directory with app executable
+   {AppDrive}         - (Win only) Disk of app executable, eg "C:"
+- Currently focused file macros:
+   {FileName}         - Full path
+   {FileDir}          - Folder path, without file name
+   {FileNameOnly}     - Name only, without folder path
+   {FileNameNoExt}    - Name without extension and path
+   {FileExt}          - Extension
+- Currently focused editor macros (for top caret):
+   {CurrentLine}      - text
+   {CurrentLineNum}   - number
+   {CurrentLineNum0}  - number
+   {CurrentColumnNum} - number
+   {CurrentColumnNum0}- number
+   {SelectedText}     - text 
+- Prompted macros:
+   {Interactive}      - Text will be asked at each running
+   {InteractiveFile}  - File name will be asked''')
+    dlg_wrapper(_('Tool macros'), GAP*2+550, GAP*3+25+450,
+         [dict(cid='htx',tp='me'    ,t=GAP  ,h=450  ,l=GAP          ,w=550  ,props='1,1,1' ) #  ro,mono,border
+         ,dict(cid='-'  ,tp='bt'    ,t=GAP+450+GAP  ,l=GAP+550-90   ,w=90   ,cap='&Close'  )
+         ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
+   #def dlg_help_vars
 
 class Command:
     def __init__(self):
@@ -266,13 +304,13 @@ class Command:
         prms_l  = shlex.split(prms_s)
         for ind, prm in enumerate(prms_l):
             prm_raw = prm
-            prm     = _subst_props(prm,  file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals)
+            prm     = _subst_props(prm,  file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
             if prm_raw != prm:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
-        cmnd        = _subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals)
-        ddir        = _subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals)
+        cmnd        = _subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+        ddir        = _subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
 
         pass;                  #LOG and log('ready prms_l={}',(prms_l))
 
@@ -394,7 +432,7 @@ class Command:
         bs_dir  = ext['ddir']
         bs_dir  = os.path.dirname(crc_inf['pth']) \
                     if not bs_dir else  \
-                  _subst_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals())
+                  _subst_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
         nav_file= os.path.join(bs_dir, nav_file)
         pass;                  #LOG and log('nav_file={}',(nav_file))
         if not os.path.exists(nav_file):    app.msg_status(_('Cannot open: {}').format(nav_file));return
@@ -744,29 +782,39 @@ class Command:
         bt_t1   = GAP+18+300+GAP
         bt_t2   = GAP+18+300+GAP+25
         bt_l1   = GAP
-        bt_l2   = GAP+120+GAP
-        bt_l3   = GAP+120+GAP+120+GAP
-        bt_l4   = GAP+120+GAP+120+GAP+120+GAP
+        bt_l2   = GAP+110+GAP
+        bt_l3   = GAP+110+GAP+110+GAP
+        bt_l4   = GAP+110+GAP+110+GAP+110+GAP
         vals    = dict(lst=0)
         while True:
             itms    = (  [(_('Name'), '100'), (_('Value'),'300'), (_('Comment'),'200')]
                       , [[um['nm'],           um['ex'],           um['co']]             for um in self.umacrs] )
-            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('User macro &vars')      )   # &v
+            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                 )   # &v
                      ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                     )   # 
-                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=120  ,cap=_('&Edit...')  ,props='1'  )   # &e  default
-                     ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=120  ,cap=_('&Add...')               )   # &a
-                     ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=120  ,cap=_('Clo&ne')                )   # &n
-                     ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=120  ,cap=_('&Delete...')            )   # &d
-                     ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=120  ,cap=_('&Up')                   )   # &u
-                     ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=120  ,cap=_('Do&wn')                 )   # &w
-                     ,dict(cid='evl',tp='bt'    ,t=bt_t2       ,l=bt_l4        ,w=120  ,cap=_('Eva&luate...')          )   # &v
+                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'  )   # &e  default
+                     ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')               )   # &a
+                     ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                )   # &n
+                     ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')            )   # &d
+                     ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                   )   # &u
+                     ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                 )   # &w
+                     ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate...')          )   # &v
+                     ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')    )   # &j
+                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                  )   # 
                      ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 )   # 
                     ]
             btn,    \
             vals,   \
-            chds    = dlg_wrapper(_('User macro vars'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            chds    = dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':    return
             um_ind  = vals['lst']
+            if btn=='hlp':
+                dlg_help_vars()
+                continue
+            
+            if btn=='prj':
+                app.app_proc(app.PROC_EXEC_PLUGIN, 'cuda_project_man,config_proj')
+                continue
+            
             if btn=='evl':
                 umc_vals    = self._calc_umc_vals()
                 app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(
@@ -894,9 +942,9 @@ class Command:
         ed_ext      = copy.deepcopy(src_ext)
         
         GAP2            = GAP*2    
-        PRP1_W, PRP1_L  = (100, GAP)
-        PRP2_W, PRP2_L  = (400, PRP1_L+    PRP1_W)
-        PRP3_W, PRP3_L  = (100, PRP2_L+GAP+PRP2_W)
+        PRP1_W, PRP1_L  = (100,     GAP)
+        PRP2_W, PRP2_L  = (400-GAP, PRP1_L+    PRP1_W+GAP)
+        PRP3_W, PRP3_L  = (100,     PRP2_L+GAP+PRP2_W)
         PROP_T          = [GAP*ind+25*(ind-1) for ind in range(20)]   # max 20 rows
         DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[17]-21
         
@@ -933,58 +981,59 @@ class Command:
                                 ,pttn=ed_ext['pttn']
                                 ))
             cnts    = ([]
-                     +[dict(           tp='lb'   ,tid='nm'      ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Name')                         )] # &n
+                     +[dict(           tp='lb'   ,tid='nm'      ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Name:')                        )] # &n
                      +[dict(cid='nm'  ,tp='ed'   ,t=PROP_T[1]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                     +([]                                       
-                     +[dict(           tp='lb'   ,tid='seri'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Se&ries')                       )] # &r
+                     +[dict(           tp='lb'   ,tid='seri'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Se&ries:')                      )] # &r
                      +[dict(cid='seri',tp='lbx'  ,t=PROP_T[2]   ,l=PRP2_L   ,w=PRP2_W    ,b=PROP_T[6]-GAP,items=jext_nms        )] #
                      +[dict(cid='?ser',tp='bt'   ,t=PROP_T[2]   ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Select...')    ,en=for_ed      )] # &s
                      +[dict(cid='view',tp='bt'   ,t=PROP_T[3]-4 ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Vie&w...')      ,en=for_ed      )] # &w
                      +[dict(cid='up'  ,tp='bt'   ,t=PROP_T[4]+2 ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Up')           ,en=for_ed      )] # &u
                      +[dict(cid='dn'  ,tp='bt'   ,t=PROP_T[5]-2 ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Down')         ,en=for_ed      )] # &d
                     if joined else []
-                     +[dict(           tp='lb'   ,tid='file'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&File name')                    )] # &f
+                     +[dict(           tp='lb'   ,tid='file'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&File name:')                   )] # &f
                      +[dict(cid='file',tp='ed'   ,t=PROP_T[2]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                      +[dict(cid='?fil',tp='bt'   ,tid='file'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Browse...')    ,en=for_ed      )] # &b
                      +[dict(cid='shll',tp='ch'   ,t=PROP_T[3]-2 ,l=PRP2_L   ,w=PRP2_W   ,cap=_('&Shell command'),en=for_ed      )] # &s
                                                  
-                     +[dict(           tp='lb'   ,tid='prms'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Parameters')                   )] # &p
+                     +[dict(           tp='lb'   ,tid='prms'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Parameters:')                  )] # &p
                      +[dict(cid='prms',tp='ed'   ,t=PROP_T[4]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                      +[dict(cid='?mcr',tp='bt'   ,tid='prms'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('A&dd...')       ,en=for_ed      )] # &a
                                                  
-                     +[dict(           tp='lb'   ,tid='ddir'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Initial folder')               )] # &i
+                     +[dict(           tp='lb'   ,tid='ddir'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Initial folder:')              )] # &i
                      +[dict(cid='ddir',tp='ed'   ,t=PROP_T[5]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                      +[dict(cid='?dir',tp='bt'   ,tid='ddir'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('B&rowse...')    ,en=for_ed      )] # &r
                     )
-                     +[dict(           tp='lb'   ,tid='lxrs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Lexers')                        )] #
+                     +[dict(           tp='lb'   ,tid='lxrs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Lexers:')                       )] #
                      +[dict(cid='lxrs',tp='ed'   ,t=PROP_T[6]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
                      +[dict(cid='?lxr',tp='bt'   ,tid='lxrs'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Le&xers...')    ,en=for_ed      )] # &x
                                                  
-                     +[dict(           tp='lb'   ,tid='main'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Main for')                      )] #
+                     +[dict(           tp='lb'   ,tid='main'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Main for:')                     )] #
                      +[dict(cid='main',tp='ed'   ,t=PROP_T[7]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
                      +[dict(cid='?man',tp='bt'   ,tid='main'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Set &main...')  ,en=for_ed      )] # &m
                                                  
-                     +[dict(           tp='lb'   ,tid='savs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Sa&ve before')                  )] # &v
+                     +[dict(           tp='lb'   ,tid='savs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Sa&ve before:')                 )] # &v
                      +[dict(cid='savs',tp='cb-ro',t=PROP_T[8]   ,l=PRP2_L   ,w=PRP2_W   ,items=self.savs_caps   ,en=for_ed      )] #
                                               
-                     +[dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey')                        )] #
+                     +[dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                       )] #
                      +[dict(cid='keys',tp='ed'   ,t=PROP_T[9]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
                      +[dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')    ,en=for_ed      )] # &g
                     +([] if joined else []                     
-                     +[dict(           tp='lb'   ,tid='rslt'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Capture output')               )] # &c
+                     +[dict(           tp='lb'   ,tid='rslt'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Capture output:')              )] # &c
                      +[dict(cid='rslt',tp='cb-ro',t=PROP_T[11]  ,l=PRP2_L   ,w=PRP2_W   ,items=self.rslt_caps   ,en=for_ed      )] 
-                     +[dict(           tp='lb'   ,tid='encd'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Encoding')                      )] #
+                     +[dict(           tp='lb'   ,tid='encd'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Encoding:')                     )] #
                      +[dict(cid='encd',tp='ed'   ,t=PROP_T[12]  ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
                      +[dict(cid='?enc',tp='bt'   ,tid='encd'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('S&elect...')    ,en=for_ed      )] # &
-                     +[dict(           tp='lb'   ,tid='pttn'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Pattern')                       )] #
+                     +[dict(           tp='lb'   ,tid='pttn'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Pattern:')                      )] #
                      +[dict(cid='pttn',tp='ed'   ,t=PROP_T[13]  ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
                      +[dict(cid='?ptn',tp='bt'   ,tid='pttn'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Se&t...')       ,en=for_ed      )] # &e
                     )                                         
-                     +[dict(           tp='lb'   ,tid='more'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Advanced')                      )] #
+                     +[dict(           tp='lb'   ,tid='more'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Advanced:')                     )] #
                      +[dict(cid='more',tp='ed'   ,t=PROP_T[14]  ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
                      +[dict(cid='?mor',tp='bt'   ,tid='more'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Set...')        ,en=for_ed      )] #
                     +([] if joined else []                     
                      +[dict(cid='help',tp='bt'   ,t=PROP_T[15]+9,l=GAP      ,w=PRP3_W       ,cap=_('Help')      ,en=for_ed      )] #
+                     +[dict(cid='prjs',tp='bt'   ,t=PROP_T[15]+9,l=PRP2_L   ,w=PRP3_W       ,cap=_('Pro&ject...'),en=for_ed     )] # &j
                     )                                         
                      +[dict(cid='!'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,props='1',en=for_ed)] #     default
                      +[dict(cid='-'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                    )] #
@@ -1033,35 +1082,10 @@ class Command:
 
             if False:pass
             elif btn=='help':
-                EXT_HELP_BODY   = \
-_('''In Tool properties
-   File name
-   Parameters
-   Initial folder
-the following macros are processed.
-- Application macros:
-   {AppDir}           - Directory with app executable
-   {AppDrive}         - (Win only) Disk of app executable, eg "C:"
-- Currently focused file macros:
-   {FileName}         - Full path
-   {FileDir}          - Folder path, without file name
-   {FileNameOnly}     - Name only, without folder path
-   {FileNameNoExt}    - Name without extension and path
-   {FileExt}          - Extension
-- Currently focused editor macros (for top caret):
-   {CurrentLine}      - text
-   {CurrentLineNum}   - number
-   {CurrentLineNum0}  - number
-   {CurrentColumnNum} - number
-   {CurrentColumnNum0}- number
-   {SelectedText}     - text 
-- Prompted macros:
-   {Interactive}      - Text will be asked at each running
-   {InteractiveFile}  - File name will be asked''')
-                dlg_wrapper(_('Tool macros'), GAP*2+550, GAP*3+25+450,
-                     [dict(cid='htx',tp='me'    ,t=GAP  ,h=450  ,l=GAP          ,w=550  ,props='1,1,1' ) #  ro,mono,border
-                     ,dict(cid='-'  ,tp='bt'    ,t=GAP+450+GAP  ,l=GAP+550-90   ,w=90   ,cap='&Close'  )
-                     ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
+                dlg_help_vars()
+                continue #while
+            elif btn=='prjs':
+                app.app_proc(app.PROC_EXEC_PLUGIN, 'cuda_project_man,config_proj')
                 continue #while
 
             if joined and btn=='view' and sel_jext!=-1: # View one of joined
@@ -1176,23 +1200,23 @@ the following macros are processed.
         RE_REF  = 'https://docs.python.org/3/library/re.html'
         DLG_W,  \
         DLG_H   = GAP+550+GAP, GAP+250+3#+GAP
-        cnts    =[dict(cid=''          ,tp='ln-lb'  ,t=GAP          ,l=GAP              ,w=300              ,cap=_('&Regular expression')
+        cnts    =[dict(cid=''          ,tp='ln-lb'  ,t=GAP          ,l=GAP              ,w=300              ,cap=_('&Regular expression:')
                                                                                                             ,props=RE_REF                ) # &r
                  ,dict(cid='pttn_re'   ,tp='ed'     ,t=GAP+18       ,l=GAP              ,r=DLG_W-GAP*2-70                                ) #
                  ,dict(cid='apnd'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap=_('&Add...')
                                                                                                             ,hint='Append named group'   ) # &a
 #                ,dict(cid='help'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap='&?..'                  ) # &?
                  # Testing                                                                                         
-                 ,dict(cid=''          ,tp='lb'     ,t= 60          ,l=GAP              ,w=300              ,cap=_('Test "&Output line"')) # &o
+                 ,dict(cid=''          ,tp='lb'     ,t= 60          ,l=GAP              ,w=300              ,cap=_('Test "&Output line":')) # &o
                  ,dict(cid='pttn_test' ,tp='ed'     ,t= 60+18       ,l=GAP              ,r=DLG_W-GAP*2-70                                ) #
                  ,dict(cid='test'      ,tp='bt'     ,tid='pttn_test',l=DLG_W-GAP*1-70   ,w=70               ,cap=_('&Test')              ) # &t
                                                                                                                                
                  ,dict(cid=''          ,tp='lb'     ,t=110+GAP*0+23*0   ,l=GAP+ 80      ,w=300              ,cap=_('Testing results')    ) #
-                 ,dict(cid=''          ,tp='lb'     ,tid='file'         ,l=GAP          ,w=80               ,cap=_('Filename')           ) #
+                 ,dict(cid=''          ,tp='lb'     ,tid='file'         ,l=GAP          ,w=80               ,cap=_('Filename:')          ) #
                  ,dict(cid='file'      ,tp='ed'     ,t=110+GAP*0+23*1   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,props='1,0,1'   ) #   ro,mono,border
-                 ,dict(cid=''          ,tp='lb'     ,tid='line'         ,l=GAP          ,w=80               ,cap=_('Line')               ) #
+                 ,dict(cid=''          ,tp='lb'     ,tid='line'         ,l=GAP          ,w=80               ,cap=_('Line:')              ) #
                  ,dict(cid='line'      ,tp='ed'     ,t=110+GAP*1+23*2   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,props='1,0,1'   ) #   ro,mono,border
-                 ,dict(cid=''          ,tp='lb'     ,tid='col'          ,l=GAP          ,w=80               ,cap=_('Column')             ) #
+                 ,dict(cid=''          ,tp='lb'     ,tid='col'          ,l=GAP          ,w=80               ,cap=_('Column:')            ) #
                  ,dict(cid='col'       ,tp='ed'     ,t=110+GAP*2+23*3   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,props='1,0,1'   ) #   ro,mono,border
                  # Preset                                                                                          
                  ,dict(cid='load'      ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP              ,w=130              ,cap=_('Load &preset...')    ) # &p
@@ -1292,7 +1316,7 @@ the following macros are processed.
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals        = {}            
         for umc in self.umacrs:
-            umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, umcs=umc_vals)
+            umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, umcs=umc_vals, prjs=get_proj_vars())
         return umc_vals
        #def _calc_umc_vals
        
@@ -1315,8 +1339,15 @@ def _adv_prop(act, ext, par=''):
 #       ext.update(adv)
    #def _adv_prop
 
-def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}):
+def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
     if '{' not in prm:  return prm
+    # Substitude Project vars
+    for prj_k,prj_v in prjs.items():
+        prm = prm.replace('{'+prj_k+'}', prj_v)
+        if '{' not in prm:  return prm
+
+    if '{' not in prm:  return prm
+    # Substitude std vars
     app_dir = app.app_path(app.APP_DIR_EXE)
     if      '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
     if      '{AppDrive}'          in prm: prm = prm.replace('{AppDrive}'     ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
@@ -1345,6 +1376,7 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}):
         prm = prm.replace('{InteractiveFile}' , ans)
         
     if '{' not in prm:  return prm
+    # Substitude user vars
     for umc_k,umc_v in umcs.items():
         prm = prm.replace(umc_k, umc_v)
         if '{' not in prm:  return prm
@@ -1353,7 +1385,13 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}):
    #def _subst_props
 
 def append_prmt(tostr, umacrs, excl_umc=None):
-    prms_l  =([]
+    prms_l  =['{}\t{}'.format(umc['nm'], umc['ex']) 
+                for umc in umacrs 
+                if (excl_umc is None or umc['nm']!=excl_umc)]
+    prms_l +=['{'+pj_k+'}\t'+pj_v 
+                for pj_k, pj_v in get_proj_vars().items()]
+    pass;                      #LOG and log('prms_l={}',(prms_l))
+    prms_l +=([]
             +[_('{AppDir}\tDirectory with app executable')]
             +[_('{AppDrive}\t(Win only) Disk of app executable, eg "C:"')]
             +[_('{FileName}\tFull path')]
@@ -1369,9 +1407,6 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{SelectedText}\tText')]
             +[_('{Interactive}\tText will be asked at each running')]
             +[_('{InteractiveFile}\tFile name will be asked')])
-    prms_l +=['{}\t{}'.format(umc['nm'], umc['ex']) 
-                for umc in umacrs 
-                if (excl_umc is None or umc['nm']!=excl_umc)]
                         
     prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l))
     if prm_i is not None:

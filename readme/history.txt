@@ -1,3 +1,6 @@
+1.2.5 (2016-09-07)
+added: project vars (from plugin cuda_project_man)
+
 1.2.4 (2016-07-24)
 fixed: down joined tool
 
