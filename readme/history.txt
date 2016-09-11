@@ -1,3 +1,7 @@
+1.2.5 (2016-09-11)
+fixed: work w/o project
+fixed: LOG
+
 1.2.5 (2016-09-07)
 added: project vars (from plugin cuda_project_man)
 

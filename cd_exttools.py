@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.5 2016-09-07'
+    '1.2.6 2016-09-11'
 ToDo: (see end of file)
 '''
 
@@ -15,6 +15,15 @@ from    cudax_lib       import log
 from    .encodings      import *
 from    .cd_plug_lib    import *
 
+pass;                           # Logging
+pass;                           from pprint import pformat
+pass;                           LOG = (-2==-2)  # Do or dont logging.
+c10,c13,l= chr(10),chr(13),chr(13)
+
+# I18N
+_       = get_translation(__file__)
+
+with_proj_man   = False
 get_proj_vars   = lambda:{}
 try:
     import cuda_project_man
@@ -24,17 +33,11 @@ try:
             # Project loaded
             return prj_vars
         return {}
+    test    = get_proj_vars()
+    with_proj_man   = True
 except:
     pass;                       LOG and log('No proj vars',())
     get_proj_vars   = lambda:{}
-
-# I18N
-_       = get_translation(__file__)
-
-pass;                           # Logging
-pass;                           from pprint import pformat
-pass;                           LOG = (-2==-2)  # Do or dont logging.
-c10,c13,l= chr(10),chr(13),chr(13)
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
@@ -796,19 +799,22 @@ class Command:
         while True:
             itms    = (  [(_('Name'), '100'), (_('Value'),'300'), (_('Comment'),'200')]
                       , [[um['nm'],           um['ex'],           um['co']]             for um in self.umacrs] )
-            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                 )   # &v
-                     ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                     )   # 
-                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'  )   # &e  default
-                     ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')               )   # &a
-                     ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                )   # &n
-                     ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')            )   # &d
-                     ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                   )   # &u
-                     ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                 )   # &w
-                     ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate...')          )   # &v
-                     ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')    )   # &j
-                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                  )   # 
-                     ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 )   # 
+            flld    = '1' if self.umacrs else '0'
+            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                          )   # &v
+                     ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                              )   # 
+                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'   ,en=flld)   # &e  default
+                     ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=flld)   # &a
+                     ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                 ,en=flld)   # &n
+                     ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')             ,en=flld)   # &d
+                     ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                    ,en=flld)   # &u
+                     ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                  ,en=flld)   # &w
+                     ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate...')           ,en=flld)   # &v
+                     ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')             )   # &j
+                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                           )   # 
+                     ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                          )   # 
                     ]
+            if not with_proj_man:
+                cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prj']
             btn,    \
             vals,   \
             chds    = dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
@@ -1045,6 +1051,8 @@ class Command:
                      +[dict(cid='!'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,props='1',en=for_ed)] #     default
                      +[dict(cid='-'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                    )] #
                     )
+            if not with_proj_man:
+                cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prjs']
             btn,    \
             vals,   \
             chds    = dlg_wrapper(_('Tool properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
