@@ -393,7 +393,7 @@ class Command:
             app.file_open('')
 
         while True:
-            out_ln = pipe.stdout.readline().decode(ext.get('encd', 'utf-8'))
+            out_ln = pipe.stdout.readline().decode(ext.get('encd', 'utf_8'))
             if 0==len(out_ln): break
             out_ln = out_ln.strip('\r\n')
             pass;              #LOG and log('out_ln={}',out_ln)
