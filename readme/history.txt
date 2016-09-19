@@ -1,4 +1,8 @@
-1.2.5 (2016-09-11)
+1.2.7 (2016-09-19)
+fixed: Disign of Adv.props dlg
+added: {Lexer}, {LexerAtCaret}
+
+1.2.6 (2016-09-11)
 fixed: work w/o project
 fixed: LOG
 

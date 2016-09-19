@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.6 2016-09-11'
+    '1.2.7 2016-09-19'
 ToDo: (see end of file)
 '''
 
@@ -41,19 +41,17 @@ except:
 
 JSON_FORMAT_VER = '20151209'
 EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
-#PRESET_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools-preset.json'
 
 ADV_PROPS       = [ {'key':'source_tab_as_blanks'
-                    ,'cap':_('Consider TAB as "N spaces" to interpret output column')
-                   #,'cap':'Output column numbers are counted with replace TAB with N spaces'
+                    ,'cap':_('(Int, Default=4) Interpret output symbol TAB as "N spaces".')
                     ,'hnt':_('Set 8 for a Tool likes "tidy"')
-                    ,'def':''
+                    ,'def':'4'
                     }
                  #, {'key':'smth'
-                   #,'cap':'Smth'
-                   #,'hnt':'s m t h'
-                   #,'def':''
-                   #}
+                 #  ,'cap':'Smth'
+                 #  ,'hnt':'s m t h'
+                 #  ,'def':''
+                 #  }
                   ]
 
 RSLT_NO         = _('Ignore')
@@ -97,12 +95,14 @@ the following macros are processed.
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
+   {Lexer}            - Name of global lexer
 - Currently focused editor macros (for top caret):
    {CurrentLine}      - text
    {CurrentLineNum}   - number
    {CurrentLineNum0}  - number
    {CurrentColumnNum} - number
    {CurrentColumnNum0}- number
+   {LexerAtCaret}     - Name of local lexer
    {SelectedText}     - text 
 - Prompted macros:
    {Interactive}      - Text will be asked at each running
@@ -1184,18 +1184,19 @@ class Command:
                     ad_key  = a['key']
                     ad_vals[ad_key]   = ed_ext.get(ad_key, a['def'])
                     ad_cnts+=[
-                     dict(           tp='lb',t=GAP+i*50     ,l=GAP          ,w=500  ,cap=F('("{}") {}', ad_key, a['cap']),hint=a['hnt'] )
-                    ,dict(cid=ad_key,tp='ed',t=GAP+i*50+18  ,l=GAP          ,w=500                                                      )
+                     dict(           tp='lb',t=GAP+i*50     ,l=GAP+150      ,w=450  ,cap=a['cap'],hint=a['hnt'] )
+                    ,dict(           tp='lb',tid=ad_key     ,l=GAP          ,w=150  ,cap=F('{}:', ad_key)       )
+                    ,dict(cid=ad_key,tp='ed',t=GAP+i*50+18  ,l=GAP+150      ,w=450                              )
                           ]
                    #for (i, a)
                 avd_h   = len(ADV_PROPS)*50
                 ad_cnts   += [
-                     dict(cid='!'   ,tp='bt',t=GAP+avd_h+GAP,l=    500-140  ,w=70   ,cap=_('OK')     ,props='1'                         ) # default
-                    ,dict(cid='-'   ,tp='bt',t=GAP+avd_h+GAP,l=GAP+500- 70  ,w=70   ,cap=_('Cancel')                                    )
+                     dict(cid='!'   ,tp='bt',t=GAP+avd_h+GAP,l=    600-140  ,w=70   ,cap=_('OK')     ,props='1' ) # default
+                    ,dict(cid='-'   ,tp='bt',t=GAP+avd_h+GAP,l=GAP+600- 70  ,w=70   ,cap=_('Cancel')            )
                             ]
                 ad_btn, \
                 ad_vals,\
-                ad_chds = dlg_wrapper(_('Advanced properties'), GAP+500+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
+                ad_chds = dlg_wrapper(_('Advanced properties'), GAP+600+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
                 if ad_btn is None or ad_btn=='-':   continue#while
                 for a in enumerate(ADV_PROPS):
                     if ad_vals[a['key']]==a['def']:
@@ -1372,6 +1373,8 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
     if      '{FileNameOnly}'      in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
     if      '{FileNameNoExt}'     in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
     if      '{FileExt}'           in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
+    if      '{Lexer}'             in prm: prm = prm.replace('{Lexer}'        ,    ed.get_prop(app.PROP_LEXER_FILE))
+    if      '{LexerAtCaret}'      in prm: prm = prm.replace('{LexerAtCaret}' ,    ed.get_prop(app.PROP_LEXER_CARET))
 
     if rCrt!=-1:
         if  '{CurrentLine}'       in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
@@ -1414,6 +1417,8 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{FileNameOnly}\tFile name only, without folder path')]
             +[_('{FileNameNoExt}\tFile name without extension and path')]
             +[_('{FileExt}\tExtension')]
+            +[_('{Lexer}\tFile lexer')]
+            +[_('{LexerAtCaret}\tLocal lexer (at 1st caret)')]
             +[_('{CurrentLine}\tText of current line')]
             +[_('{CurrentLineNum}\tNumber of current line')]
             +[_('{CurrentLineNum0}\tNumber of current line (0-based)')]
