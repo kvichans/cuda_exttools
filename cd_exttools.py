@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.7 2016-09-19'
+    '1.2.8 2016-09-26'
 ToDo: (see end of file)
 '''
 
@@ -36,7 +36,7 @@ try:
     test    = get_proj_vars()
     with_proj_man   = True
 except:
-    pass;                       LOG and log('No proj vars',())
+    pass;                      #LOG and log('No proj vars',())
     get_proj_vars   = lambda:{}
 
 JSON_FORMAT_VER = '20151209'
@@ -568,21 +568,23 @@ class Command:
             pass;              #LOG and log('ext_ind, ext={}',(ext_ind, ext))
             
             itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()], ext_vlss)
-            cnts    =[dict(          tp='lb'    ,t=GAP      ,l=GAP          ,w=WD_LST           ,cap=F(_('&Tools ({})'),len(self.exts)) ) # &t
-                     ,dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                       ) #
-                     ,dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,props='1'  ) # &e  default
-                     ,dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                       ) # &a
-                     ,dict(cid='jin',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Jo&in...')  ,hint=DTLS_JOIN_H   ) # &i
-                     ,dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne')                        ) # &n
-                     ,dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('&Delete...')                    ) # &d
-                     ,dict(cid='up' ,tp='bt'    ,t=ACTS_T[1],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('&Up')       ,hint=DTLS_MVUP_H   ) # &u
-                     ,dict(cid='dn' ,tp='bt'    ,t=ACTS_T[2],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   ) # &w
+            lG0     = 0<len(self.exts)
+            lG1     = 1<len(self.exts)
+            cnts    =[dict(          tp='lb'    ,t=GAP      ,l=GAP          ,w=WD_LST           ,cap=F(_('&Tools ({})'),len(self.exts))         ) # &t
+                     ,dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                               ) #
+                     ,dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,props='1'  ,en=lG0 ) # &e  default
+                     ,dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                               ) # &a
+                     ,dict(cid='jin',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Jo&in...')  ,hint=DTLS_JOIN_H   ,en=lG1 ) # &i
+                     ,dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne')                        ,en=lG0 ) # &n
+                     ,dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('&Delete...')                    ,en=lG0 ) # &d
+                     ,dict(cid='up' ,tp='bt'    ,t=ACTS_T[1],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('&Up')       ,hint=DTLS_MVUP_H   ,en=lG1 ) # &u
+                     ,dict(cid='dn' ,tp='bt'    ,t=ACTS_T[2],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   ,en=lG1 ) # &w
                      ,dict(cid='man',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('Set &main for lexers...')
-                                                                                                                    ,hint=DTLS_MNLX_H   ) # &m
+                                                                                                                    ,hint=DTLS_MNLX_H   ,en=lG0 ) # &m
                      ,dict(cid='mcr',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('User macro &vars...')
-                                                                                                                    ,hint=DTLS_USMS_H   ) # &v
-                     ,dict(cid='adj',tp='bt'    ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H   ) # &j
-                     ,dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                         ) #
+                                                                                                                    ,hint=DTLS_USMS_H           ) # &v
+                     ,dict(cid='adj',tp='bt'    ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H           ) # &j
+                     ,dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 ) #
                     ]
             vals    = dict(lst=ext_ind)
             btn, vals, chds = dlg_wrapper(_('Tools'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
