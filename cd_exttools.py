@@ -46,7 +46,7 @@ EXTS_JSON       = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'exttools.json'
 
 ADV_PROPS       = [ {'key':'source_tab_as_blanks'
                     ,'cap':_('(Int, Default=4) Interpret output symbol TAB as "N spaces".')
-                    ,'hnt':_('Set 8 for a Tool likes "tidy"')
+                    ,'hnt':_('Set 8 for a tool likes "tidy"')
                     ,'def':'4'
                     }
                  #, {'key':'smth'
@@ -83,7 +83,7 @@ FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
 
 def dlg_help_vars():
     EXT_HELP_BODY   = \
-_('''In Tool properties
+_('''In tool properties
    File name
    Parameters
    Initial folder
@@ -214,12 +214,12 @@ class Command:
         hk_s    = hotkeys_desc(            'cuda_exttools,dlg_config')
         app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,dlg_config;{}'.format(    id_menu,    _('Con&fig...')+hk_s))
         hk_s    = hotkeys_desc(            'cuda_exttools,run_lxr_main')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run_lxr_main;{}'.format(  id_menu,    _('R&un lexer main Tool')+hk_s))
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run_lxr_main;{}'.format(  id_menu,    _('R&un main lexer tool')+hk_s))
         id_rslt = app.app_proc( app.PROC_MENU_ADD, '{};{};{}'.format(               id_menu, 0, _('Resul&ts')))
         hk_s    = hotkeys_desc(            'cuda_exttools,show_next_result')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_next_result;{}'.format(id_rslt,  _('Nex&t Tool result')+hk_s))
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_next_result;{}'.format(id_rslt,  _('Nex&t tool result')+hk_s))
         hk_s    = hotkeys_desc(            'cuda_exttools,show_prev_result')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_prev_result;{}'.format(id_rslt,  _('&Previous Tool result'+hk_s)))
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_prev_result;{}'.format(id_rslt,  _('&Previous tool result'+hk_s)))
         if 0<len(self.exts):
             app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
             for ext in self.exts:
@@ -278,7 +278,7 @@ class Command:
     def run_lxr_main(self):
         lxr     = ed.get_prop(app.PROP_LEXER_FILE)
         if lxr not in self.ext4lxr:
-            return app.msg_status(f(_('No main Tool for lexer "{}"'), lxr))
+            return app.msg_status(f(_('No main lexer tool for "{}"'), lxr))
         self.run(self.ext4lxr[lxr])
        #def run_lxr_main
 
@@ -297,13 +297,13 @@ class Command:
         # Preparing
         file_nm = ed.get_filename()
         if  not file_nm and '{File' in ref:
-            return app.msg_status(f(_('Cannot browse URL "{}" for untitled tab'), url['nm']))
+            return app.msg_status(f(_('Cannot open URL "{}" for untitled tab'), url['nm']))
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
         ref = _subst_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
 
-        app.msg_status(f(_('Browse "{}": {}'), url['nm'], ref))
+        app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
         webbrowser.open_new_tab(ref)
         return True
        #def browse
@@ -317,7 +317,7 @@ class Command:
         pass;                  #LOG and log('ext_id={}',ext_id)
         ext     = self.ext4id.get(ext_id)
         if ext is None:
-            return app.msg_status(_('No Tool: {}').format(ext_id))
+            return app.msg_status(_('No tool: {}').format(ext_id))
         nm      = ext['nm']
         lxrs    = ext['lxrs']
         lxr_cur = ed.get_prop(app.PROP_LEXER_FILE)
@@ -341,7 +341,7 @@ class Command:
         
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
-            if not app.file_save():  return app.msg_status(_('Cancel running Tool "{}"'.format(nm)))
+            if not app.file_save():  return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
         if SAVS_A==ext.get('savs', SAVS_N):
             ed.cmd(cmds.cmd_FileSaveAll)
         
@@ -350,7 +350,7 @@ class Command:
         if  not file_nm and (
             '{File' in cmnd
         or  '{File' in prms_s
-        or  '{File' in ddir ):  return app.msg_status(_('Cannot run Tool "{}" for untitled tab'.format(nm)))
+        or  '{File' in ddir ):  return app.msg_status(_('Cannot run tool "{}" for untitled tab'.format(nm)))
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
@@ -471,7 +471,7 @@ class Command:
         
         crc_inf = self.crcs.get(crc_tag, {})
         ext     = crc_inf.get('ext')
-        if not ext:                         app.msg_status(_('No Tool to parse the output line'));return
+        if not ext:                         app.msg_status(_('No tool to parse the output line'));return
         if not ext['pttn']:                 app.msg_status(_('Tool "{}" has not Pattern property').format(ext['nm']));return
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
@@ -556,12 +556,12 @@ class Command:
         url_ids = [url['id'] for url in self.urls]
         url_ind = url_ids.index(self.last_url_id) if self.last_url_id in url_ids else min(0, len(url_ids)-1)
 
-        DTLS_JOIN_H     = _('Join several Tools to single Tool')
+        DTLS_JOIN_H     = _('Join several tools to single tool')
         DTLS_CALL_H     = _('Use the URL')
-        DTLS_MVUP_H     = _('Move current Tool to upper position')
-        DTLS_MVDN_H     = _('Move current Tool to lower position')
-        DTLS_MNLX_H     = _('For call by command "Run lexer main Tool"')
-        DTLS_USMS_H     = _("Edit list of user's macros to use in Tool properties")
+        DTLS_MVUP_H     = _('Move current tool to upper position')
+        DTLS_MVDN_H     = _('Move current tool to lower position')
+        DTLS_MNLX_H     = _('For call by command "Run main lexer tool"')
+        DTLS_USMS_H     = _("Edit list of user's macros to use in tool properties")
         DTLS_CUST_H     = _('Change this dialog sizes')
 
         GAP2    = GAP*2    
@@ -812,10 +812,10 @@ class Command:
                 ext_vls = ext_vlss[ext_ind]
                 id4del  = self.exts[ext_ind]['id']
                 jex4dl  = [ex for ex in self.exts if id4del in ex.get('jext', [])]
-                if app.msg_box( _('Delete Tool?\n\n') + '\n'.join(['{}: {}'.format(flds[ind], ext_vls[ind]) 
+                if app.msg_box( _('Delete tool?\n\n') + '\n'.join(['{}: {}'.format(flds[ind], ext_vls[ind]) 
                                                             for ind in range(len(flds))
                                                        ])
-                              + ('\n\n'+'!'*50+_('\nDelete with joined Tool(s)\n   ')+'\n   '.join([ex['nm'] for ex in jex4dl]) if jex4dl else '')
+                              + ('\n\n'+'!'*50+_('\nDelete with joined tool(s)\n   ')+'\n   '.join([ex['nm'] for ex in jex4dl]) if jex4dl else '')
                               , app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:
                     continue # while
                 for lxr in [lxr for lxr,ext_id in self.ext4lxr.items() if ext_id==id4del]:
@@ -843,7 +843,7 @@ class Command:
        #def dlg_config
         
     def _dlg_adj_list():
-        custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Widths prefix "C"/"R" to align, "-" to hide.')
+        custs   = app.dlg_input_ex(10, _('Custom dialog Tools and URLs. Widths prefix "C"/"R" to align, "-" to hide.')
             , _('Width of Name    (min 100)')  , prs.get('nm'  , '150')
             , _('Width of Keys    (min  50)')  , prs.get('keys', '100')
             , _('Width of File    (min 150)')  , prs.get('file', '180')
@@ -891,15 +891,15 @@ class Command:
         while True:
             lxrs_enm= ['{}{}'.format(lxr, '  >>>  {}'.format(nm4ids[self.ext4lxr[lxr]]) if lxr in self.ext4lxr else '')
                             for lxr in lxrs_l]
-            cnts    =[dict(           tp='lb'   ,t=GAP+ 3           ,l=GAP          ,w=400  ,cap=_('&Lexer  >>>  main Tool')) #  &l
+            cnts    =[dict(           tp='lb'   ,t=GAP+ 3           ,l=GAP          ,w=400  ,cap=_('&Lexer  >>>  main tool')) #  &l
                      ,dict(cid='lxs' ,tp='lbx'  ,t=GAP+23   ,h=300  ,l=GAP          ,w=400  ,items=lxrs_enm                 ) #  
                      ,dict(           tp='lb'   ,t=GAP+ 3           ,l=GAP+400+GAP  ,w=300  ,cap=_('&Tools')                ) #  &t
                      ,dict(cid='tls' ,tp='lbx'  ,t=GAP+23   ,h=300  ,l=GAP+400+GAP  ,w=300  ,items=nms                      ) #  
-                     ,dict(cid='set' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP          ,w=97   ,cap=_('&Assign Tool')          ) #  &a
+                     ,dict(cid='set' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP          ,w=97   ,cap=_('&Assign tool')          ) #  &a
                      ,dict(cid='del' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP+97+GAP   ,w=97   ,cap=_('&Break link')           ) #  &b
                      ,dict(cid='-'   ,tp='bt'   ,t=GAP+23+300+GAP   ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 ) #  
                     ]
-            btn, vals, chds = dlg_wrapper(_('Main Tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
+            btn, vals, chds = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
             if btn is None or btn=='-':    return
             lxr_ind     = vals['lxs']
             tool_ind    = vals['tls']
@@ -1079,7 +1079,7 @@ class Command:
         vals    = dict(exs=(crt,sels))
         btn,    \
         vals,   \
-        chds    = dlg_wrapper(_('Select Tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
+        chds    = dlg_wrapper(_('Select tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
         if btn is None or btn=='-': return None
         crt,sels= vals['exs']
         ext_ids = [ext4jn[ind]['id'] for ind in range(len(sels)) if sels[ind]=='1']

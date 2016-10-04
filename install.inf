@@ -17,18 +17,18 @@ menu=0
 
 [item3]
 section=commands
-caption=Tools: Run lexer main tool
+caption=Tools: Run main lexer tool
 method=run_lxr_main
 menu=0
 
 [item4]
 section=commands
-caption=Tools: Next result
+caption=Tools: Jump to next tool result
 method=show_next_result
 menu=0
 
 [item5]
 section=commands
-caption=Tools: Previous result
+caption=Tools: Jump to previous tool result
 method=show_prev_result
 menu=0
