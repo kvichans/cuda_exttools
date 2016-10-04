@@ -1,3 +1,6 @@
+1.2.8 (2016-10-04)
+added: URLs
+
 1.2.7 (2016-09-19)
 fixed: Disign of Adv.props dlg
 added: {Lexer}, {LexerAtCaret}

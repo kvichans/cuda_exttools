@@ -2,11 +2,12 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.8 2016-09-26'
+    '1.2.8 2016-10-04'
 ToDo: (see end of file)
 '''
 
 import  os, json, random, subprocess, shlex, copy, collections, re, zlib
+import  webbrowser
 import  cudatext            as app
 from    cudatext        import ed
 import  cudatext_cmd        as cmds
@@ -18,7 +19,8 @@ from    .cd_plug_lib    import *
 pass;                           # Logging
 pass;                           from pprint import pformat
 pass;                           LOG = (-2==-2)  # Do or dont logging.
-c10,c13,l= chr(10),chr(13),chr(13)
+l=chr(13)
+OrdDict = collections.OrderedDict
 
 # I18N
 _       = get_translation(__file__)
@@ -76,8 +78,8 @@ SAVS_A          = 'A'
 
 FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
 
-def F(s, *args, **kwargs):return s.format(*args, **kwargs)
-GAP     = 5
+#def F(s, *args, **kwargs):return s.format(*args, **kwargs)
+#GAP     = 5
 
 def dlg_help_vars():
     EXT_HELP_BODY   = \
@@ -134,6 +136,7 @@ class Command:
         self.saving     = apx._json_loads(open(EXTS_JSON).read()) if os.path.exists(EXTS_JSON) else {
                              'ver':JSON_FORMAT_VER
                             ,'list':[]
+                            ,'urls':[]
                             ,'dlg_prs':{}
                             ,'ext4lxr':{}
                             ,'preset':[]
@@ -146,9 +149,13 @@ class Command:
         self.ext4lxr    = self.saving.setdefault('ext4lxr', {})
         self.preset     = self.saving.setdefault('preset', [])
         self.umacrs     = self.saving.setdefault('umacrs', [])
+        self.urls       = self.saving.setdefault('urls', [])
         self.exts       = self.saving['list']
             
         # Runtime data
+        self.last_is_ext= True
+        self.url4id     = {str(url['id']):url for url in self.urls}
+        self.last_url_id= 0
         self.ext4id     = {str(ext['id']):ext for ext in self.exts}
         self.crcs       = {}
         self.last_crc   = -1
@@ -213,12 +220,16 @@ class Command:
         app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_next_result;{}'.format(id_rslt,  _('Nex&t Tool result')+hk_s))
         hk_s    = hotkeys_desc(            'cuda_exttools,show_prev_result')
         app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_prev_result;{}'.format(id_rslt,  _('&Previous Tool result'+hk_s)))
-        if 0==len(self.exts):
-            return
-        app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
-        for ext in self.exts:
-            hk_s= hotkeys_desc(              f('cuda_exttools,run,{}',                   ext['id']))
-            app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run,{};{}'.format(id_menu, ext['id'], ext['nm']+hk_s))
+        if 0<len(self.exts):
+            app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
+            for ext in self.exts:
+                hk_s= hotkeys_desc(              f('cuda_exttools,run,{}',                   ext['id']))
+                app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run,{};{}'.format(id_menu, ext['id'], ext['nm']+hk_s))
+        if 0<len(self.urls):
+            app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
+            for url in self.urls:
+                hk_s= hotkeys_desc(              f('cuda_exttools,browse,{}',                   url['id']))
+                app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,browse,{};{}'.format(id_menu, url['id'], url['nm']+hk_s))
        #def adapt_menu
         
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):
@@ -231,27 +242,32 @@ class Command:
         # Secondary data
         if '|second|' in acts:
             self.ext4id     = {str(ext['id']):ext for ext in self.exts}
+            self.url4id     = {str(url['id']):url for url in self.urls}
         
         # Register new subcommands
         if '|reg|' in acts:
-            reg_subs        = 'cuda_exttools;run;{}'.format('\n'.join(
-                             'Tools: {}\t{}'.format(ext['nm'],ext['id']) 
-                                 for ext in self.exts)
-                             )
-            pass;              #LOG and log('reg_subs={}',reg_subs)
+            reg_subs        = 'cuda_exttools;run;' + '\n'.join(f('Tools: {}\t{}', ext['nm'], ext['id']) for ext in self.exts)
+            pass;              #LOG and log('exts reg_subs={}',reg_subs)
+            app.app_proc(app.PROC_SET_SUBCOMMANDS, reg_subs)
+            reg_subs        = 'cuda_exttools;browse;' + '\n'.join(f('Urls: {}\t{}', url['nm'], url['id']) for url in self.urls)
+            pass;              #LOG and log('urls reg_subs={}',reg_subs)
             app.app_proc(app.PROC_SET_SUBCOMMANDS, reg_subs)
         
         # Clear keys.json
         if '|keys|' in acts and ':' in what:
             # Need delete a key 'cuda_exttools,run,NNNNN'
-            ext_id      = what[1+what.index(':'):]
-            ext_key     = 'cuda_exttools,run,{}'.format(ext_id)
+            itm_id      = what[1+what.index(':'):]
+            itm_key     = 'cuda_exttools,run,'+itm_id \
+                            if itm_id in self.ext4id else \
+                          'cuda_exttools,browse,'+itm_id \
+                            if itm_id in self.url4id else \
+                          ''
             keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
             if not os.path.exists(keys_json): return
             keys        = apx._json_loads(open(keys_json).read())
-            pass;              #LOG and log('??? key={}',ext_key)
-            if keys.pop(ext_key, None) is not None:
-                pass;           LOG and log('UPD keys.json, deleted key={}',ext_key)
+            pass;              #LOG and log('??? key={}',itm_key)
+            if keys.pop(itm_key, None) is not None:
+                pass;           LOG and log('UPD keys.json, deleted key={}',itm_key)
                 open(keys_json, 'w').write(json.dumps(keys, indent=2))
         
         # [Re]Build menu
@@ -262,17 +278,44 @@ class Command:
     def run_lxr_main(self):
         lxr     = ed.get_prop(app.PROP_LEXER_FILE)
         if lxr not in self.ext4lxr:
-            return app.msg_status(_('No main Tool for lexer "{}"').format(lxr))
+            return app.msg_status(f(_('No main Tool for lexer "{}"'), lxr))
         self.run(self.ext4lxr[lxr])
        #def run_lxr_main
 
+    def browse(self, url_id):
+        ''' Main (and single) way to browse any urltool
+        '''
+        self.last_is_ext    = False
+        self.last_url_id    = url_id
+        url_id  = str(url_id)
+        pass;                  #LOG and log('url_id={}',url_id)
+        url     = self.url4id.get(url_id)
+        if url is None:
+            return app.msg_status(f(_('No URL: {}'), url_id))
+        ref = url['url']
+
+        # Preparing
+        file_nm = ed.get_filename()
+        if  not file_nm and '{File' in ref:
+            return app.msg_status(f(_('Cannot browse URL "{}" for untitled tab'), url['nm']))
+        (cCrt, rCrt
+        ,cEnd, rEnd)    = ed.get_carets()[0]
+        umc_vals= self._calc_umc_vals()
+        ref = _subst_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
+
+        app.msg_status(f(_('Browse "{}": {}'), url['nm'], ref))
+        webbrowser.open_new_tab(ref)
+        return True
+       #def browse
+    
     def run(self, ext_id):
         ''' Main (and single) way to run any exttool
         '''
-        self.last_ext_id = ext_id
+        self.last_is_ext    = True
+        self.last_ext_id    = ext_id
         ext_id  = str(ext_id)
         pass;                  #LOG and log('ext_id={}',ext_id)
-        ext     = self.ext4id.get(str(ext_id))
+        ext     = self.ext4id.get(ext_id)
         if ext is None:
             return app.msg_status(_('No Tool: {}').format(ext_id))
         nm      = ext['nm']
@@ -366,7 +409,7 @@ class Command:
         def gen_save_crc(ext, cwd='', filepath='', filecol=0, filerow=0):
             ''' Generate 32-bit int for each ext running '''
             text    = '|'.join([str(ext[k]) for k in ext]
-                              +[F('{}|{}|{}|{}|{}', cwd, filepath, cCrt, rCrt, len(self.crcs))]
+                              +[f('{}|{}|{}|{}|{}', cwd, filepath, cCrt, rCrt, len(self.crcs))]
                               )
             crc     = zlib.crc32(text.encode()) & 0x0fffffff
             self.last_crc   = crc
@@ -508,10 +551,13 @@ class Command:
 
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         
-        ids     = [ext['id'] for ext in self.exts]
-        ext_ind = ids.index(self.last_ext_id) if self.last_ext_id in ids else min(0, len(ids)-1)
+        ext_ids = [ext['id'] for ext in self.exts]
+        ext_ind = ext_ids.index(self.last_ext_id) if self.last_ext_id in ext_ids else min(0, len(ext_ids)-1)
+        url_ids = [url['id'] for url in self.urls]
+        url_ind = url_ids.index(self.last_url_id) if self.last_url_id in url_ids else min(0, len(url_ids)-1)
 
         DTLS_JOIN_H     = _('Join several Tools to single Tool')
+        DTLS_CALL_H     = _('Use the URL')
         DTLS_MVUP_H     = _('Move current Tool to upper position')
         DTLS_MVDN_H     = _('Move current Tool to lower position')
         DTLS_MNLX_H     = _('For call by command "Run lexer main Tool"')
@@ -521,17 +567,24 @@ class Command:
         GAP2    = GAP*2    
         prs     = self.dlg_prs
         pass;                  #LOG and log('prs={}',prs)
+        vals    = dict(lst=ext_ind if self.last_is_ext else url_ind
+                      ,tls=           self.last_is_ext
+                      ,urs=       not self.last_is_ext)
         while True:
             keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-            ext_nz_d    = collections.OrderedDict([
+            ext_nz_d    = OrdDict([
                            (_('Name')           ,prs.get('nm'  , '150'))
-                          ,(_('Keys')           ,prs.get('keys', '100'))
+                          ,(_('Hotkeys')        ,prs.get('keys', '100'))
                           ,(_('File | [Tools]') ,prs.get('file', '180'))
                           ,(_('Params')         ,prs.get('prms', '100'))
                           ,(_('Folder')         ,prs.get('ddir', '100'))
                           ,(_('Lexers')         ,prs.get('lxrs', 'C50'))
                           ,(_('Capture')        ,prs.get('rslt', 'C50'))
                           ,(_('Saving')         ,prs.get('savs', 'C30'))
+                          ])    if vals['tls'] else     OrdDict([
+                           (_('Name')           ,prs.get('nm'  , '150'))
+                          ,(_('Hotkeys')        ,prs.get('keys', '100'))
+                          ,(_('URL')            ,prs.get('url',  '600'))
                           ])
             ACTS_W          = prs.get('w_btn', 90)
             AW2             = int(ACTS_W/2)
@@ -541,10 +594,9 @@ class Command:
             ACTS_L          = [             + GAP*ind+ACTS_W*(ind-1) for ind in range(20)]
             WD_LST_MIN      = GAP*10+ACTS_W*8
             if WD_LST < WD_LST_MIN:
-                ext_nz_d['Name']    = str(WD_LST_MIN-WD_LST + int(ext_nz_d['Name']))
+                ext_nz_d[_('Name')] = str(WD_LST_MIN-WD_LST + int(ext_nz_d[_('Name')]))
                 WD_LST              = WD_LST_MIN
             DLG_W, DLG_H    = max(WD_LST, ACTS_L[9])+GAP*3, ACTS_T[3]+3#+GAP
-            ext_hnzs    = ['{}={}'.format(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()]
             ext_vlss    = []
             for ext in self.exts:
                 jext    = ext.get('jext')
@@ -560,165 +612,205 @@ class Command:
                           ,                                     ext['rslt']         if not jext else ''
                           ,                                     ext['savs']
                           ]]
-            pass;              #LOG and log('ext_hnzs={}',ext_hnzs)
+            url_vlss    = [[                                    url['nm']
+                          ,get_keys_desc('cuda_exttools,browse',url['id'], keys)
+                          ,                                     url['url']
+                          ]
+                          for url in self.urls]
             pass;              #LOG and log('ext_vlss={}',ext_vlss)
+            pass;              #LOG and log('url_vlss={}',url_vlss)
 
-            ids     = [ext['id'] for ext in self.exts]
-            ext     = self.exts[ext_ind] if ext_ind in range(len(self.exts)) else None
-            pass;              #LOG and log('ext_ind, ext={}',(ext_ind, ext))
+            ext_ids = [ext['id'] for ext in self.exts]
+#           url_ids = [url['id'] for url in self.urls]
             
-            itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()], ext_vlss)
-            lG0     = 0<len(self.exts)
-            lG1     = 1<len(self.exts)
-            cnts    =[dict(          tp='lb'    ,t=GAP      ,l=GAP          ,w=WD_LST           ,cap=F(_('&Tools ({})'),len(self.exts))         ) # &t
-                     ,dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                               ) #
-                     ,dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,props='1'  ,en=lG0 ) # &e  default
-                     ,dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                               ) # &a
-                     ,dict(cid='jin',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Jo&in...')  ,hint=DTLS_JOIN_H   ,en=lG1 ) # &i
-                     ,dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne')                        ,en=lG0 ) # &n
-                     ,dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('&Delete...')                    ,en=lG0 ) # &d
-                     ,dict(cid='up' ,tp='bt'    ,t=ACTS_T[1],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('&Up')       ,hint=DTLS_MVUP_H   ,en=lG1 ) # &u
-                     ,dict(cid='dn' ,tp='bt'    ,t=ACTS_T[2],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   ,en=lG1 ) # &w
-                     ,dict(cid='man',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('Set &main for lexers...')
-                                                                                                                    ,hint=DTLS_MNLX_H   ,en=lG0 ) # &m
-                     ,dict(cid='mcr',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('User macro &vars...')
-                                                                                                                    ,hint=DTLS_USMS_H           ) # &v
-                     ,dict(cid='adj',tp='bt'    ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H           ) # &j
-                     ,dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 ) #
-                    ]
-            vals    = dict(lst=ext_ind)
-            btn, vals, chds = dlg_wrapper(_('Tools'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
-            if btn is None or btn=='-':  return
-            new_ext_ind = vals['lst']
-            if btn=='adj':  #Custom
-#               custs   = app.dlg_input_ex(10, 'Custom dialog Tools. Align cols with "R"/"C" starts Widths. Start with "-" to hide column.'
-#               custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Start Widths with "R"/"C" to align. Start with "-" to hide column.')
-                custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Widths prefix "C"/"R" to align, "-" to hide.')
-#               custs   = app.dlg_input_ex(10, 'Custom dialog Tools. Use L,R,C before width to align (empty=L). Use "-" to hide column.'
-                    , _('Width of Name    (min 100)')  , prs.get('nm'  , '150')
-                    , _('Width of Keys    (min  50)')  , prs.get('keys', '100')
-                    , _('Width of File    (min 150)')  , prs.get('file', '180')
-                    , _('Width of Params  (min 150)')  , prs.get('prms', '100')
-                    , _('Width of Folder  (min 100)')  , prs.get('ddir', '100')
-                    , _('Width of Lexers  (min  50)')  , prs.get('lxrs', 'C50')
-                    , _('Width of Capture (min  50)')  , prs.get('rslt', 'C50')
-                    , _('Width of Saving  (min  30)')  , prs.get('savs', 'C30')
-                    , _('List height  (min 200)')      , str(self.dlg_prs.get('h_list', 300))
-                    , _('Button width (min 70)')       , str(self.dlg_prs.get('w_btn', 90))
+            vlss    = ext_vlss if vals['tls'] else url_vlss
+            itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()], vlss)
+            lG0     = 0<len(vlss)
+            lG1     = 1<len(vlss)
+            #NOTE: list cnts
+            cnts    =([]
+                    +[dict(cid='tls',tp='ch-bt' ,t=2        ,l=GAP          ,w=120              ,cap=f(_('&Tools ({})'),len(self.exts)) ,act='1')] # &t
+                    +[dict(cid='urs',tp='ch-bt' ,t=2        ,l=GAP+120      ,w=120              ,cap=f(_('&URLs ({})' ),len(self.urls)) ,act='1')] # &u
+
+                    +[dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                               )] #
+
+                    +[dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,props='1'  ,en=lG0 )] # &e  default
+                    +[dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                               )] # &a
+                    +[dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Delete...')                    ,en=lG0 )] # &d
+                    +([]                                       
+                    +[dict(cid='jin',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Jo&in...')  ,hint=DTLS_JOIN_H   ,en=lG1 )] # &i
+                    if vals['tls'] else []
+                    +[dict(cid='cll',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('&Call')     ,hint=DTLS_CALL_H   ,en=lG0 )] # &o
                     )
-                if custs is not None:
-                    def adapt2min(vmin, cval, can_hide=True):
-                        cval    = cval.upper()
-                        if can_hide and cval[0]=='-':   return cval
-                        cval    = cval.lstrip('-')
-                        c1st    = cval[0] if cval[0] in 'LRC' else ''
-                        cval    = cval.lstrip('LRC')
-                        return    c1st + str(max(vmin, int(cval)))
-                    self.dlg_prs['nm']      = adapt2min(100, custs[0], False)
-                    self.dlg_prs['keys']    = adapt2min( 50, custs[1], True)
-                    self.dlg_prs['file']    = adapt2min(150, custs[2], True)
-                    self.dlg_prs['prms']    = adapt2min(150, custs[3], True)
-                    self.dlg_prs['ddir']    = adapt2min(100, custs[4], True)
-                    self.dlg_prs['lxrs']    = adapt2min( 50, custs[5], True)
-                    self.dlg_prs['rslt']    = adapt2min( 50, custs[6], True)
-                    self.dlg_prs['savs']    = adapt2min( 30, custs[7], True)
-                    self.dlg_prs['h_list']  =       max(200, int(custs[8]))
-                    self.dlg_prs['w_btn']   =       max( 70, int(custs[9]))
-                    open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
-                continue #while
+                    +[dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne...')                     ,en=lG0 )] # &n
+                    +[dict(cid='up' ,tp='bt'    ,t=ACTS_T[1],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('U&p')       ,hint=DTLS_MVUP_H   ,en=lG1 )] # &p
+                    +[dict(cid='dn' ,tp='bt'    ,t=ACTS_T[2],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   ,en=lG1 )] # &w
+                    +([]                                       
+                    +[dict(cid='man',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('Set &main for lexers...')
+                                                                                                                    ,hint=DTLS_MNLX_H   ,en=lG0 )] # &m
+                    if vals['tls'] else [])
+                    +[dict(cid='mcr',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('User macro &vars...')
+                                                                                                                    ,hint=DTLS_USMS_H           )] # &v
+                    +[dict(cid='adj',tp='bt'    ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H           )] # &j
+                    +[dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 )] #
+                    )
 
-            if btn=='man':  #Main lexer tool
-                self._dlg_main_tool(0 if new_ext_ind==-1 else ids[new_ext_ind])
-                ext_ind     = new_ext_ind
-                continue #while
+            btn, vals, chds = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            if btn is None or btn=='-':  return
             
-            if btn=='mcr':  #User macros
+            lst_ind = vals['lst']
+            ext_ind = lst_ind if     self.last_is_ext else ext_ind
+            url_ind = lst_ind if not self.last_is_ext else url_ind
+            # Switch lists
+            if btn=='tls':  
+                self.last_is_ext= True
+                vals['tls'] = True; vals['urs'] = False
+                vals['lst'] = ext_ind
+                continue#while
+            if btn=='urs':  
+                self.last_is_ext= False
+                vals['tls'] = False;vals['urs'] = True
+                vals['lst'] = url_ind
+                continue#while
+
+            # Actions not for tool/url
+            if btn=='adj':                  #Custom dlg controls
+                self._dlg_adj_list()
+                continue#while
+
+            if btn=='mcr':                  #User macros
                 self._dlg_usr_mcrs()
                 continue #while
             
-            elif btn=='jin':
+            if btn=='man':                  #Main lexer tool
+                self._dlg_main_tool(0 if ext_ind==-1 else ext_ids[ext_ind])
+                continue #while
+            
+            if False:pass 
+            elif btn=='cll':                # Call URL
+                self.browse(self.urls[lst_ind]['id'])
+                continue
+                
+            elif btn=='jin':                # Create joined tool
                 jo_ids  = self._dlg_exts_for_join()
                 if jo_ids is None or len(jo_ids)<2:
                     continue #while
-                ext     = self._fill_ext({'id':gen_ext_id(self.ext4id)
+                ext     = self._fill_ext({'id':_gen_id(self.ext4id)
                                          ,'nm':'tool{}'.format(len(self.exts))
                                          ,'jext':jo_ids
                                         })
-                ed_ans      = self._dlg_config_prop(ext, keys)
+                ed_ans      = self._dlg_ext_prop(ext, keys)
                 if ed_ans is None:
                     continue #while
                 self.exts  += [ext]
-                ids         = [ext['id'] for ext in self.exts]
-                ext_ind     = len(self.exts)-1
-                new_ext_ind = ext_ind           ## need?
+#               ext_ids     = [ext['id'] for ext in self.exts]
+                vals['lst'] = len(self.exts)-1
+#               ext_ind     = len(self.exts)-1
+#               new_ind     = ext_ind           ## need?
                 
-            if btn=='add':
-                pttn4run    = {ps['run']:ps['re']           for ps in self.preset}
-                test4run    = {ps['run']:ps.get('test', '') for ps in self.preset}
-                file4run    = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-                file4run    = file4run if file4run is not None else ''
-                id4ext      = gen_ext_id(self.ext4id)
-                run_nm      = os.path.basename(file4run)
-                ext         = self._fill_ext({'id':id4ext
-                                    ,'nm':(run_nm if file4run else 'tool{}'.format(len(self.exts)))
-                                    ,'file':file4run
-                                    ,'ddir':os.path.dirname(file4run)
-                                    })
-                if run_nm in pttn4run:
-                    ext['pttn']     = pttn4run.get(run_nm, '')
-                    ext['pttn-test']= test4run.get(run_nm, '')
-                ed_ans      = self._dlg_config_prop(ext, keys)
+            if btn in ('add', 'cln') and vals['urs']:  #Create/Clone URL
+                if btn=='add':
+                    url     = {'id':_gen_id(self.url4id)
+                              ,'nm':f('url{}', 1+len(self.urls))
+                              ,'url':''
+                              }
+                else:
+                    url     = copy.deepcopy(self.urls[lst_ind])
+                    url['id']= _gen_id(self.url4id)
+                    url['nm']= url['nm']+' copy'
+                ed_ans      = self._dlg_url_prop(url, keys)
+                pass;          #LOG and log('fin edit={}',ed_ans)
+                if ed_ans is None:
+                    continue #while
+                self.urls  += [url]
+#               url_ids     = [url['id'] for url in self.urls]
+                vals['lst'] = len(self.urls)-1
+#               url_ind     = len(self.urls)-1
+#               new_ind     = url_ind           ## need?
+
+            if btn in ('add', 'cln') and vals['tls']:  #Create/Clone Tool
+                if btn=='add':
+                    pttn4run    = {ps['run']:ps['re']           for ps in self.preset}
+                    test4run    = {ps['run']:ps.get('test', '') for ps in self.preset}
+                    file4run    = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+                    file4run    = file4run if file4run is not None else ''
+                    id4ext      = _gen_id(self.ext4id)
+                    run_nm      = os.path.basename(file4run)
+                    ext         = self._fill_ext({'id':id4ext
+                                        ,'nm':(run_nm if file4run else f('tool{}', 1+len(self.exts)))
+                                        ,'file':file4run
+                                        ,'ddir':os.path.dirname(file4run)
+                                        })
+                    if run_nm in pttn4run:
+                        ext['pttn']     = pttn4run.get(run_nm, '')
+                        ext['pttn-test']= test4run.get(run_nm, '')
+                else:
+                    ext     = copy.deepcopy(self.exts[lst_ind])
+                    ext['id']= _gen_id(self.url4id)
+                    ext['nm']= url['nm']+' copy'
+                ed_ans      = self._dlg_ext_prop(ext, keys)
                 pass;          #LOG and log('fin edit={}',ed_ans)
                 if ed_ans is None:
                     continue #while
                 self.exts  += [ext]
-                ids         = [ext['id'] for ext in self.exts]
-                ext_ind     = len(self.exts)-1
-                new_ext_ind = ext_ind           ## need?
+#               ext_ids     = [ext['id'] for ext in self.exts]
+                vals['lst'] = len(self.exts)-1
+#               ext_ind     = len(self.exts)-1
+#               new_ind     = ext_ind           ## need?
 
-            if new_ext_ind==-1:
+            lst_ind = vals['lst']
+            if lst_ind==-1:
                 continue #while
                 
             what    = ''
-            ext_ind = new_ext_ind
-            pass;              #LOG and log('ext_ind, ids={}',(ext_ind, ids))
-            pass;              #LOG and log('len(self.exts), len(ids)={}',(len(self.exts), len(ids)))
-            self.last_ext_id    = ids[ext_ind]
+#?          ext_ind = new_ind
+            ext_ids     = [ext['id'] for ext in self.exts]
+            url_ids     = [url['id'] for url in self.urls]
+            if vals['tls']:
+                self.last_ext_id    = ext_ids[ext_ind]
+            if vals['urs']:
+                self.last_url_id    = url_ids[url_ind]
+            
+            self_cllc   = self.exts if vals['tls'] else self.urls
             if False:pass
             
-            elif btn=='edt':
-                pass;          #LOG and log('?? edit self.exts[new_ext_ind]={}',self.exts[new_ext_ind])
-                ed_ans  = self._dlg_config_prop(self.exts[new_ext_ind], keys)
+            elif btn=='edt' and vals['tls']:#Edit Tool
+                ed_ans  = self._dlg_ext_prop(self.exts[ext_ind], keys)
                 if ed_ans is None or not ed_ans:
-                    pass;      #LOG and log('// edit self.exts[new_ext_ind]={}',self.exts[new_ext_ind])
                     continue # while
-                pass;          #LOG and log('ok edit self.exts[new_ext_ind]={}',self.exts[new_ext_ind])
-                
-            elif btn=='up' and new_ext_ind>0: #Up
-                pass;          #LOG and log('up',())
-                (self.exts[new_ext_ind-1]
-                ,self.exts[new_ext_ind  ])  = (self.exts[new_ext_ind  ]
-                                              ,self.exts[new_ext_ind-1])
-                ext_ind = new_ext_ind-1
-            elif btn=='dn' and new_ext_ind<(len(self.exts)-1): #Down
-                pass;          #LOG and log('dn',())
-                (self.exts[new_ext_ind  ]
-                ,self.exts[new_ext_ind+1])  = (self.exts[new_ext_ind+1]
-                                              ,self.exts[new_ext_ind  ])
-                ext_ind = new_ext_ind+1
-            
-            elif btn=='cln':    #Clone
-                cln_ext     = copy.deepcopy(self.exts[new_ext_ind])
-                cln_ext['id']= gen_ext_id(self.ext4id)
-                cln_ext['nm']= cln_ext['nm']+' clone'
-                self.exts   += [cln_ext]
-                ext_ind     = len(self.exts)-1
+            elif btn=='edt' and vals['urs']:#Edit URL
+                ed_ans  = self._dlg_url_prop(self.urls[url_ind], keys)  ##??
+                if ed_ans is None or not ed_ans:
+                    continue # while
 
-            elif btn=='del':
-#               if app.msg_box( 'Delete Tool\n    {}'.format(exkys[new_ext_ind])
+            elif btn=='up' and lst_ind>0:                   #Up
+                (self_cllc[lst_ind-1]
+                ,self_cllc[lst_ind  ])  = (self_cllc[lst_ind  ]
+                                          ,self_cllc[lst_ind-1])
+                vals['lst'] = lst_ind-1
+            elif btn=='dn' and lst_ind<(len(self_cllc)-1):  #Down
+                (self_cllc[lst_ind  ]
+                ,self_cllc[lst_ind+1])  = (self_cllc[lst_ind+1]
+                                          ,self_cllc[lst_ind  ])
+                vals['lst'] = lst_ind+1
+            
+            elif btn=='del' and vals['urs']:# Delete URL
+                if app.msg_box( _('Delete URL?\n')
+                                 +'\n'+self.urls[url_ind]['nm']
+                                 +'\n'+self.urls[url_ind]['url']
+                              , app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:
+                    continue # while
+                id4del      = self.urls[url_ind]['id']
+                del self.urls[url_ind]
+#               url_ind     = min(url_ind, len(self.urls)-1)
+                vals['lst'] = min(url_ind, len(self.urls)-1)
+                what        = 'delete:'+str(id4del)
+
+            elif btn=='del' and vals['tls']:# Delete Tool
+#               if app.msg_box( 'Delete Tool\n    {}'.format(exkys[ext_ind])
                 flds    = list(ext_nz_d.keys())
-                ext_vls = ext_vlss[new_ext_ind]
-                id4del  = self.exts[new_ext_ind]['id']
+                ext_vls = ext_vlss[ext_ind]
+                id4del  = self.exts[ext_ind]['id']
                 jex4dl  = [ex for ex in self.exts if id4del in ex.get('jext', [])]
                 if app.msg_box( _('Delete Tool?\n\n') + '\n'.join(['{}: {}'.format(flds[ind], ext_vls[ind]) 
                                                             for ind in range(len(flds))
@@ -728,18 +820,64 @@ class Command:
                     continue # while
                 for lxr in [lxr for lxr,ext_id in self.ext4lxr.items() if ext_id==id4del]:
                     del self.ext4lxr[lxr]
-                del self.exts[new_ext_ind]
+                del self.exts[ext_ind]
                 for ex in jex4dl:
                     del self.exts[self.exts.index(ex)]
                     self._do_acts('delete:'+str(ex['id']), '|keys|')
-                ext_ind = min(new_ext_ind, len(self.exts)-1)
-                what    = 'delete:'+str(id4del)
+#               ext_ind     = min(ext_ind, len(self.exts)-1)
+                vals['lst'] = min(ext_ind, len(self.exts)-1)
+                what        = 'delete:'+str(id4del)
 
             pass;              #LOG and log('?? list _do_acts',)
+
+            ext_ids     = [ext['id'] for ext in self.exts]
+            url_ids     = [url['id'] for url in self.urls]
+            if vals['tls']:
+                ext_ind         = vals['lst']
+                self.last_ext_id= ext_ids[ext_ind] if ext_ind!=-1 else ''
+            if vals['urs']:
+                url_ind         = vals['lst']
+                self.last_url_id= url_ids[url_ind] if url_ind!=-1 else ''
             self._do_acts(what)
            #while True
-       #def dlg_config_list
+       #def dlg_config
         
+    def _dlg_adj_list():
+        custs   = app.dlg_input_ex(10, _('Custom dialog Tools. Widths prefix "C"/"R" to align, "-" to hide.')
+            , _('Width of Name    (min 100)')  , prs.get('nm'  , '150')
+            , _('Width of Keys    (min  50)')  , prs.get('keys', '100')
+            , _('Width of File    (min 150)')  , prs.get('file', '180')
+            , _('Width of Params  (min 150)')  , prs.get('prms', '100')
+            , _('Width of Folder  (min 100)')  , prs.get('ddir', '100')
+            , _('Width of Lexers  (min  50)')  , prs.get('lxrs', 'C50')
+            , _('Width of Capture (min  50)')  , prs.get('rslt', 'C50')
+            , _('Width of Saving  (min  30)')  , prs.get('savs', 'C30')
+            , _('List height  (min 200)')      , str(self.dlg_prs.get('h_list', 300))
+            , _('Width of Url     (min 500)')  , prs.get('url',  '600')
+    #       , _('Button width (min 70)')       , str(self.dlg_prs.get('w_btn', 90))
+            )
+        if custs is not None:
+            def adapt2min(vmin, cval, can_hide=True):
+                cval    = cval.upper()
+                if can_hide and cval[0]=='-':   return cval
+                cval    = cval.lstrip('-')
+                c1st    = cval[0] if cval[0] in 'LRC' else ''
+                cval    = cval.lstrip('LRC')
+                return    c1st + str(max(vmin, int(cval)))
+            self.dlg_prs['nm']      = adapt2min(100,     custs[0], False)
+            self.dlg_prs['keys']    = adapt2min( 50,     custs[1], True)
+            self.dlg_prs['file']    = adapt2min(150,     custs[2], True)
+            self.dlg_prs['prms']    = adapt2min(150,     custs[3], True)
+            self.dlg_prs['ddir']    = adapt2min(100,     custs[4], True)
+            self.dlg_prs['lxrs']    = adapt2min( 50,     custs[5], True)
+            self.dlg_prs['rslt']    = adapt2min( 50,     custs[6], True)
+            self.dlg_prs['savs']    = adapt2min( 30,     custs[7], True)
+            self.dlg_prs['h_list']  =       max(200, int(custs[8]))
+            self.dlg_prs['url']     = adapt2min(250,     custs[9], True)
+    #       self.dlg_prs['w_btn']   =       max( 70, int(custs[9]))
+            open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+       #def _dlg_adj_list
+
     def _dlg_main_tool(self, ext_id=0):
         lxrs_l  = _get_lexers()
         nm4ids  = {ext['id']:ext['nm'] for ext in self.exts}
@@ -948,7 +1086,87 @@ class Command:
         return ext_ids
        #def _dlg_exts_for_join
         
-    def _dlg_config_prop(self, src_ext, keys=None, for_ed='1'):
+    def _dlg_url_prop(self, src_url, keys=None, for_ed='1'):
+        keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
+        if keys is None:
+            keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+        src_kys     = get_keys_desc('cuda_exttools,browse', src_url['id'], keys)
+
+        ed_url      = copy.deepcopy(src_url)
+
+        GAP2            = GAP*2    
+        PRP1_W, PRP1_L  = (100,     GAP)
+        PRP2_W, PRP2_L  = (400-GAP, PRP1_L+    PRP1_W+GAP)
+        PRP3_W, PRP3_L  = (100,     PRP2_L+GAP+PRP2_W)
+        PROP_T          = [GAP*ind+25*(ind-1) for ind in range(10)]   # max 20 rows
+        DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[6]-21
+        focus_cid   = 'nm'
+        while True:
+            ed_kys  = get_keys_desc('cuda_exttools,browse', ed_url['id'], keys)
+            vals    =       dict(nm  =ed_url['nm']
+                                ,url =ed_url['url']
+                                ,keys=ed_kys
+                                )
+            cnts    =[dict(           tp='lb'   ,tid='nm'      ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Name:')                     ) # &n
+                     ,dict(cid='nm'  ,tp='ed'   ,t=PROP_T[1]   ,l=PRP2_L   ,w=PRP2_W                                        ) #
+
+                     ,dict(           tp='lb'   ,tid='url'     ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&URL:')                      ) # &u
+                     ,dict(cid='url' ,tp='ed'   ,t=PROP_T[2]   ,l=PRP2_L   ,w=PRP2_W                                        ) #
+                     ,dict(cid='?mcr',tp='bt'   ,tid='url'     ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Macro...')                  ) # &m
+                                              
+                     ,dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                    ) #
+                     ,dict(cid='keys',tp='ed'   ,t=PROP_T[3]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'   ) #     ro,mono,border
+                     ,dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')                 ) # &g
+
+                     ,dict(cid='help',tp='bt'   ,t=PROP_T[4]+9 ,l=GAP      ,w=PRP3_W       ,cap=_('Help')                   ) #
+                     ,dict(cid='prjs',tp='bt'   ,t=PROP_T[4]+9 ,l=PRP2_L   ,w=PRP3_W       ,cap=_('Pro&ject...')            ) # &j
+                     ,dict(cid='!'   ,tp='bt'   ,t=PROP_T[4]+9 ,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,props='1'       ) #     default
+                     ,dict(cid='-'   ,tp='bt'   ,t=PROP_T[4]+9 ,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                 ) #
+                    ]
+            if not with_proj_man:
+                cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prjs']
+            btn,    \
+            vals,   \
+            chds    = dlg_wrapper(_('URL properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
+            if btn is None or btn=='-': return None
+            ed_url['nm']    =   vals['nm']
+            ed_url['url']   =   vals['url']
+
+            if btn=='!':
+                # Check props
+                if False:pass
+                elif not ed_url['nm']:
+                    app.msg_box(_('Set Name'), app.MB_OK)
+                    focus_cid   = 'nm'
+                    continue #while
+                    
+                pass;          #LOG and log('save    src_ext={}',src_ext)
+                pass;          #LOG and log('save ed_ext={}',ed_ext)
+                if src_url==ed_url and src_kys==ed_kys:
+                    pass;      #LOG and log('ok, no chngs')
+                    return False
+                src_url.update(ed_url)
+                pass;          #LOG and log('ok, fill src_ext={}',src_ext)
+                return True
+
+            if False:pass
+            elif btn=='help':
+                dlg_help_vars()
+                continue #while
+            elif btn=='prjs':
+                app.app_proc(app.PROC_EXEC_PLUGIN, 'cuda_project_man,config_proj')
+                continue #while
+            elif btn=='?mcr':   #Append param {*}
+                ed_url['url']   = append_prmt(ed_url['url'], self.umacrs)
+                focus_cid       = 'url'
+
+            elif btn=='?key':
+                app.dlg_hotkeys('cuda_exttools,browse,'+str(ed_url['id']))
+                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+           #while True:
+       #def _dlg_url_prop
+        
+    def _dlg_ext_prop(self, src_ext, keys=None, for_ed='1'):
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
             keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
@@ -995,6 +1213,7 @@ class Command:
                                 ,rslt=val_rslt
                                 ,pttn=ed_ext['pttn']
                                 ))
+            #NOTE: edit cnts
             cnts    = ([]
                      +[dict(           tp='lb'   ,tid='nm'      ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Name:')                        )] # &n
                      +[dict(cid='nm'  ,tp='ed'   ,t=PROP_T[1]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
@@ -1106,7 +1325,7 @@ class Command:
                 continue #while
 
             if joined and btn=='view' and sel_jext!=-1: # View one of joined
-                self._dlg_config_prop(self.ext4id[str(jex_ids[sel_jext])], keys, for_ed='0')
+                self._dlg_ext_prop(self.ext4id[str(jex_ids[sel_jext])], keys, for_ed='0')
             
             if joined and btn=='?ser': # Select exts to join
                 jex_ids_new = self._dlg_exts_for_join(jex_ids)
@@ -1187,7 +1406,7 @@ class Command:
                     ad_vals[ad_key]   = ed_ext.get(ad_key, a['def'])
                     ad_cnts+=[
                      dict(           tp='lb',t=GAP+i*50     ,l=GAP+150      ,w=450  ,cap=a['cap'],hint=a['hnt'] )
-                    ,dict(           tp='lb',tid=ad_key     ,l=GAP          ,w=150  ,cap=F('{}:', ad_key)       )
+                    ,dict(           tp='lb',tid=ad_key     ,l=GAP          ,w=150  ,cap=f('{}:', ad_key)       )
                     ,dict(cid=ad_key,tp='ed',t=GAP+i*50+18  ,l=GAP+150      ,w=450                              )
                           ]
                    #for (i, a)
@@ -1207,7 +1426,7 @@ class Command:
                         ed_ext[    a['key']]= ad_vals[a['key']]
                    #for a
            #while True
-       #def _dlg_config_prop
+       #def _dlg_ext_prop
 
     def _dlg_pattern(self, pttn_re, pttn_test, run_nm):
         pass;                  #LOG and log('pttn_re, pttn_test={}',(pttn_re, pttn_test))
@@ -1436,7 +1655,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
     return tostr
    #def append_prmt
 
-def gen_ext_id(ids):
+def _gen_id(ids):
     id4ext      = random.randint(100000, 999999)
     while id4ext in ids:
         id4ext  = random.randint(100000, 999999)
