@@ -574,7 +574,7 @@ class Command:
             keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
             ext_nz_d    = OrdDict([
                            (_('Name')           ,prs.get('nm'  , '150'))
-                          ,(_('Hotkeys')        ,prs.get('keys', '100'))
+                          ,(_('Hotkey')         ,prs.get('keys', '100'))
                           ,(_('File | [Tools]') ,prs.get('file', '180'))
                           ,(_('Params')         ,prs.get('prms', '100'))
                           ,(_('Folder')         ,prs.get('ddir', '100'))
@@ -583,7 +583,7 @@ class Command:
                           ,(_('Saving')         ,prs.get('savs', 'C30'))
                           ])    if vals['tls'] else     OrdDict([
                            (_('Name')           ,prs.get('nm'  , '150'))
-                          ,(_('Hotkeys')        ,prs.get('keys', '100'))
+                          ,(_('Hotkey')         ,prs.get('keys', '100'))
                           ,(_('URL')            ,prs.get('url',  '600'))
                           ])
             ACTS_W          = prs.get('w_btn', 90)
@@ -637,12 +637,13 @@ class Command:
                     +[dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,props='1'  ,en=lG0 )] # &e  default
                     +[dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                               )] # &a
                     +[dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Delete...')                    ,en=lG0 )] # &d
+                    +[dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne...')                     ,en=lG0 )] # &n
                     +([]                                       
                     +[dict(cid='jin',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Jo&in...')  ,hint=DTLS_JOIN_H   ,en=lG1 )] # &i
                     if vals['tls'] else []
                     +[dict(cid='cll',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('&Call')     ,hint=DTLS_CALL_H   ,en=lG0 )] # &o
                     )
-                    +[dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne...')                     ,en=lG0 )] # &n
+                    +[dict(cid='key',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Hotke&y...')                    ,en=lG0 )] # &n
                     +[dict(cid='up' ,tp='bt'    ,t=ACTS_T[1],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('U&p')       ,hint=DTLS_MVUP_H   ,en=lG1 )] # &p
                     +[dict(cid='dn' ,tp='bt'    ,t=ACTS_T[2],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   ,en=lG1 )] # &w
                     +([]                                       
@@ -686,7 +687,15 @@ class Command:
                 self._dlg_main_tool(0 if ext_ind==-1 else ext_ids[ext_ind])
                 continue #while
             
+            self_cllc   = self.exts if vals['tls'] else self.urls
             if False:pass 
+            elif btn=='key':                # Assign/Clear hotkey
+                app.dlg_hotkeys(f('cuda_exttools,{},{}' 
+                                ,'run' if vals['tls'] else 'browse'
+                                ,self_cllc[lst_ind]['id']))
+                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+                continue
+            
             elif btn=='cll':                # Call URL
                 self.browse(self.urls[lst_ind]['id'])
                 continue
@@ -771,7 +780,7 @@ class Command:
             if vals['urs']:
                 self.last_url_id    = url_ids[url_ind]
             
-            self_cllc   = self.exts if vals['tls'] else self.urls
+#           self_cllc   = self.exts if vals['tls'] else self.urls
             if False:pass
             
             elif btn=='edt' and vals['tls']:#Edit Tool
@@ -842,7 +851,8 @@ class Command:
            #while True
        #def dlg_config
         
-    def _dlg_adj_list():
+    def _dlg_adj_list(self):
+        prs     = self.dlg_prs
         custs   = app.dlg_input_ex(10, _('Custom dialog Tools and URLs. Widths prefix "C"/"R" to align, "-" to hide.')
             , _('Width of Name    (min 100)')  , prs.get('nm'  , '150')
             , _('Width of Keys    (min  50)')  , prs.get('keys', '100')
@@ -1116,7 +1126,7 @@ class Command:
                                               
                      ,dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                    ) #
                      ,dict(cid='keys',tp='ed'   ,t=PROP_T[3]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'   ) #     ro,mono,border
-                     ,dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')                 ) # &g
+#                    ,dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')                 ) # &g
 
                      ,dict(cid='help',tp='bt'   ,t=PROP_T[4]+9 ,l=GAP      ,w=PRP3_W       ,cap=_('Help')                   ) #
                      ,dict(cid='prjs',tp='bt'   ,t=PROP_T[4]+9 ,l=PRP2_L   ,w=PRP3_W       ,cap=_('Pro&ject...')            ) # &j
@@ -1251,7 +1261,7 @@ class Command:
                                               
                      +[dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                       )] #
                      +[dict(cid='keys',tp='ed'   ,t=PROP_T[9]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
-                     +[dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')    ,en=for_ed      )] # &g
+#                    +[dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')    ,en=for_ed      )] # &g
                     +([] if joined else []                     
                      +[dict(           tp='lb'   ,tid='rslt'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Capture output:')              )] # &c
                      +[dict(cid='rslt',tp='cb-ro',t=PROP_T[11]  ,l=PRP2_L   ,w=PRP2_W   ,items=self.rslt_caps   ,en=for_ed      )] 
