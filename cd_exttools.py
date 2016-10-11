@@ -1637,6 +1637,8 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
    #def _subst_props
 
 def get_current_word(ed, c_crt, r_crt):
+    sel_text    = ed.get_text_sel()
+    if sel_text:    return sel_text;
     line        = ed.get_text_line(r_crt)
     wrdchs      = apx.get_opt('word_chars', '') + '_'
     wrdcs_re    = re.compile(r'^[\w'+re.escape(wrdchs)+']+')
