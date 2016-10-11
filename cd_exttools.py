@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.8 2016-10-04'
+    '1.2.9 2016-10-11'
 ToDo: (see end of file)
 '''
 
@@ -106,6 +106,7 @@ the following macros are processed.
    {CurrentColumnNum0}- number
    {LexerAtCaret}     - Name of local lexer
    {SelectedText}     - text 
+   {CurrentWord}      - text 
 - Prompted macros:
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked''')
@@ -1563,7 +1564,7 @@ class Command:
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals        = {}            
         for umc in self.umacrs:
-            umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, umcs=umc_vals, prjs=get_proj_vars())
+            umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, cCrt, rCrt, umcs=umc_vals, prjs=get_proj_vars())
         return umc_vals
        #def _calc_umc_vals
        
@@ -1587,6 +1588,7 @@ def _adv_prop(act, ext, par=''):
    #def _adv_prop
 
 def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
+    pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
     if '{' not in prm:  return prm
     # Substitude Project vars
     for prj_k,prj_v in prjs.items():
@@ -1614,6 +1616,7 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
         if  '{CurrentColumnNum}'  in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
         if  '{CurrentColumnNum0}' in prm: prm = prm.replace('{CurrentColumnNum0}',str(  ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
         if  '{SelectedText}'      in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
+        if  '{CurrentWord}'       in prm: prm = prm.replace('{CurrentWord}'     , get_current_word(ed, cCrt, rCrt))
 
     if '{Interactive}' in prm:
         ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
@@ -1632,6 +1635,25 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
         
     return prm
    #def _subst_props
+
+def get_current_word(ed, c_crt, r_crt):
+    line        = ed.get_text_line(r_crt)
+    wrdchs      = apx.get_opt('word_chars', '') + '_'
+    wrdcs_re    = re.compile(r'^[\w'+re.escape(wrdchs)+']+')
+    c_bfr       = line[c_crt-1] if c_crt>0         else ' '
+    c_aft       = line[c_crt]   if c_crt<len(line) else ' '
+    gp_aft_l    = 0
+    gp_bfr_l    = 0
+    if (c_bfr.isalnum() or c_bfr in wrdchs):   # abc|
+        tx_bfr  = line[:c_crt]
+        tx_bfr_r= ''.join(reversed(tx_bfr))
+        gp_bfr_l= len(wrdcs_re.search(tx_bfr_r).group())
+    if (c_aft.isalnum() or c_aft in wrdchs):   # |abc
+        tx_aft  = line[ c_crt:]
+        gp_aft_l= len(wrdcs_re.search(tx_aft  ).group())
+    pass;              #LOG and log('gp_bfr_l,gp_aft_l={}',(gp_bfr_l,gp_aft_l))
+    return line[c_crt-gp_bfr_l:c_crt+gp_aft_l]
+   #def get_current_word
 
 def append_prmt(tostr, umacrs, excl_umc=None):
     prms_l  =['{}\t{}'.format(umc['nm'], umc['ex']) 
@@ -1656,6 +1678,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{CurrentColumnNum}\tNumber of current column')]
             +[_('{CurrentColumnNum0}\tNumber of current column (0-based)')]
             +[_('{SelectedText}\tText')]
+            +[_('{CurrentWord}\tText')]
             +[_('{Interactive}\tText will be asked at each running')]
             +[_('{InteractiveFile}\tFile name will be asked')])
                         
