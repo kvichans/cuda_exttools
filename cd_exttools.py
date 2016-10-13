@@ -7,7 +7,7 @@ ToDo: (see end of file)
 '''
 
 import  os, json, random, subprocess, shlex, copy, collections, re, zlib
-import  webbrowser
+import  webbrowser, urllib
 import  cudatext            as app
 from    cudatext        import ed
 import  cudatext_cmd        as cmds
@@ -305,7 +305,9 @@ class Command:
         ref = _subst_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
 
         app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
-        webbrowser.open_new_tab(ref)
+#       webbrowser.open_new_tab(ref)
+        pass;                  #LOG and log('quote(ref)={}',(urllib.parse.quote(ref, safe='/:')))
+        webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:'))
         return True
        #def browse
     
@@ -1288,6 +1290,7 @@ class Command:
             btn,    \
             vals,   \
             chds    = dlg_wrapper(_('Tool properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
+           #pass;               LOG and log('chds={}',(chds))
             if btn is None or btn=='-': return None
             ed_ext['nm']        =   vals[  'nm']
             ed_ext['lxrs']      =   vals['lxrs']
