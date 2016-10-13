@@ -307,7 +307,7 @@ class Command:
         app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
 #       webbrowser.open_new_tab(ref)
         pass;                  #LOG and log('quote(ref)={}',(urllib.parse.quote(ref, safe='/:')))
-        webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:'))
+        webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:#'))
         return True
        #def browse
     
