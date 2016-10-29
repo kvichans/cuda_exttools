@@ -1,3 +1,6 @@
+1.2.10 (2016-10-29)
+added: filters for any macro: {CurrentWord|func1[:par1,par2[|func2]]}
+
 1.2.9 (2016-10-04)
 added: {CurrentWord}
 

@@ -2,12 +2,13 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.9 2016-10-11'
+    '1.2.10 2016-10-29'
 ToDo: (see end of file)
 '''
 
 import  os, json, random, subprocess, shlex, copy, collections, re, zlib
 import  webbrowser, urllib
+import  importlib
 import  cudatext            as app
 from    cudatext        import ed
 import  cudatext_cmd        as cmds
@@ -109,10 +110,22 @@ the following macros are processed.
    {CurrentWord}      - text 
 - Prompted macros:
    {Interactive}      - Text will be asked at each running
-   {InteractiveFile}  - File name will be asked''')
-    dlg_wrapper(_('Tool macros'), GAP*2+550, GAP*3+25+450,
-         [dict(cid='htx',tp='me'    ,t=GAP  ,h=450  ,l=GAP          ,w=550  ,props='1,1,1' ) #  ro,mono,border
-         ,dict(cid='-'  ,tp='bt'    ,t=GAP+450+GAP  ,l=GAP+550-90   ,w=90   ,cap='&Close'  )
+   {InteractiveFile}  - File name will be asked
+   
+Filters. 
+Any macros can include function to transform value.
+{Lexer|fun}             is fun({Lexer})
+{Lexer|fun:p1,p2}       is fun({Lexer},p1,p2)
+{Lexer|f1st:p1,p2|f2nd} is f2nd(f1st({Lexer},p1,p2))
+Some of ready functions:
+   q - quote: "f(0)"    -> "f%280%29"
+   u - upper: "word"    -> "WORD"
+   l - lower: "WORD"    -> "word"
+   t - title: "we he"   -> "We He"
+''')
+    dlg_wrapper(_('Tool macros'), GAP*2+550, GAP*3+25+550,
+         [dict(cid='htx',tp='me'    ,t=GAP  ,h=550  ,l=GAP          ,w=550  ,props='1,1,1' ) #  ro,mono,border
+         ,dict(cid='-'  ,tp='bt'    ,t=GAP+550+GAP  ,l=GAP+550-90   ,w=90   ,cap='&Close'  )
          ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
    #def dlg_help_vars
 
@@ -302,7 +315,8 @@ class Command:
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
-        ref = _subst_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
+        ref = _subst_fltd_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
+#       ref = _subst_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
 
         app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
 #       webbrowser.open_new_tab(ref)
@@ -360,13 +374,16 @@ class Command:
         prms_l  = shlex.split(prms_s)
         for ind, prm in enumerate(prms_l):
             prm_raw = prm
-            prm     = _subst_props(prm,  file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+            prm     = _subst_fltd_props(prm,  file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+#           prm     = _subst_props(prm,  file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
             if prm_raw != prm:
                 prms_l[ind] = prm
 #               prms_l[ind] = shlex.quote(prm)
            #for ind, prm
-        cmnd        = _subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
-        ddir        = _subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+        cmnd        = _subst_fltd_props(cmnd, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+#       cmnd        = _subst_props(cmnd, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+        ddir        = _subst_fltd_props(ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+#       ddir        = _subst_props(ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
 
         pass;                  #LOG and log('ready prms_l={}',(prms_l))
 
@@ -488,7 +505,8 @@ class Command:
         bs_dir  = ext['ddir']
         bs_dir  = os.path.dirname(crc_inf['pth']) \
                     if not bs_dir else  \
-                  _subst_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
+                  _subst_fltd_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
+#                 _subst_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
         nav_file= os.path.join(bs_dir, nav_file)
         pass;                  #LOG and log('nav_file={}',(nav_file))
         if not os.path.exists(nav_file):    app.msg_status(_('Cannot open: {}').format(nav_file));return
@@ -659,7 +677,8 @@ class Command:
                     +[dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 )] #
                     )
 
-            btn, vals, chds = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            btn, vals, *_t = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+#           btn, vals, fid, chds = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':  return
             
             lst_ind = vals['lst']
@@ -759,7 +778,7 @@ class Command:
                 else:
                     ext     = copy.deepcopy(self.exts[lst_ind])
                     ext['id']= _gen_id(self.url4id)
-                    ext['nm']= url['nm']+' copy'
+                    ext['nm']= ext['nm']+' copy'
                 ed_ans      = self._dlg_ext_prop(ext, keys)
                 pass;          #LOG and log('fin edit={}',ed_ans)
                 if ed_ans is None:
@@ -912,7 +931,8 @@ class Command:
                      ,dict(cid='del' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP+97+GAP   ,w=97   ,cap=_('&Break link')           ) #  &b
                      ,dict(cid='-'   ,tp='bt'   ,t=GAP+23+300+GAP   ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 ) #  
                     ]
-            btn, vals, chds = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
+            btn, vals, *_t = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
+#           btn, vals, fid, chds = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
             if btn is None or btn=='-':    return
             lxr_ind     = vals['lxs']
             tool_ind    = vals['tls']
@@ -948,10 +968,11 @@ class Command:
         bt_l2   = GAP+110+GAP
         bt_l3   = GAP+110+GAP+110+GAP
         bt_l4   = GAP+110+GAP+110+GAP+110+GAP
+        umcr_vs = ['']*len(self.umacrs)
         vals    = dict(lst=0)
         while True:
-            itms    = (  [(_('Name'), '100'), (_('Value'),'300'), (_('Comment'),'200')]
-                      , [[um['nm'],           um['ex'],           um['co']]             for um in self.umacrs] )
+            itms    = (  [(_('Name'), '100'), (_('Expression'),'250'), (_('Current value'),'150'), (_('Comment'),'100')]
+                      , [[um['nm'],           um['ex'],                 umcr_vs[im],       um['co']]    for im,um in enumerate(self.umacrs)] )
             flld    = '1' if self.umacrs else '0'
             cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                          )   # &v
                      ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                              )   # 
@@ -961,16 +982,16 @@ class Command:
                      ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')             ,en=flld)   # &d
                      ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                    ,en=flld)   # &u
                      ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                  ,en=flld)   # &w
-                     ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate...')           ,en=flld)   # &v
+                     ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate now')          ,en=flld)   # &v
                      ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')             )   # &j
                      ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                           )   # 
                      ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                          )   # 
                     ]
             if not with_proj_man:
                 cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prj']
-            btn,    \
-            vals,   \
-            chds    = dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            btn,vals,*_t= dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+#           fid,    \
+#           chds    = dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':    return
             um_ind  = vals['lst']
             if btn=='hlp':
@@ -983,9 +1004,10 @@ class Command:
             
             if btn=='evl':
                 umc_vals    = self._calc_umc_vals()
-                app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(
-                    ['{}: {}\t{}'.format(umc['nm'], umc['ex'], umc_vals[umc['nm']]) for umc in self.umacrs]
-                ))
+                umcr_vs     = [str(umc_vals[umc['nm']]) for umc in self.umacrs]
+#               app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(
+#                   ['{}: {}\t{}'.format(umc['nm'], umc['ex'], umc_vals[umc['nm']]) for umc in self.umacrs]
+#               ))
 
             if btn=='add' or                          btn=='edt' and  um_ind!=-1:
                 umc = self.umacrs[um_ind].copy()   if btn=='edt' else   {'nm':'', 'ex':'', 'co':''}
@@ -1004,9 +1026,9 @@ class Command:
                         ]
                 um_fcsd = 'nm'
                 while True:
-                    um_btn, \
-                    umc,    \
-                    umch    = dlg_wrapper(_('Edit user macro var'), GAP+400+GAP, GAP+135+GAP, um_cnts, umc, focus_cid=um_fcsd)
+                    um_btn,umc,*_t  = dlg_wrapper(_('Edit user macro var'), GAP+400+GAP, GAP+135+GAP, um_cnts, umc, focus_cid=um_fcsd)
+#                   umfid,  \
+#                   umch    = dlg_wrapper(_('Edit user macro var'), GAP+400+GAP, GAP+135+GAP, um_cnts, umc, focus_cid=um_fcsd)
                     if um_btn is None or um_btn=='-':
                         umc     = None  # ='No changes'
                         break #while um
@@ -1043,6 +1065,7 @@ class Command:
                     self.umacrs += [umc]
                     um_ind      = len(self.umacrs)-1
                     vals['lst'] = um_ind
+                umcr_vs = ['']*len(self.umacrs)
 
             if btn=='cln' and  um_ind!=-1: #Clone
                 umc         = self.umacrs[um_ind].copy()
@@ -1050,6 +1073,7 @@ class Command:
                 self.umacrs+= [umc]
                 um_ind      = len(self.umacrs)-1
                 vals['lst'] = um_ind
+                umcr_vs     = ['']*len(self.umacrs)
 
             if btn=='del' and  um_ind!=-1: 
                 if app.msg_box(  _('Delete Macro?\n\n')+ '\n'.join([
@@ -1060,6 +1084,7 @@ class Command:
                 del self.umacrs[um_ind]
                 um_ind      = min(um_ind, len(self.umacrs)-1)
                 vals['lst'] = um_ind
+                umcr_vs     = ['']*len(self.umacrs)
 
             elif btn=='up' and um_ind>0: #Up
                 (self.umacrs[um_ind-1]
@@ -1067,12 +1092,14 @@ class Command:
                                           ,self.umacrs[um_ind-1])
                 um_ind      = um_ind-1
                 vals['lst'] = um_ind
+                umcr_vs     = ['']*len(self.umacrs)
             elif btn=='dn' and um_ind<(len(self.umacrs)-1): #Down
                 (self.umacrs[um_ind  ]
                 ,self.umacrs[um_ind+1]) = (self.umacrs[um_ind+1]
                                           ,self.umacrs[um_ind  ])
                 um_ind      = um_ind+1
                 vals['lst'] = um_ind
+                umcr_vs     = ['']*len(self.umacrs)
 
             # Save changes
             open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
@@ -1091,8 +1118,9 @@ class Command:
                 ]
         vals    = dict(exs=(crt,sels))
         btn,    \
-        vals,   \
-        chds    = dlg_wrapper(_('Select tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
+        vals,*_t= dlg_wrapper(_('Select tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
+#       fid,    \
+#       chds    = dlg_wrapper(_('Select tools for join'), GAP+300+GAP, GAP+400+GAP+24+GAP, cnts, vals, focus_cid='exs')
         if btn is None or btn=='-': return None
         crt,sels= vals['exs']
         ext_ids = [ext4jn[ind]['id'] for ind in range(len(sels)) if sels[ind]=='1']
@@ -1139,8 +1167,9 @@ class Command:
             if not with_proj_man:
                 cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prjs']
             btn,    \
-            vals,   \
-            chds    = dlg_wrapper(_('URL properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
+            vals,*_t= dlg_wrapper(_('URL properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
+#           fid,    \
+#           chds    = dlg_wrapper(_('URL properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
             if btn is None or btn=='-': return None
             ed_url['nm']    =   vals['nm']
             ed_url['url']   =   vals['url']
@@ -1197,7 +1226,7 @@ class Command:
         jex_ids         = ed_ext.get('jext', None)
         joined          = jex_ids is not None
         sel_jext        = 0
-        focus_cid   = 'nm'
+        focus_cid       = 'nm'
         while True:
             ed_kys  = get_keys_desc('cuda_exttools,run', ed_ext['id'], keys)
             val_savs= self.savs_vals.index(ed_ext['savs']) if ed_ext is not None else 0
@@ -1289,9 +1318,13 @@ class Command:
                 cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prjs']
             btn,    \
             vals,   \
+            fid,    \
             chds    = dlg_wrapper(_('Tool properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
-           #pass;               LOG and log('chds={}',(chds))
+#           pass;               LOG and log('fid,chds={}',(fid,chds))
             if btn is None or btn=='-': return None
+            
+            focus_cid           = fid if fid else focus_cid
+            
             ed_ext['nm']        =   vals[  'nm']
             ed_ext['lxrs']      =   vals['lxrs']
             ed_ext['savs']      = self.savs_vals[int(
@@ -1312,11 +1345,11 @@ class Command:
                 if False:pass
                 elif not ed_ext['nm']:
                     app.msg_box(_('Set Name'), app.MB_OK)
-                    focus_cid   = 'nm'      #focused = 1
+                    focus_cid   = 'nm'
                     continue #while
                 elif not joined and not ed_ext['file']:
                     app.msg_box(_('Set File name'), app.MB_OK)
-                    focus_cid   = 'file'    #focused = 3
+                    focus_cid   = 'file'
                     continue #while
                     
                 pass;          #LOG and log('save    src_ext={}',src_ext)
@@ -1365,15 +1398,23 @@ class Command:
             elif btn=='?fil':
                 file4run= app.dlg_file(True, '!'+ed_ext['file'], '', '')# '!' to disable check "filename exists"
                 if file4run is not None:
-                    ed_ext['file'] = file4run
+                    ed_ext['file']  = file4run
+                    focus_cid       = 'file'
             
             elif btn=='?dir':
                 file4dir= app.dlg_file(True, '!', ed_ext['ddir'], '')   # '!' to disable check "filename exists"
                 if file4dir is not None:
-                    ed_ext['ddir'] = os.path.dirname(file4dir)
+                    ed_ext['ddir']  = os.path.dirname(file4dir)
+                    focus_cid       = 'ddir'
 
-            elif btn=='?mcr':   #Append param {*}
-                ed_ext['prms']  = append_prmt(ed_ext['prms'], self.umacrs)
+            elif btn=='?mcr':           #Append macro to...
+                if False:pass
+                elif fid=='file':       #...File
+                    ed_ext['file']  = append_prmt(ed_ext['file'], self.umacrs)
+                elif fid=='ddir':       #...InitDir
+                    ed_ext['ddir']  = append_prmt(ed_ext['ddir'], self.umacrs)
+                else:                   #...Params
+                    ed_ext['prms']  = append_prmt(ed_ext['prms'], self.umacrs)
 
             elif btn=='?key':
                 app.dlg_hotkeys('cuda_exttools,run,'+str(ed_ext['id']))
@@ -1392,7 +1433,9 @@ class Command:
                 lx_vals = dict(lxs=(crt,sels))
                 lx_btn, \
                 lx_vals,\
-                lx_chds = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
+                *_t     = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
+#               lx_fid, \
+#               lx_chds = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
                 if lx_btn=='!':
                     crt,sels= lx_vals['lxs']
                     lxrs    = [lxr for (ind,lxr) in enumerate(lxrs_l) if sels[ind]=='1']
@@ -1431,7 +1474,9 @@ class Command:
                             ]
                 ad_btn, \
                 ad_vals,\
-                ad_chds = dlg_wrapper(_('Advanced properties'), GAP+600+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
+                *_t     = dlg_wrapper(_('Advanced properties'), GAP+600+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
+#               ad_fid, \
+#               ad_chds = dlg_wrapper(_('Advanced properties'), GAP+600+GAP, GAP+avd_h+GAP+24+GAP+3, ad_cnts, ad_vals, focus_cid='-')
                 if ad_btn is None or ad_btn=='-':   continue#while
                 for a in enumerate(ADV_PROPS):
                     if ad_vals[a['key']]==a['def']:
@@ -1485,8 +1530,9 @@ class Command:
             ,col        =grp_dic.get('col', '')
                         )
             btn,    \
-            vals,   \
-            chds    = dlg_wrapper(_('Tool "{}" output pattern').format(run_nm), DLG_W, DLG_H, cnts, vals, focus_cid='pttn_re')
+            vals,*_t= dlg_wrapper(_('Tool "{}" output pattern').format(run_nm), DLG_W, DLG_H, cnts, vals, focus_cid='pttn_re')
+#           fid,    \
+#           chds    = dlg_wrapper(_('Tool "{}" output pattern').format(run_nm), DLG_W, DLG_H, cnts, vals, focus_cid='pttn_re')
             if btn is None or btn=='cancel':    return (None, None)
             pttn_re = vals['pttn_re']
             pttn_test=vals['pttn_test']
@@ -1567,7 +1613,10 @@ class Command:
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals        = {}            
         for umc in self.umacrs:
-            umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, cCrt, rCrt, umcs=umc_vals, prjs=get_proj_vars())
+            pass;              #LOG and log('umc={}',(umc))
+            umc_vals[umc['nm']]  = _subst_fltd_props(umc['ex'], file_nm, cCrt, rCrt, umcs=umc_vals, prjs=get_proj_vars())
+#           umc_vals[umc['nm']]  = _subst_props(umc['ex'], file_nm, cCrt, rCrt, umcs=umc_vals, prjs=get_proj_vars())
+            pass;              #LOG and log('umc_vals={}',(umc_vals))
         return umc_vals
        #def _calc_umc_vals
        
@@ -1590,8 +1639,121 @@ def _adv_prop(act, ext, par=''):
 #       ext.update(adv)
    #def _adv_prop
 
+def quote(s):
+    import urllib.parse
+    return urllib.parse.quote(s)
+def upper(s):   return s.upper()
+def lower(s):   return s.lower()
+def title(s):   return s.title()
+FILTER_REDUCTS={
+    'q':'quote'
+,   'u':'upper'
+,   'l':'lower'
+,   't':'title'
+}
+def _fltrd_to(mcr_flt, base_val):
+    """ Apply filter[s] for
+            NM|func1[:par1,par2[|func2]]
+        as func2(func1(base_val,par1,par2)) 
+    """
+    pass;                      #LOG and log('mcr_flt, base_val={}',(mcr_flt, base_val))
+    flt_val     = base_val
+    func_parts  = mcr_flt.split('|')[1:]
+    for func_part in func_parts:
+        pass;                  #LOG and log('func_part={}',(func_part))
+        func_nm,\
+        *params = func_part.split(':')
+        pass;                  #LOG and log('flt_val, func_nm, params={}',(flt_val, func_nm, params))
+        params  = ','+params[0] if params else ''
+        func_nm = FILTER_REDUCTS.get(func_nm, func_nm)
+        if '.' in func_nm:
+            pass;              #LOG and log('import {}','.'.join(func_nm.split('.')[:-1]))
+            importlib.import_module('.'.join(func_nm.split('.')[:-1]))
+        pass;                  #LOG and log('eval({})', f('{}({}{})', func_nm, repr(flt_val), params))
+        try:
+            flt_val = eval(                             f('{}({}{})', func_nm, repr(flt_val), params))
+        except Exception as ex:
+            flt_val = 'Error: '+str(ex)
+       #for func_part
+    pass;                      #LOG and log('flt_val={}',(flt_val))
+    return str(flt_val)
+   #_fltrd_to
+
+def _replace_mcr(prm, mk, mv):
+    prm     = prm.replace(mk, mv)
+    mkf     = mk[:-1] + '|'
+    if mkf in prm:    # Has Filters
+        prm = re.sub(re.escape(mkf) + r'[^}]+}'
+                    ,lambda match: _fltrd_to(match.group(0).strip('{}'), mv)
+                    ,prm)
+    return prm
+   #_replace_mcr
+
+def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
+    pass;                      #return _subst_props(prm, file_nm, cCrt, rCrt, ext_nm, umcs, prjs)
+    pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
+    pass;                      #LOG and log('umcs, prjs={}',(umcs, prjs))
+    if '{' not in prm:  return prm
+    # Substitude Project vars
+    for prj_k,prj_v in prjs.items():
+        prm     = _replace_mcr(prm, prj_k, prj_v)
+#       prm = prm.replace('{'+prj_k+'}', prj_v)
+#       if '{'+prj_k+'|' in prm:    # Has Filters
+#           prm = re.sub(re.escape('{'+prj_k+'|') + r'[^}]+}'
+#                       ,lambda match: _fltrd_to(match.group(0).strip('{}'), prj_v)
+#                       ,prm)
+        if '{' not in prm:  return prm
+
+    if '{' not in prm:  return prm
+    # Substitude std vars
+    app_dir = app.app_path(app.APP_DIR_EXE)
+    if      '{AppDir'             in prm: prm = _replace_mcr(prm, '{AppDir}'        ,   app_dir)
+    if      '{AppDrive'           in prm: prm = _replace_mcr(prm, '{AppDrive}'      ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
+            
+    if      '{FileName}'          in prm \
+    or      '{FileName|'          in prm: prm = _replace_mcr(prm, '{FileName}'      ,                          file_nm)
+    if      '{FileDir'            in prm: prm = _replace_mcr(prm, '{FileDir}'       ,          os.path.dirname(file_nm))
+    if      '{FileNameOnly'       in prm: prm = _replace_mcr(prm, '{FileNameOnly}'  ,         os.path.basename(file_nm))
+    if      '{FileNameNoExt'      in prm: prm = _replace_mcr(prm, '{FileNameNoExt}' ,'.'.join(os.path.basename(file_nm).split('.')[0:-1]))
+    if      '{FileExt'            in prm: prm = _replace_mcr(prm, '{FileExt}'       ,         os.path.basename(file_nm).split('.')[-1])
+    if      '{Lexer}'             in prm \
+    or      '{Lexer|'             in prm: prm = _replace_mcr(prm, '{Lexer}'         ,    ed.get_prop(app.PROP_LEXER_FILE))
+    if      '{LexerAtCaret'       in prm: prm = _replace_mcr(prm, '{LexerAtCaret}'  ,    ed.get_prop(app.PROP_LEXER_CARET))
+
+    if rCrt!=-1:
+        if  '{CurrentLine}'       in prm \
+        or  '{CurrentLine|'       in prm: prm = _replace_mcr(prm, '{CurrentLine}'       , ed.get_text_line(rCrt))
+        if  '{CurrentLineNum}'    in prm \
+        or  '{CurrentLineNum|'    in prm: prm = _replace_mcr(prm, '{CurrentLineNum}'    , str(1+rCrt))
+        if  '{CurrentLineNum0'    in prm: prm = _replace_mcr(prm, '{CurrentLineNum0}'   , str(  rCrt))
+        if  '{CurrentColumnNum}'  in prm \
+        or  '{CurrentColumnNum|'  in prm: prm = _replace_mcr(prm, '{CurrentColumnNum}'  , str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+        if  '{CurrentColumnNum0'  in prm: prm = _replace_mcr(prm, '{CurrentColumnNum0}' , str(  ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+        if  '{SelectedText'       in prm: prm = _replace_mcr(prm, '{SelectedText}'      ,       ed.get_text_sel())
+        if  '{CurrentWord'        in prm: prm = _replace_mcr(prm, '{CurrentWord}'       , get_current_word(ed, cCrt, rCrt))
+
+    if '{Interactive}' in prm \
+    or '{Interactive|' in prm:
+        ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
+        if ans is None: return
+        prm = _replace_mcr(prm, '{Interactive}'     , ans)
+    if '{InteractiveFile' in prm:
+        ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+        if ans is None: return
+        prm = _replace_mcr(prm, '{InteractiveFile}' , ans)
+
+    if '{' not in prm:  return prm
+    # Substitude user vars
+    for umc_k,umc_v in umcs.items():
+        prm     = _replace_mcr(prm, umc_k, umc_v)
+        if '{' not in prm:  return prm
+    
+    return prm
+   #_subst_fltd_props
+
 def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
     pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
+    pass;                       LOG and log('umcs, prjs={}',(umcs, prjs))
     if '{' not in prm:  return prm
     # Substitude Project vars
     for prj_k,prj_v in prjs.items():
@@ -1642,9 +1804,10 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
 def get_current_word(ed, c_crt, r_crt):
     sel_text    = ed.get_text_sel()
     if sel_text:    return sel_text;
-    line        = ed.get_text_line(r_crt)
     wrdchs      = apx.get_opt('word_chars', '') + '_'
     wrdcs_re    = re.compile(r'^[\w'+re.escape(wrdchs)+']+')
+    line        = ed.get_text_line(r_crt)
+    c_crt       = min(c_crt, len(line)-1)
     c_bfr       = line[c_crt-1] if c_crt>0         else ' '
     c_aft       = line[c_crt]   if c_crt<len(line) else ' '
     gp_aft_l    = 0
