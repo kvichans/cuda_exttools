@@ -1,3 +1,9 @@
+1.2.11 (2016-10-30)
+added: "filled" mode to view list of tools/urls/macros
+added: restore default layout for list tools/urls
+fixed: width of list tools/urls
+fixed: over-quoted for url
+
 1.2.10 (2016-10-29)
 added: filters for any macro: {CurrentWord|func1[:par1,par2[|func2]]}
 

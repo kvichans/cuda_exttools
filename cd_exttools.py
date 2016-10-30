@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.10 2016-10-29'
+    '1.2.11 2016-10-30'
 ToDo: (see end of file)
 '''
 
@@ -118,7 +118,7 @@ Any macros can include function to transform value.
 {Lexer|fun:p1,p2}       is fun({Lexer},p1,p2)
 {Lexer|f1st:p1,p2|f2nd} is f2nd(f1st({Lexer},p1,p2))
 Some of ready functions:
-   q - quote: "f(0)"    -> "f%280%29"
+   q - quote: "AB=?"    -> "AB%3D%3F"
    u - upper: "word"    -> "WORD"
    l - lower: "WORD"    -> "word"
    t - title: "we he"   -> "We He"
@@ -321,7 +321,7 @@ class Command:
         app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
 #       webbrowser.open_new_tab(ref)
         pass;                  #LOG and log('quote(ref)={}',(urllib.parse.quote(ref, safe='/:')))
-        webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:#'))
+        webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:#?='))
         return True
        #def browse
     
@@ -583,14 +583,16 @@ class Command:
         DTLS_MVDN_H     = _('Move current tool to lower position')
         DTLS_MNLX_H     = _('For call by command "Run main lexer tool"')
         DTLS_USMS_H     = _("Edit list of user's macros to use in tool properties")
-        DTLS_CUST_H     = _('Change this dialog sizes')
+        DTLS_CUST_H     = _('Change this dialog sizes'
+                            '\rCtrl+Click - Restore default values')
 
         GAP2    = GAP*2    
         prs     = self.dlg_prs
         pass;                  #LOG and log('prs={}',prs)
         vals    = dict(lst=ext_ind if self.last_is_ext else url_ind
                       ,tls=           self.last_is_ext
-                      ,urs=       not self.last_is_ext)
+                      ,urs=       not self.last_is_ext
+                      ,evl=False)
         while True:
             keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
             ext_nz_d    = OrdDict([
@@ -602,42 +604,76 @@ class Command:
                           ,(_('Lexers')         ,prs.get('lxrs', 'C50'))
                           ,(_('Capture')        ,prs.get('rslt', 'C50'))
                           ,(_('Saving')         ,prs.get('savs', 'C30'))
-                          ])    if vals['tls'] else     OrdDict([
+                          ])
+            url_nz_d    = OrdDict([
                            (_('Name')           ,prs.get('nm'  , '150'))
                           ,(_('Hotkey')         ,prs.get('keys', '100'))
-                          ,(_('URL')            ,prs.get('url',  '600'))
+                          ,(_('URL')            ,prs.get('url',  '500'))
                           ])
+            head_nz_d   = ext_nz_d if vals['tls'] else url_nz_d
+            
             ACTS_W          = prs.get('w_btn', 90)
             AW2             = int(ACTS_W/2)
-            WD_LST, HT_LST  = (sum([int(w.lstrip('LRC')) for w in ext_nz_d.values() if w[0]!='-'])+len(ext_nz_d)+10
-                              ,prs.get('h_list', 300))
-            ACTS_T          = [GAP2+HT_LST  +         25*(ind-1)     for ind in range(20)]
+            HT_LST          = prs.get('h_list', 300)
+            ACTS_T          = [GAP2+HT_LST  +         25    *(ind-1) for ind in range(20)]
             ACTS_L          = [             + GAP*ind+ACTS_W*(ind-1) for ind in range(20)]
+
             WD_LST_MIN      = GAP*10+ACTS_W*8
-            if WD_LST < WD_LST_MIN:
-                ext_nz_d[_('Name')] = str(WD_LST_MIN-WD_LST + int(ext_nz_d[_('Name')]))
-                WD_LST              = WD_LST_MIN
+            ext_WD_LST      = sum([int(w.lstrip('LRC')) for w in ext_nz_d.values() if w[0]!='-'])+len(ext_nz_d)+10
+            url_WD_LST      = sum([int(w.lstrip('LRC')) for w in url_nz_d.values() if w[0]!='-'])+len(url_nz_d)+10
+            if ext_WD_LST < WD_LST_MIN:
+                ext_nz_d[_('Name')] = str(WD_LST_MIN - ext_WD_LST + int(ext_nz_d[_('Name')]))
+                ext_WD_LST          = WD_LST_MIN
+            if url_WD_LST < WD_LST_MIN:
+                url_nz_d[_('Name')] = str(WD_LST_MIN - url_WD_LST + int(url_nz_d[_('Name')]))
+                url_WD_LST          = WD_LST_MIN
+            if ext_WD_LST < url_WD_LST:
+                ext_nz_d[_('File | [Tools]')]   = str(url_WD_LST - ext_WD_LST + int(ext_nz_d[_('File | [Tools]')]))
+                ext_WD_LST = url_WD_LST
+            if url_WD_LST < ext_WD_LST:
+                url_nz_d[_('URL')]              = str(ext_WD_LST - url_WD_LST + int(url_nz_d[_('URL')]))
+                url_WD_LST = ext_WD_LST
+            WD_LST = ext_WD_LST
             DLG_W, DLG_H    = max(WD_LST, ACTS_L[9])+GAP*3, ACTS_T[3]+3#+GAP
+            pass;              #LOG and log('DLG_W, DLG_H={}',(DLG_W, DLG_H))
+
+            if vals['evl']:
+                file_nm = ed.get_filename()
+                (cCrt, rCrt
+                ,cEnd, rEnd)    = ed.get_carets()[0]
+                umc_vals= self._calc_umc_vals()
+
             ext_vlss    = []
-            for ext in self.exts:
+            for ext in (self.exts if vals['tls'] else []):
                 jext    = ext.get('jext')
                 jids    = jext if jext else [ext['id']]
                 jexs    = [ex for ex in self.exts if ex['id'] in jids]
+                ext_file= ext.get('file', '')
+                ext_prms= ext.get('prms', '')
+                ext_ddir= ext.get('ddir', '')
+                if vals['evl']:
+                    ext_file    = _subst_fltd_props(ext_file, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+                    ext_prms    = _subst_fltd_props(ext_prms, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+                    ext_ddir    = _subst_fltd_props(ext_ddir, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
                 ext_vlss+=[[                                    ext['nm']
                           ,get_keys_desc('cuda_exttools,run',   ext['id'], keys)
                           ,(('>' if                             ext['shll'] else '')
-                          +                                     ext['file'])        if not jext else ' ['+', '.join(ex['nm'] for ex in jexs)+']'
-                          ,                                     ext['prms']         if not jext else ''
-                          ,                                     ext['ddir']         if not jext else ''
+                          +                                     ext_file)           if not jext else ' ['+', '.join(ex['nm'] for ex in jexs)+']'
+                          ,                                     ext_prms            if not jext else ''
+                          ,                                     ext_ddir            if not jext else ''
                           ,                                     ext['lxrs']
                           ,                                     ext['rslt']         if not jext else ''
                           ,                                     ext['savs']
                           ]]
-            url_vlss    = [[                                    url['nm']
+            url_vlss    = []
+            for url in ([] if vals['tls'] else self.urls):
+                url_url = url['url']
+                if vals['evl']:
+                    url_url    = _subst_fltd_props(url_url, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+                url_vlss+=[[                                    url['nm']
                           ,get_keys_desc('cuda_exttools,browse',url['id'], keys)
-                          ,                                     url['url']
-                          ]
-                          for url in self.urls]
+                          ,                                     url_url
+                          ]]
             pass;              #LOG and log('ext_vlss={}',ext_vlss)
             pass;              #LOG and log('url_vlss={}',url_vlss)
 
@@ -645,13 +681,15 @@ class Command:
 #           url_ids = [url['id'] for url in self.urls]
             
             vlss    = ext_vlss if vals['tls'] else url_vlss
-            itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()], vlss)
+            itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in head_nz_d.items()], vlss)
+#           itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()], vlss)
             lG0     = 0<len(vlss)
             lG1     = 1<len(vlss)
             #NOTE: list cnts
             cnts    =([]
                     +[dict(cid='tls',tp='ch-bt' ,t=2        ,l=GAP          ,w=120              ,cap=f(_('&Tools ({})'),len(self.exts)) ,act='1')] # &t
                     +[dict(cid='urs',tp='ch-bt' ,t=2        ,l=GAP+120      ,w=120              ,cap=f(_('&URLs ({})' ),len(self.urls)) ,act='1')] # &u
+                    +[dict(cid='evl',tp='ch'    ,t=5        ,l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Fi&lled')                       ,act='1')] # &l
 
                     +[dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                               )] #
 
@@ -677,9 +715,11 @@ class Command:
                     +[dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 )] #
                     )
 
-            btn, vals, *_t = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            btn, vals, *_t  = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
 #           btn, vals, fid, chds = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':  return
+            scam            = app.app_proc(app.PROC_GET_KEYSTATE, '') if app.app_api_version()>='1.0.143' else ''
+            btn_m           = scam + '/' + btn if scam and scam!='a' else btn   # smth == a/smth
             
             lst_ind = vals['lst']
             ext_ind = lst_ind if     self.last_is_ext else ext_ind
@@ -689,14 +729,21 @@ class Command:
                 self.last_is_ext= True
                 vals['tls'] = True; vals['urs'] = False
                 vals['lst'] = ext_ind
+                vals['evl'] = False
                 continue#while
             if btn=='urs':  
                 self.last_is_ext= False
                 vals['tls'] = False;vals['urs'] = True
                 vals['lst'] = url_ind
+                vals['evl'] = False
                 continue#while
 
             # Actions not for tool/url
+            if btn_m=='c/adj':              # [Ctrl+]Adjust  = restore defs
+                if app.ID_OK == app.msg_box(_('Restore default layout?'), app.MB_OKCANCEL):
+                    self.dlg_prs.clear()
+                    open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+                continue#while
             if btn=='adj':                  #Custom dlg controls
                 self._dlg_adj_list()
                 continue#while
@@ -734,10 +781,7 @@ class Command:
                 if ed_ans is None:
                     continue #while
                 self.exts  += [ext]
-#               ext_ids     = [ext['id'] for ext in self.exts]
                 vals['lst'] = len(self.exts)-1
-#               ext_ind     = len(self.exts)-1
-#               new_ind     = ext_ind           ## need?
                 
             if btn in ('add', 'cln') and vals['urs']:  #Create/Clone URL
                 if btn=='add':
@@ -754,10 +798,7 @@ class Command:
                 if ed_ans is None:
                     continue #while
                 self.urls  += [url]
-#               url_ids     = [url['id'] for url in self.urls]
                 vals['lst'] = len(self.urls)-1
-#               url_ind     = len(self.urls)-1
-#               new_ind     = url_ind           ## need?
 
             if btn in ('add', 'cln') and vals['tls']:  #Create/Clone Tool
                 if btn=='add':
@@ -784,17 +825,13 @@ class Command:
                 if ed_ans is None:
                     continue #while
                 self.exts  += [ext]
-#               ext_ids     = [ext['id'] for ext in self.exts]
                 vals['lst'] = len(self.exts)-1
-#               ext_ind     = len(self.exts)-1
-#               new_ind     = ext_ind           ## need?
 
             lst_ind = vals['lst']
             if lst_ind==-1:
                 continue #while
                 
             what    = ''
-#?          ext_ind = new_ind
             ext_ids     = [ext['id'] for ext in self.exts]
             url_ids     = [url['id'] for url in self.urls]
             if vals['tls']:
@@ -833,13 +870,13 @@ class Command:
                     continue # while
                 id4del      = self.urls[url_ind]['id']
                 del self.urls[url_ind]
-#               url_ind     = min(url_ind, len(self.urls)-1)
                 vals['lst'] = min(url_ind, len(self.urls)-1)
                 what        = 'delete:'+str(id4del)
 
             elif btn=='del' and vals['tls']:# Delete Tool
 #               if app.msg_box( 'Delete Tool\n    {}'.format(exkys[ext_ind])
-                flds    = list(ext_nz_d.keys())
+                flds    = list(head_nz_d.keys())
+#               flds    = list(ext_nz_d.keys())
                 ext_vls = ext_vlss[ext_ind]
                 id4del  = self.exts[ext_ind]['id']
                 jex4dl  = [ex for ex in self.exts if id4del in ex.get('jext', [])]
@@ -855,7 +892,6 @@ class Command:
                 for ex in jex4dl:
                     del self.exts[self.exts.index(ex)]
                     self._do_acts('delete:'+str(ex['id']), '|keys|')
-#               ext_ind     = min(ext_ind, len(self.exts)-1)
                 vals['lst'] = min(ext_ind, len(self.exts)-1)
                 what        = 'delete:'+str(id4del)
 
@@ -885,7 +921,7 @@ class Command:
             , _('Width of Capture (min  50)')  , prs.get('rslt', 'C50')
             , _('Width of Saving  (min  30)')  , prs.get('savs', 'C30')
             , _('List height  (min 200)')      , str(self.dlg_prs.get('h_list', 300))
-            , _('Width of Url     (min 500)')  , prs.get('url',  '600')
+            , _('Width of Url     (min 500)')  , prs.get('url',  '500')
     #       , _('Button width (min 70)')       , str(self.dlg_prs.get('w_btn', 90))
             )
         if custs is not None:
@@ -968,24 +1004,31 @@ class Command:
         bt_l2   = GAP+110+GAP
         bt_l3   = GAP+110+GAP+110+GAP
         bt_l4   = GAP+110+GAP+110+GAP+110+GAP
-        umcr_vs = ['']*len(self.umacrs)
-        vals    = dict(lst=0)
+        umcr_vs = None
+        vals    = dict(evl=False
+                      ,lst=0)
         while True:
-            itms    = (  [(_('Name'), '100'), (_('Expression'),'250'), (_('Current value'),'150'), (_('Comment'),'100')]
-                      , [[um['nm'],           um['ex'],                 umcr_vs[im],       um['co']]    for im,um in enumerate(self.umacrs)] )
-            flld    = '1' if self.umacrs else '0'
-            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                          )   # &v
-                     ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                              )   # 
-                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'   ,en=flld)   # &e  default
-                     ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=flld)   # &a
-                     ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                 ,en=flld)   # &n
-                     ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')             ,en=flld)   # &d
-                     ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                    ,en=flld)   # &u
-                     ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                  ,en=flld)   # &w
-                     ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate now')          ,en=flld)   # &v
-                     ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')             )   # &j
-                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                           )   # 
-                     ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                          )   # 
+            if vals['evl']:
+                umc_vals    = self._calc_umc_vals()
+                umcr_vs     = [str(umc_vals[umc['nm']]) for umc in self.umacrs]
+            itms    = (  [(_('Name'), '100'), (_('Current value')   if vals['evl'] else _('Expression'),'400'), (_('Comment'),'100')]
+                      , [[um['nm'],           (umcr_vs[im]          if vals['evl'] else um['ex']),              um['co']]    for im,um in enumerate(self.umacrs)] )
+#           itms    = (  [(_('Name'), '100'), (_('Expression'),'250'), (_('Current value'),'150'), (_('Comment'),'100')]
+#                     , [[um['nm'],           um['ex'],                 umcr_vs[im],       um['co']]    for im,um in enumerate(self.umacrs)] )
+            nempty  = '1' if self.umacrs else '0'
+            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                              )   # &v
+                     ,dict(cid='evl',tp='ch'    ,t=GAP         ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Fi&lled')   ,act='1'                 )   # &l
+                     ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                                  )   # 
+                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'   ,en=nempty  )   # &e  default
+                     ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=nempty  )   # &a
+                     ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                 ,en=nempty  )   # &n
+                     ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')             ,en=nempty  )   # &d
+                     ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                    ,en=nempty  )   # &u
+                     ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                  ,en=nempty  )   # &w
+#                    ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate now')          ,en=nempty  )   # &v
+                     ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')                 )   # &j
+                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                               )   # 
+                     ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                              )   # 
                     ]
             if not with_proj_man:
                 cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prj']
@@ -1002,9 +1045,9 @@ class Command:
                 app.app_proc(app.PROC_EXEC_PLUGIN, 'cuda_project_man,config_proj')
                 continue
             
-            if btn=='evl':
-                umc_vals    = self._calc_umc_vals()
-                umcr_vs     = [str(umc_vals[umc['nm']]) for umc in self.umacrs]
+#           if btn=='evl':
+#               umc_vals    = self._calc_umc_vals()
+#               umcr_vs     = [str(umc_vals[umc['nm']]) for umc in self.umacrs]
 #               app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(
 #                   ['{}: {}\t{}'.format(umc['nm'], umc['ex'], umc_vals[umc['nm']]) for umc in self.umacrs]
 #               ))
@@ -1065,7 +1108,6 @@ class Command:
                     self.umacrs += [umc]
                     um_ind      = len(self.umacrs)-1
                     vals['lst'] = um_ind
-                umcr_vs = ['']*len(self.umacrs)
 
             if btn=='cln' and  um_ind!=-1: #Clone
                 umc         = self.umacrs[um_ind].copy()
@@ -1073,7 +1115,6 @@ class Command:
                 self.umacrs+= [umc]
                 um_ind      = len(self.umacrs)-1
                 vals['lst'] = um_ind
-                umcr_vs     = ['']*len(self.umacrs)
 
             if btn=='del' and  um_ind!=-1: 
                 if app.msg_box(  _('Delete Macro?\n\n')+ '\n'.join([
@@ -1084,7 +1125,6 @@ class Command:
                 del self.umacrs[um_ind]
                 um_ind      = min(um_ind, len(self.umacrs)-1)
                 vals['lst'] = um_ind
-                umcr_vs     = ['']*len(self.umacrs)
 
             elif btn=='up' and um_ind>0: #Up
                 (self.umacrs[um_ind-1]
@@ -1092,14 +1132,12 @@ class Command:
                                           ,self.umacrs[um_ind-1])
                 um_ind      = um_ind-1
                 vals['lst'] = um_ind
-                umcr_vs     = ['']*len(self.umacrs)
             elif btn=='dn' and um_ind<(len(self.umacrs)-1): #Down
                 (self.umacrs[um_ind  ]
                 ,self.umacrs[um_ind+1]) = (self.umacrs[um_ind+1]
                                           ,self.umacrs[um_ind  ])
                 um_ind      = um_ind+1
                 vals['lst'] = um_ind
-                umcr_vs     = ['']*len(self.umacrs)
 
             # Save changes
             open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
@@ -1807,7 +1845,7 @@ def get_current_word(ed, c_crt, r_crt):
     wrdchs      = apx.get_opt('word_chars', '') + '_'
     wrdcs_re    = re.compile(r'^[\w'+re.escape(wrdchs)+']+')
     line        = ed.get_text_line(r_crt)
-    c_crt       = min(c_crt, len(line)-1)
+    c_crt       = max(0, min(c_crt, len(line)-1))
     c_bfr       = line[c_crt-1] if c_crt>0         else ' '
     c_aft       = line[c_crt]   if c_crt<len(line) else ' '
     gp_aft_l    = 0
@@ -1917,4 +1955,6 @@ ToDo
 [?][kv-kv][19jan16] Opt for auto-to-first_rslt
 [?][kv-kv][19mar16] wrapper: cals l=r-w
 [ ][kv-kv][11apr16] Restore keys if Cancel
+[ ][at-kv][01oct16] Moved tool format: in zip, in data\tools
+[ ][kv-kv][29oct16] Add mode: Show curr-val / Show macro-val
 '''
