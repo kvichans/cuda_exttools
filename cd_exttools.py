@@ -622,15 +622,19 @@ class Command:
             ext_WD_LST      = sum([int(w.lstrip('LRC')) for w in ext_nz_d.values() if w[0]!='-'])+len(ext_nz_d)+10
             url_WD_LST      = sum([int(w.lstrip('LRC')) for w in url_nz_d.values() if w[0]!='-'])+len(url_nz_d)+10
             if ext_WD_LST < WD_LST_MIN:
+                pass;          #LOG and log('ext_WD_LST < WD_LST_MIN={}',(ext_WD_LST, WD_LST_MIN))
                 ext_nz_d[_('Name')] = str(WD_LST_MIN - ext_WD_LST + int(ext_nz_d[_('Name')]))
                 ext_WD_LST          = WD_LST_MIN
             if url_WD_LST < WD_LST_MIN:
+                pass;          #LOG and log('url_WD_LST < WD_LST_MIN={}',(url_WD_LST, WD_LST_MIN))
                 url_nz_d[_('Name')] = str(WD_LST_MIN - url_WD_LST + int(url_nz_d[_('Name')]))
                 url_WD_LST          = WD_LST_MIN
             if ext_WD_LST < url_WD_LST:
+                pass;          #LOG and log('ext_WD_LST < url_WD_LST={}',(ext_WD_LST, url_WD_LST))
                 ext_nz_d[_('File | [Tools]')]   = str(url_WD_LST - ext_WD_LST + int(ext_nz_d[_('File | [Tools]')]))
                 ext_WD_LST = url_WD_LST
             if url_WD_LST < ext_WD_LST:
+                pass;          #LOG and log('url_WD_LST < ext_WD_LST={}',(url_WD_LST, ext_WD_LST))
                 url_nz_d[_('URL')]              = str(ext_WD_LST - url_WD_LST + int(url_nz_d[_('URL')]))
                 url_WD_LST = ext_WD_LST
             WD_LST = ext_WD_LST
@@ -669,7 +673,7 @@ class Command:
             for url in ([] if vals['tls'] else self.urls):
                 url_url = url['url']
                 if vals['evl']:
-                    url_url    = _subst_fltd_props(url_url, file_nm, cCrt, rCrt, ext['nm'], umcs=umc_vals, prjs=get_proj_vars())
+                    url_url    = _subst_fltd_props(url_url, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
                 url_vlss+=[[                                    url['nm']
                           ,get_keys_desc('cuda_exttools,browse',url['id'], keys)
                           ,                                     url_url
@@ -689,7 +693,7 @@ class Command:
             cnts    =([]
                     +[dict(cid='tls',tp='ch-bt' ,t=2        ,l=GAP          ,w=120              ,cap=f(_('&Tools ({})'),len(self.exts)) ,act='1')] # &t
                     +[dict(cid='urs',tp='ch-bt' ,t=2        ,l=GAP+120      ,w=120              ,cap=f(_('&URLs ({})' ),len(self.urls)) ,act='1')] # &u
-                    +[dict(cid='evl',tp='ch'    ,t=5        ,l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Fi&lled')                       ,act='1')] # &l
+                    +[dict(cid='evl',tp='ch'    ,tid='tls'  ,l=GAP+250      ,w=ACTS_W           ,cap=_('Expanded mac&ros')              ,act='1')] # &r
 
                     +[dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                               )] #
 
@@ -1016,8 +1020,8 @@ class Command:
 #           itms    = (  [(_('Name'), '100'), (_('Expression'),'250'), (_('Current value'),'150'), (_('Comment'),'100')]
 #                     , [[um['nm'],           um['ex'],                 umcr_vs[im],       um['co']]    for im,um in enumerate(self.umacrs)] )
             nempty  = '1' if self.umacrs else '0'
-            cnts    =[dict(          tp='lb'    ,t=GAP         ,l=GAP          ,w=400  ,cap=_('&Vars')                              )   # &v
-                     ,dict(cid='evl',tp='ch'    ,t=GAP         ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Fi&lled')   ,act='1'                 )   # &l
+            cnts    =[dict(          tp='lb'    ,tid='evl'     ,l=GAP          ,w=400  ,cap=_('&Vars')                              )   # &v
+                     ,dict(cid='evl',tp='ch'    ,t=GAP         ,l=GAP+105      ,w=80   ,cap=_('Expanded mac&ros')       ,act='1'    )   # &r
                      ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                                  )   # 
                      ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'   ,en=nempty  )   # &e  default
                      ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=nempty  )   # &a
@@ -1025,7 +1029,6 @@ class Command:
                      ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')             ,en=nempty  )   # &d
                      ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                    ,en=nempty  )   # &u
                      ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                  ,en=nempty  )   # &w
-#                    ,dict(cid='evl',tp='bt'    ,t=bt_t1       ,l=bt_l4+20     ,w=140  ,cap=_('Eva&luate now')          ,en=nempty  )   # &v
                      ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')                 )   # &j
                      ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                               )   # 
                      ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                              )   # 
@@ -1033,8 +1036,6 @@ class Command:
             if not with_proj_man:
                 cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prj']
             btn,vals,*_t= dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
-#           fid,    \
-#           chds    = dlg_wrapper(_('User macros'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':    return
             um_ind  = vals['lst']
             if btn=='hlp':
@@ -1045,13 +1046,6 @@ class Command:
                 app.app_proc(app.PROC_EXEC_PLUGIN, 'cuda_project_man,config_proj')
                 continue
             
-#           if btn=='evl':
-#               umc_vals    = self._calc_umc_vals()
-#               umcr_vs     = [str(umc_vals[umc['nm']]) for umc in self.umacrs]
-#               app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(
-#                   ['{}: {}\t{}'.format(umc['nm'], umc['ex'], umc_vals[umc['nm']]) for umc in self.umacrs]
-#               ))
-
             if btn=='add' or                          btn=='edt' and  um_ind!=-1:
                 umc = self.umacrs[um_ind].copy()   if btn=='edt' else   {'nm':'', 'ex':'', 'co':''}
                 um_cnts= [
