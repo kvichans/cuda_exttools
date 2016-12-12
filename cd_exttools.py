@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.11 2016-10-30'
+    '1.2.12 2016-12-12'
 ToDo: (see end of file)
 '''
 
@@ -112,16 +112,17 @@ the following macros are processed.
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked
    
-Filters. 
-Any macros can include function to transform value.
-{Lexer|fun}             is fun({Lexer})
-{Lexer|fun:p1,p2}       is fun({Lexer},p1,p2)
-{Lexer|f1st:p1,p2|f2nd} is f2nd(f1st({Lexer},p1,p2))
-Some of ready functions:
+All macros can include suffix (function) to transform value.
+   {Lexer|fun}             - gets fun({Lexer})
+   {Lexer|fun:p1,p2}       - gets fun({Lexer},p1,p2)
+   {Lexer|f1st:p1,p2|f2nd} - gets f2nd(f1st({Lexer},p1,p2))
+Predefined functions are:
    q - quote: "AB=?"    -> "AB%3D%3F"
    u - upper: "word"    -> "WORD"
    l - lower: "WORD"    -> "word"
    t - title: "we he"   -> "We He"
+All functions from all std Python modules can be used, but not methods.
+   q is short form of urllib.parse.quote
 ''')
     dlg_wrapper(_('Tool macros'), GAP*2+550, GAP*3+25+550,
          [dict(cid='htx',tp='me'    ,t=GAP  ,h=550  ,l=GAP          ,w=550  ,props='1,1,1' ) #  ro,mono,border
@@ -567,6 +568,28 @@ class Command:
             app.msg_status(_('No more results for navigation'))
        #def _show_result
        
+#   def dlg_export(self)
+#               lxrs    = ','+ed_ext['lxrs']+','
+#               lxrs_l  = _get_lexers()
+#               sels    = ['1' if ','+lxr+',' in lxrs else '0' for lxr in lxrs_l]
+#               crt     = str(sels.index('1') if '1' in sels else 0)
+#
+#               lx_cnts =[dict(cid='lxs',tp='ch-lbx',t=GAP,h=400    ,l=GAP          ,w=200  ,items=lxrs_l           ) #
+#                        ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    200-140  ,w=70   ,cap=_('OK'),props='1'  ) #  default
+#                        ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+200- 70  ,w=70   ,cap=_('Cancel')        ) #  
+#                       ]
+#               lx_vals = dict(lxs=(crt,sels))
+#               lx_btn, \
+#               lx_vals,\
+#               *_t     = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
+##               lx_fid, \
+##               lx_chds = dlg_wrapper(_('Select lexers'), GAP+200+GAP, GAP+400+GAP+24+GAP, lx_cnts, lx_vals, focus_cid='lxs')
+#               if lx_btn=='!':
+#                   crt,sels= lx_vals['lxs']
+#                   lxrs    = [lxr for (ind,lxr) in enumerate(lxrs_l) if sels[ind]=='1']
+#                   ed_ext['lxrs'] = ','.join(lxrs)
+#      #def dlg_export
+            
     def dlg_config(self):
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
 
@@ -583,6 +606,7 @@ class Command:
         DTLS_MVDN_H     = _('Move current tool to lower position')
         DTLS_MNLX_H     = _('For call by command "Run main lexer tool"')
         DTLS_USMS_H     = _("Edit list of user's macros to use in tool properties")
+#       DTLS_EXPT_H     = _("Select tools/urls to export its to portable form")
         DTLS_CUST_H     = _('Change this dialog sizes'
                             '\rCtrl+Click - Restore default values')
 
@@ -715,6 +739,9 @@ class Command:
                     if vals['tls'] else [])
                     +[dict(cid='mcr',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('User macro &vars...')
                                                                                                                     ,hint=DTLS_USMS_H           )] # &v
+            
+#                   +[dict(cid='exp',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[9]-AW2,w=ACTS_W           ,cap=_('E&xport...'),hint=DTLS_EXPT_H           )] # &x
+                    
                     +[dict(cid='adj',tp='bt'    ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H           )] # &j
                     +[dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 )] #
                     )
@@ -743,11 +770,14 @@ class Command:
                 continue#while
 
             # Actions not for tool/url
-            if btn_m=='c/adj':              # [Ctrl+]Adjust  = restore defs
-                if app.ID_OK == app.msg_box(_('Restore default layout?'), app.MB_OKCANCEL):
-                    self.dlg_prs.clear()
-                    open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
-                continue#while
+            if btn_m=='c/adj':
+                dlg_valign_consts()
+                continue#while_fif
+#           if btn_m=='c/adj':              # [Ctrl+]Adjust  = restore defs
+#               if app.ID_OK == app.msg_box(_('Restore default layout?'), app.MB_OKCANCEL):
+#                   self.dlg_prs.clear()
+#                   open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+#               continue#while
             if btn=='adj':                  #Custom dlg controls
                 self._dlg_adj_list()
                 continue#while
@@ -1434,10 +1464,14 @@ class Command:
                     focus_cid       = 'file'
             
             elif btn=='?dir':
-                file4dir= app.dlg_file(True, '!', ed_ext['ddir'], '')   # '!' to disable check "filename exists"
-                if file4dir is not None:
-                    ed_ext['ddir']  = os.path.dirname(file4dir)
+                new_dir = app.dlg_dir(ed_ext['ddir'])
+                if new_dir is not None:
+                    ed_ext['ddir']  = new_dir
                     focus_cid       = 'ddir'
+#               file4dir= app.dlg_file(True, '!', ed_ext['ddir'], '')   # '!' to disable check "filename exists"
+#               if file4dir is not None:
+#                   ed_ext['ddir']  = os.path.dirname(file4dir)
+#                   focus_cid       = 'ddir'
 
             elif btn=='?mcr':           #Append macro to...
                 if False:pass

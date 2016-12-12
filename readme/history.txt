@@ -1,3 +1,6 @@
+1.2.12 (2016-12-12)
+fixed: use dlg_dir to reset Initial folder
+
 1.2.11 (2016-10-30)
 added: "filled" mode to view list of tools/urls/macros
 added: restore default layout for list tools/urls
