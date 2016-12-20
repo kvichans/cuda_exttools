@@ -1031,9 +1031,9 @@ class Command:
         
     def _dlg_usr_mcrs(self):
         DLG_W,  \
-        DLG_H   = GAP*2+605, GAP+20+300+GAP+25+25+3
-        bt_t1   = GAP+18+300+GAP
-        bt_t2   = GAP+18+300+GAP+25
+        DLG_H   = GAP*2+605, GAP+20+300+GAP+25+25+6
+        bt_t1   = GAP+21+300+GAP
+        bt_t2   = GAP+21+300+GAP+25
         bt_l1   = GAP
         bt_l2   = GAP+110+GAP
         bt_l3   = GAP+110+GAP+110+GAP
@@ -1052,7 +1052,7 @@ class Command:
             nempty  = '1' if self.umacrs else '0'
             cnts    =[dict(          tp='lb'    ,tid='evl'     ,l=GAP          ,w=400  ,cap=_('&Vars')                              )   # &v
                      ,dict(cid='evl',tp='ch'    ,t=GAP         ,l=GAP+105      ,w=80   ,cap=_('Expanded mac&ros')       ,act='1'    )   # &r
-                     ,dict(cid='lst',tp='lvw'   ,t=GAP+18,h=300,l=GAP          ,w=605  ,items=itms                                  )   # 
+                     ,dict(cid='lst',tp='lvw'   ,t=GAP+21,h=300,l=GAP          ,w=605  ,items=itms                                  )   # 
                      ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'   ,en=nempty  )   # &e  default
                      ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=nempty  )   # &a
                      ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                 ,en=nempty  )   # &n
