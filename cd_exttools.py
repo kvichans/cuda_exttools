@@ -945,7 +945,7 @@ class Command:
         
     def _dlg_adj_list(self):
         prs     = self.dlg_prs
-        custs   = app.dlg_input_ex(10, _('Custom dialog Tools and URLs. Widths prefix "C"/"R" to align, "-" to hide.')
+        custs   = app.dlg_input_ex(10, _('Customization. Widths prefix "C"/"R" to align, "-" to hide.')
             , _('Width of Name    (min 100)')  , prs.get('nm'  , '150')
             , _('Width of Keys    (min  50)')  , prs.get('keys', '100')
             , _('Width of File    (min 150)')  , prs.get('file', '180')
@@ -986,7 +986,7 @@ class Command:
         nms     = [ext['nm'] for ext in self.exts]
         ids     = [ext['id'] for ext in self.exts]
         lxr_ind     = 0
-        tool_ind    = ids.index(ext_id) if ext_id in ids else 0
+        tool_ind    = ids.index(ext_id) if ext_id in ids else -1
 #       focused     = 1
         DLG_W, DLG_H= GAP*3+300+400, GAP*4+300+23*2 -GAP+3
         vals    = dict(lxs=lxr_ind, tls=tool_ind)
@@ -1002,7 +1002,6 @@ class Command:
                      ,dict(cid='-'   ,tp='bt'   ,t=GAP+23+300+GAP   ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 ) #  
                     ]
             btn, vals, *_t = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
-#           btn, vals, fid, chds = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
             if btn is None or btn=='-':    return
             lxr_ind     = vals['lxs']
             tool_ind    = vals['tls']
