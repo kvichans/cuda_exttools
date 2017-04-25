@@ -1,3 +1,6 @@
+1.2.13 (2017-04-25)
+added: def value of "init folder" set to {FileDir}
+
 1.2.12 (2016-12-12)
 fixed: use dlg_dir to reset Initial folder
 

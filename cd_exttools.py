@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.12 2016-12-12'
+    '1.2.13 2017-04-25'
 ToDo: (see end of file)
 '''
 
@@ -25,6 +25,10 @@ OrdDict = collections.OrderedDict
 
 # I18N
 _       = get_translation(__file__)
+
+VERSION     = re.split('Version:', __doc__)[1].split("'")[1]
+VERSION_V,  \
+VERSION_D   = VERSION.split(' ')
 
 with_proj_man   = False
 get_proj_vars   = lambda:{}
@@ -355,6 +359,7 @@ class Command:
         cmnd    = ext['file']
         prms_s  = ext['prms']
         ddir    = ext['ddir']
+        ddir    = ddir if ddir else '{FileDir}'     # Default InitDir set to {FileDir}
         pass;                  #LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, cmnd, ddir, prms_s)
         
         # Saving
@@ -504,6 +509,7 @@ class Command:
         nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
         pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
         bs_dir  = ext['ddir']
+        bs_dir  = bs_dir if bs_dir else '{FileDir}'
         bs_dir  = os.path.dirname(crc_inf['pth']) \
                     if not bs_dir else  \
                   _subst_fltd_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
@@ -746,7 +752,7 @@ class Command:
                     +[dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 )] #
                     )
 
-            btn, vals, *_t  = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
+            btn, vals, *_t  = dlg_wrapper(f(_('Tools and URLs ({})'), VERSION_V), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
 #           btn, vals, fid, chds = dlg_wrapper(_('Tools and URLs'), DLG_W, DLG_H, cnts, vals, focus_cid='lst')
             if btn is None or btn=='-':  return
             scam            = app.app_proc(app.PROC_GET_KEYSTATE, '') if app.app_api_version()>='1.0.143' else ''

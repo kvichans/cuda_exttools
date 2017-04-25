@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.2 2016-03-22'
+    '1.1.0 2016-11-24'
 Content
     log                 Logger with timing
     get_translation     i18n
@@ -220,6 +220,8 @@ def get_translation(plug_file):
         _   =  lambda x: x
     return _
 
+_   = get_translation(__file__) # I18N
+
 def get_desktop_environment():
     #From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment
     # and http://ubuntuforums.org/showthread.php?t=652320
@@ -290,9 +292,9 @@ ENV2FITS= {'win':
             ,'button'     :-4
             ,'combo_ro'   :-5
             ,'combo'      :-6
-            ,'checkbutton':-3
+            ,'checkbutton':-4
             ,'linklabel'  : 0
-            ,'spinedit'   :-5
+            ,'spinedit'   :-6
             }
           ,'mac':
             {'check'      :-1
@@ -387,8 +389,8 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
                      ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap='Cancel')]
                 vals={'v':def_val}
                 while True:
-                    btn,vals,chds=dlg_wrapper('Example',146,75,cnts,vals,'v')
-                    if btn is None or btn=='-': return def_val
+                    aid,vals,fid,chds=dlg_wrapper('Example',146,75,cnts,vals,'v')
+                    if aid is None or btn=='-': return def_val
                     if not re.match(r'\d+$', vals['v']): continue
                     return vals['v']
     """
@@ -550,6 +552,131 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
         ,   chds
    #def dlg_wrapper
 
+def dlg_valign_consts():
+    pass;                      #log('ok')
+    UP      = '/\\'
+    UP      = '↑↑'
+#   UP      = 'ΛΛΛ'
+    DN      = '\\/'
+    DN      = '↓↓'
+#   DN      = 'VVV'
+    DLG_W,  \
+    DLG_H   = 335, 280
+    fits    = dict(
+               _sp1=fit_top_by_env('check')
+              ,_sp2=fit_top_by_env('edit')
+              ,_sp3=fit_top_by_env('button')
+              ,_sp4=fit_top_by_env('combo_ro')
+              ,_sp5=fit_top_by_env('combo')
+              ,_sp6=fit_top_by_env('checkbutton')
+              ,_sp7=fit_top_by_env('linklabel')
+              ,_sp8=fit_top_by_env('spinedit')
+              )
+    vals    = dict(
+               ch1 =False
+              ,ed2 ='=======?'
+              ,cbo4=0
+              ,cb5 ='=======?'
+              ,chb6=0
+              ,sp8 =4444444
+              )
+    focused = '-'
+    while True:
+        aid, vals, fid, chds = dlg_wrapper(_('Adjust vertical alignments')   ,DLG_W, DLG_H, 
+            [dict(cid='lb1'     ,tp='lb'    ,t= 10              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='ch1'     ,tp='ch'    ,t= 10+fits['_sp1'] ,l=115  ,w=100  ,cap='=======?'             ,hint=fits['_sp1']  )
+            ,dict(cid='up1'     ,tp='bt'    ,t= 10-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn1'     ,tp='bt'    ,t= 10-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb2'     ,tp='lb'    ,t= 40              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='ed2'     ,tp='ed'    ,t= 40+fits['_sp2'] ,l=115  ,w=100                              ,hint=fits['_sp2']  )
+            ,dict(cid='up2'     ,tp='bt'    ,t= 40-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn2'     ,tp='bt'    ,t= 40-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb3'     ,tp='lb'    ,t= 70              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='bt3'     ,tp='bt'    ,t= 70+fits['_sp3'] ,l=115  ,w=100  ,cap='=======?'             ,hint=fits['_sp3']  )
+            ,dict(cid='up3'     ,tp='bt'    ,t= 70-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn3'     ,tp='bt'    ,t= 70-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb4'     ,tp='lb'    ,t=100              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='cbo4'    ,tp='cb-ro' ,t=100+fits['_sp4'] ,l=115  ,w=100  ,items=['=======?']         ,hint=fits['_sp4']  )
+            ,dict(cid='up4'     ,tp='bt'    ,t=100-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn4'     ,tp='bt'    ,t=100-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb5'     ,tp='lb'    ,t=130              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='cb5'     ,tp='cb'    ,t=130+fits['_sp5'] ,l=115  ,w=100  ,items=['=======?']         ,hint=fits['_sp5']  )
+            ,dict(cid='up5'     ,tp='bt'    ,t=130-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn5'     ,tp='bt'    ,t=130-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb6'     ,tp='lb'    ,t=160              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='chb6'    ,tp='ch-bt' ,t=160+fits['_sp6'] ,l=115  ,w=100  ,cap='=======?'             ,hint=fits['_sp6']  )
+            ,dict(cid='up6'     ,tp='bt'    ,t=160-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn6'     ,tp='bt'    ,t=160-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb7'     ,tp='lb'    ,t=190              ,l=  5  ,w=100  ,cap='==============='                          )
+            ,dict(cid='chb7'    ,tp='ln-lb' ,t=190+fits['_sp7'] ,l=115  ,w=100  ,cap='=======?',props='-'   ,hint=fits['_sp7']  )
+            ,dict(cid='up7'     ,tp='bt'    ,t=190-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn7'     ,tp='bt'    ,t=190-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='lb8'     ,tp='lb'    ,t=220              ,l=  5  ,w=100  ,cap='4444444444444444'                         )
+            ,dict(cid='sp8'     ,tp='sp-ed' ,t=220+fits['_sp8'] ,l=115  ,w=100  ,props='0,4444444,1'        ,hint=fits['_sp8']  )
+            ,dict(cid='up8'     ,tp='bt'    ,t=220-3            ,l=230  ,w=50   ,cap=UP                                         )
+            ,dict(cid='dn8'     ,tp='bt'    ,t=220-3            ,l=280  ,w=50   ,cap=DN                                         )
+                
+            ,dict(cid='save'    ,tp='bt'    ,t=DLG_H-30         ,l=115  ,w=100  ,cap=_('&Save')
+                                                                                ,hint=_('Apply the fittings to controls of all dialogs.'
+                                                                                        '\rCtrl+Click  - Show data to mail report.'))
+            ,dict(cid='-'       ,tp='bt'    ,t=DLG_H-30         ,l=230  ,w=100  ,cap=_('Cancel')        )
+            ], vals, focus_cid=focused)
+        if aid is None or aid=='-':    return#while True
+        scam        = app.app_proc(app.PROC_GET_KEYSTATE, '') if app.app_api_version()>='1.0.143' else ''
+        aid_m       = scam + '/' + aid if scam and scam!='a' else aid   # smth == a/smth
+        focused = chds[0] if 1==len(chds) else focused
+        if aid[:2]=='up' or aid[:2]=='dn':
+            pos = aid[2]
+            fits['_sp'+pos] = fits['_sp'+pos] + (-1 if aid[:2]=='up' else 1)
+            
+        if aid_m=='save':
+            ctrls   = ['check'
+                      ,'edit'
+                      ,'button'   
+                      ,'combo_ro' 
+                      ,'combo'    
+                      ,'checkbutton'
+                      ,'linklabel'
+                      ,'spinedit'
+                      ]
+            for ic, nc in enumerate(ctrls):
+                fit = fits['_sp'+str(1+ic)]
+                if fit==fit_top_by_env(nc): continue#for ic, nc
+                apx.set_opt('dlg_wrapper_fit_va_for_'+nc, fit)
+               #for ic, nc
+            fit_top_by_env__clear()
+            break#while
+            
+        if aid_m=='c/save': # Report
+            rpt = 'env:'+get_desktop_environment()
+            rpt+= c13+'check:'      +str(fits['_sp1'])
+            rpt+= c13+'edit:'       +str(fits['_sp2'])
+            rpt+= c13+'button:'     +str(fits['_sp3'])
+            rpt+= c13+'combo_ro:'   +str(fits['_sp4'])
+            rpt+= c13+'combo:'      +str(fits['_sp5'])
+            rpt+= c13+'checkbutton:'+str(fits['_sp6'])
+            rpt+= c13+'linklabel:'  +str(fits['_sp7'])
+            rpt+= c13+'spinedit:'   +str(fits['_sp8'])
+            aid_r, *_t = dlg_wrapper(_('Report'), 230,310,
+                 [dict(cid='rprt',tp='me'    ,t=5   ,l=5 ,h=200 ,w=220)
+                 ,dict(           tp='lb'    ,t=215 ,l=5        ,w=220  ,cap=_('Send the report to the address'))
+                 ,dict(cid='mail',tp='ed'    ,t=235 ,l=5        ,w=220)
+                 ,dict(           tp='lb'    ,t=265 ,l=5        ,w=150  ,cap=_('or post it on'))
+                 ,dict(cid='gith',tp='ln-lb' ,t=265 ,l=155      ,w=70   ,cap='GitHub',props='https://github.com/kvichans/cuda_fit_v_alignments/issues')
+                 ,dict(cid='-'   ,tp='bt'    ,t=280 ,l=205-80   ,w=80   ,cap=_('Close'))
+                 ], dict(rprt=rpt
+                        ,mail='kvichans@mail.ru'), focus_cid='rprt')
+#          if aid_r is None or btn_hlp=='-': break#while
+       #while
+   #def dlg_valign_consts
+
 def get_hotkeys_desc(cmd_id, ext_id=None, keys_js=None, def_ans=''):
     """ Read one or two hotkeys for command 
             cmd_id [+ext_id]
@@ -578,15 +705,15 @@ def get_hotkeys_desc(cmd_id, ext_id=None, keys_js=None, def_ans=''):
 
 if __name__ == '__main__' :     # Tests
     pass
-#   def test_ask_number(ask, def_val):
-#       cnts=[dict(        tp='lb',tid='v',l=3 ,w=70,cap=ask)
-#            ,dict(cid='v',tp='ed',t=3    ,l=73,w=70)
-#            ,dict(cid='!',tp='bt',t=45   ,l=3 ,w=70,cap='OK',props='1')
-#            ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap='Cancel')]
-#       vals={'v':def_val}
-#       while True:
-#           btn,vals=dlg_wrapper('Example',146,75,cnts,vals,'v')
-#           if btn is None or btn=='-': return def_val
-#           if not re.match(r'\d+$', vals['v']): continue
-#           return vals['v']
-#   ask_number('ask_____________', '____smth')
+    def test_ask_number(ask, def_val):
+        cnts=[dict(        tp='lb',tid='v',l=3 ,w=70,cap=ask)
+             ,dict(cid='v',tp='ed',t=3    ,l=73,w=70)
+             ,dict(cid='!',tp='bt',t=45   ,l=3 ,w=70,cap='OK',props='1')
+             ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap='Cancel')]
+        vals={'v':def_val}
+        while True:
+            btn,vals,fid,chds=dlg_wrapper('Example',146,75,cnts,vals,'v')
+            if btn is None or btn=='-': return def_val
+            if not re.match(r'\d+$', vals['v']): continue
+            return vals['v']
+    ask_number('ask_____________', '____smth')
