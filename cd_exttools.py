@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.13 2017-04-25'
+    '1.2.14 2017-06-16'
 ToDo: (see end of file)
 '''
 
@@ -22,6 +22,9 @@ pass;                           from pprint import pformat
 pass;                           LOG = (-2==-2)  # Do or dont logging.
 l=chr(13)
 OrdDict = collections.OrderedDict
+
+FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
+FROM_API_VERSION= '1.0.182' # LOG_GET_LINES_LIST
 
 # I18N
 _       = get_translation(__file__)
@@ -80,8 +83,6 @@ SAVS_ALL_DOCS   = _('All documents')
 SAVS_N          = 'N'
 SAVS_Y          = 'Y'
 SAVS_A          = 'A'
-
-FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
 
 #def F(s, *args, **kwargs):return s.format(*args, **kwargs)
 #GAP     = 5
@@ -347,7 +348,8 @@ class Command:
         pass;                  #LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
         if (lxrs
         and not (','+lxr_cur+',' in ','+lxrs+',')):
-            return app.msg_status(_('Tool "{}" is not suitable for lexer "{}". It works only with "{}"').format(nm, lxr_cur, lxrs))
+            return app.msg_status(_('Tool "{}" is only for lexer(s): {}').format(nm, lxrs))
+#           return app.msg_status(_('Tool "{}" is not suitable for lexer "{}". It works only with "{}"').format(nm, lxr_cur, lxrs))
 
         jext    = ext.get('jext')
         if jext:
@@ -551,13 +553,15 @@ class Command:
         ext         = crc_inf.get('ext')
         ext_pttn    = ext['pttn']
         app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
-        op_line_tags=app.app_log(app.LOG_GET_LINES, '')
+        op_line_tags=app.app_log(app.LOG_GET_LINES_LIST, '')
         pass;                  #LOG and log('op_line_tags={}',op_line_tags)
-        op_line_tags=[(item.split(c13)[0], int(item.split(c13)[1])) 
-                        if c13 in item else 
-                      (item, 0)
-                        for item in op_line_tags.split(c10)]
-        pass;                  #LOG and log('op_line_tags={}',op_line_tags)
+#       op_line_tags=app.app_log(app.LOG_GET_LINES, '')
+#       pass;                   LOG and log('op_line_tags={}',op_line_tags)
+#       op_line_tags=[(item.split(c13)[0], int(item.split(c13)[1])) 
+#                       if c13 in item else 
+#                     (item, 0)
+#                       for item in op_line_tags.split(c10)]
+#       pass;                   LOG and log('op_line_tags={}',op_line_tags)
         for op_ind in (range(self.last_op_ind+1, len(op_line_tags)) 
                         if what=='next' else
                        range(self.last_op_ind-1, -1, -1) 
