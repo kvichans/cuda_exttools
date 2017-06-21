@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.15 2017-06-21'
+    '1.2.16 2017-06-21'
 ToDo: (see end of file)
 '''
 
@@ -329,9 +329,11 @@ class Command:
         return True
        #def browse
     
-    def run(self, ext_id):
+#   def run(self, ext_id):
+    def run(self, info=None):
         ''' Main (and single) way to run any exttool
         '''
+        ext_id  = info                  # For call as "module=cuda_exttools;cmd=run;info=id"
         self.last_is_ext    = True
         self.last_ext_id    = ext_id
         ext_id  = str(ext_id)
