@@ -208,7 +208,7 @@ class Command:
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
         '''
         pass;                   LOG and log('id_menu={}',id_menu)
-        PLUG_AUTAG  = 'auto_config:cuda_exttools.adapt_menu'    # tag for ConfigMenu to call this method
+        PLUG_AUTAG  = 'auto_config:cuda_exttools,adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
             # Use this id
             app.menu_proc(              id_menu, app.MENU_CLEAR)
