@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.14 2017-06-16'
+    '1.2.15 2017-06-21'
 ToDo: (see end of file)
 '''
 
@@ -19,12 +19,14 @@ from    .cd_plug_lib    import *
 
 pass;                           # Logging
 pass;                           from pprint import pformat
-pass;                           LOG = (-2==-2)  # Do or dont logging.
+pass;                           LOG = (-2== 2)  # Do or dont logging.
 l=chr(13)
 OrdDict = collections.OrderedDict
 
-FROM_API_VERSION= '1.0.120' # dlg_custom: type=linklabel, hint
-FROM_API_VERSION= '1.0.182' # LOG_GET_LINES_LIST
+FROM_API_VERSION = '1.0.120' # dlg_custom: type=linklabel, hint
+FROM_API_VERSION = '1.0.172' # menu_proc() <== PROC_MENU_*
+FROM_API_VERSION = '1.0.182' # LOG_GET_LINES_LIST
+FROM_API_VERSION = '1.0.185' # menu_proc() with hotkey, tag
 
 # I18N
 _       = get_translation(__file__)
@@ -205,51 +207,47 @@ class Command:
         ''' Add or change top-level menu ExtTools
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
         '''
-        pass;                  #LOG and log('id_menu={}',id_menu)
-        PLUG_HINT   = '_'+'cuda_exttools:adapt_menu'      # "_" is sign for ConfigMenu. ":" is subst for "," to avoid call "import ..."
+        pass;                   LOG and log('id_menu={}',id_menu)
+        PLUG_AUTAG  = 'auto_config:cuda_exttools.adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
             # Use this id
-            app.app_proc(app.PROC_MENU_CLEAR, str(id_menu))
+            app.menu_proc(              id_menu, app.MENU_CLEAR)
         else:
-            top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top')
-            if PLUG_HINT in top_nms:
+            top_its = app.menu_proc(    'top', app.MENU_ENUM)
+            if PLUG_AUTAG in [it['tag'] for it in top_its]:
                 # Reuse id from 'top'
-                inf     = [inf for inf in top_nms.splitlines() if PLUG_HINT in inf][0]     ##?? 
-                id_menu = inf.split('|')[2]
-                app.app_proc(app.PROC_MENU_CLEAR, id_menu)
+                id_menu = [it['id'] for it in top_its if it['tag']==PLUG_AUTAG][0]
+                app.menu_proc(          id_menu, app.MENU_CLEAR)
+                pass;           LOG and log('CLEAR id_menu={}',id_menu)
             else:
                 # Create AFTER Plugins
-                top_nms = top_nms.splitlines()
-                pass;              #LOG and log('top_nms={}',top_nms)
-                if app.app_exe_version() >= '1.0.131':
-                    plg_ind = [i for (i,nm) in enumerate(top_nms) if '|plugins' in nm][0]
-                else: # old, pre i18n
-                    plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
-                id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', PLUG_HINT, _('&Tools'), 1+plg_ind))
+                plg_ind = [ind for ind,it in enumerate(top_its) if 'plugins' in it['hint']][0]
+                pass;          #LOG and log('plg_ind={}',plg_ind)
+                id_menu = app.menu_proc('top', app.MENU_ADD, tag=PLUG_AUTAG, index=1+plg_ind,       caption=_('&Tools'))
+                pass;           LOG and log('ADD id_menu,plg_ind={}',id_menu,plg_ind)
+        pass;                   LOG and log('id_menu={}',id_menu)
         # Fill
-        def hotkeys_desc(cmd_id):
-            hk_s= get_hotkeys_desc(cmd_id)
-            hk_s= '\t\t'+hk_s if hk_s else hk_s
-            return hk_s
-        hk_s    = hotkeys_desc(            'cuda_exttools,dlg_config')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,dlg_config;{}'.format(    id_menu,    _('Con&fig...')+hk_s))
-        hk_s    = hotkeys_desc(            'cuda_exttools,run_lxr_main')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run_lxr_main;{}'.format(  id_menu,    _('R&un main lexer tool')+hk_s))
-        id_rslt = app.app_proc( app.PROC_MENU_ADD, '{};{};{}'.format(               id_menu, 0, _('Resul&ts')))
-        hk_s    = hotkeys_desc(            'cuda_exttools,show_next_result')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_next_result;{}'.format(id_rslt,  _('Nex&t tool result')+hk_s))
-        hk_s    = hotkeys_desc(            'cuda_exttools,show_prev_result')
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,show_prev_result;{}'.format(id_rslt,  _('&Previous tool result'+hk_s)))
+        app.menu_proc(          id_menu, app.MENU_ADD, command=self.dlg_config,                     caption=_('Con&fig...')
+                     , hotkey=get_hotkeys_desc(      'cuda_exttools,dlg_config'))
+        app.menu_proc(          id_menu, app.MENU_ADD, command=self.run_lxr_main,                   caption=_('R&un main lexer tool')
+                     , hotkey=get_hotkeys_desc(      'cuda_exttools,run_lxr_main'))
+        id_rslt = app.menu_proc(id_menu, app.MENU_ADD, command='0',                                 caption=_('Resul&ts'))
+        app.menu_proc(          id_rslt, app.MENU_ADD, command=self.show_next_result,               caption=    _('Nex&t tool result')
+                     , hotkey=get_hotkeys_desc(      'cuda_exttools,show_next_result'))
+        app.menu_proc(          id_rslt, app.MENU_ADD, command=self.show_prev_result,               caption=    _('Previous&t tool result')
+                     , hotkey=get_hotkeys_desc(      'cuda_exttools,show_prev_result'))
+        def call_with(call,p):
+            return lambda:call(p)
         if 0<len(self.exts):
-            app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
+            app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
             for ext in self.exts:
-                hk_s= hotkeys_desc(              f('cuda_exttools,run,{}',                   ext['id']))
-                app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,run,{};{}'.format(id_menu, ext['id'], ext['nm']+hk_s))
+                app.menu_proc(  id_menu, app.MENU_ADD, command=call_with(self.run,       ext['id']),caption=ext['nm']
+                             , hotkey=get_hotkeys_desc(      f('cuda_exttools,run,{}',   ext['id'])))
         if 0<len(self.urls):
-            app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
+            app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
             for url in self.urls:
-                hk_s= hotkeys_desc(              f('cuda_exttools,browse,{}',                   url['id']))
-                app.app_proc(app.PROC_MENU_ADD, '{};cuda_exttools,browse,{};{}'.format(id_menu, url['id'], url['nm']+hk_s))
+                app.menu_proc(  id_menu, app.MENU_ADD, command=call_with(self.browse,    url['id']),caption=url['nm']
+                             , hotkey=get_hotkeys_desc(      f('cuda_exttools,browse,{}',url['id'])))
        #def adapt_menu
         
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):

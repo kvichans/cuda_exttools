@@ -1,3 +1,6 @@
+1.2.15 (2017-06-21)
+fixed: avoid deprecated api
+
 1.2.14 (2017-06-16)
 fixed: avoid deprecated api
 
