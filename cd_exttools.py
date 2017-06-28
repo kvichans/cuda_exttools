@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.16 2017-06-21'
+    '1.2.17 2017-06-28'
 ToDo: (see end of file)
 '''
 
@@ -232,9 +232,9 @@ class Command:
         app.menu_proc(          id_menu, app.MENU_ADD, command=self.run_lxr_main,                   caption=_('R&un main lexer tool')
                      , hotkey=get_hotkeys_desc(      'cuda_exttools,run_lxr_main'))
         id_rslt = app.menu_proc(id_menu, app.MENU_ADD, command='0',                                 caption=_('Resul&ts'))
-        app.menu_proc(          id_rslt, app.MENU_ADD, command=self.show_next_result,               caption=    _('Nex&t tool result')
+        app.menu_proc(          id_rslt, app.MENU_ADD, command=self.show_next_result,               caption=    _('&Next tool result')
                      , hotkey=get_hotkeys_desc(      'cuda_exttools,show_next_result'))
-        app.menu_proc(          id_rslt, app.MENU_ADD, command=self.show_prev_result,               caption=    _('Previous&t tool result')
+        app.menu_proc(          id_rslt, app.MENU_ADD, command=self.show_prev_result,               caption=    _('&Previous tool result')
                      , hotkey=get_hotkeys_desc(      'cuda_exttools,show_prev_result'))
         def call_with(call,p):
             return lambda:call(p)
