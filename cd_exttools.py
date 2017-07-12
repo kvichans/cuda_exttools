@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.17 2017-06-28'
+    '1.2.18 2017-07-12'
 ToDo: (see end of file)
 '''
 
@@ -19,6 +19,7 @@ from    .cd_plug_lib    import *
 
 pass;                           # Logging
 pass;                           from pprint import pformat
+pass;                           import inspect
 pass;                           LOG = (-2== 2)  # Do or dont logging.
 l=chr(13)
 OrdDict = collections.OrderedDict
@@ -27,6 +28,7 @@ FROM_API_VERSION = '1.0.120' # dlg_custom: type=linklabel, hint
 FROM_API_VERSION = '1.0.172' # menu_proc() <== PROC_MENU_*
 FROM_API_VERSION = '1.0.182' # LOG_GET_LINES_LIST
 FROM_API_VERSION = '1.0.185' # menu_proc() with hotkey, tag
+FROM_API_VERSION = '1.0.187' # LEXER_GET_PROP
 
 # I18N
 _       = get_translation(__file__)
@@ -139,6 +141,7 @@ All functions from all std Python modules can be used, but not methods.
 
 class Command:
     def __init__(self):
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update application'))
         # Static data
         self.savs_caps  = [SAVS_NOTHING, SAVS_ONLY_CUR, SAVS_ALL_DOCS]
         self.savs_vals  = [SAVS_N,       SAVS_Y,        SAVS_A]
@@ -189,7 +192,8 @@ class Command:
             self._fill_ext(ext)
 
         # Actualize lexer-tool 
-        lxrs_l  = _get_lexers()
+        lxrs_l  = app.lexer_proc(app.LEXER_GET_LEXERS, False) + ['(none)']
+#       lxrs_l  = _get_lexers()
         for i_lxr in range(len(self.ext4lxr)-1,-1,-1):
             lxr = list(self.ext4lxr.keys())[i_lxr]
             if lxr                    not in lxrs_l \
@@ -207,25 +211,29 @@ class Command:
         ''' Add or change top-level menu ExtTools
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
         '''
-        pass;                   LOG and log('id_menu={}',id_menu)
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
+        pass;                  #LOG and log('id_menu={} stack={}',id_menu,inspect.stack())
         PLUG_AUTAG  = 'auto_config:cuda_exttools,adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
             # Use this id
+            pass;               LOG and log('Use par id_menu',)
             app.menu_proc(              id_menu, app.MENU_CLEAR)
         else:
             top_its = app.menu_proc(    'top', app.MENU_ENUM)
             if PLUG_AUTAG in [it['tag'] for it in top_its]:
                 # Reuse id from 'top'
+                pass;           LOG and log('Reuse by tag',)
                 id_menu = [it['id'] for it in top_its if it['tag']==PLUG_AUTAG][0]
                 app.menu_proc(          id_menu, app.MENU_CLEAR)
-                pass;           LOG and log('CLEAR id_menu={}',id_menu)
+                pass;          #LOG and log('CLEAR id_menu={}',id_menu)
             else:
                 # Create AFTER Plugins
+                pass;           LOG and log('Create AFTER Plugin',)
                 plg_ind = [ind for ind,it in enumerate(top_its) if 'plugins' in it['hint']][0]
                 pass;          #LOG and log('plg_ind={}',plg_ind)
                 id_menu = app.menu_proc('top', app.MENU_ADD, tag=PLUG_AUTAG, index=1+plg_ind,       caption=_('&Tools'))
-                pass;           LOG and log('ADD id_menu,plg_ind={}',id_menu,plg_ind)
-        pass;                   LOG and log('id_menu={}',id_menu)
+                pass;          #LOG and log('ADD id_menu,plg_ind={}',id_menu,plg_ind)
+        pass;                  #LOG and log('id_menu={}',id_menu)
         # Fill
         app.menu_proc(          id_menu, app.MENU_ADD, command=self.dlg_config,                     caption=_('Con&fig...')
                      , hotkey=get_hotkeys_desc(      'cuda_exttools,dlg_config'))
@@ -991,7 +999,9 @@ class Command:
        #def _dlg_adj_list
 
     def _dlg_main_tool(self, ext_id=0):
-        lxrs_l  = _get_lexers()
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update application'))
+        lxrs_l  = app.lexer_proc(app.LEXER_GET_LEXERS, False) + ['(none)']
+#       lxrs_l  = _get_lexers()
         nm4ids  = {ext['id']:ext['nm'] for ext in self.exts}
         nms     = [ext['nm'] for ext in self.exts]
         ids     = [ext['id'] for ext in self.exts]
@@ -1280,6 +1290,7 @@ class Command:
        #def _dlg_url_prop
         
     def _dlg_ext_prop(self, src_ext, keys=None, for_ed='1'):
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update application'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
             keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
@@ -1497,7 +1508,8 @@ class Command:
             
             elif btn=='?lxr':   #Lexers only
                 lxrs    = ','+ed_ext['lxrs']+','
-                lxrs_l  = _get_lexers()
+                lxrs_l  = app.lexer_proc(app.LEXER_GET_LEXERS, False) + ['(none)']
+#               lxrs_l  = _get_lexers()
                 sels    = ['1' if ','+lxr+',' in lxrs else '0' for lxr in lxrs_l]
                 crt     = str(sels.index('1') if '1' in sels else 0)
 
@@ -1971,11 +1983,11 @@ def _file_open(op_file):
     return None
    #def _file_open
 
-def _get_lexers():
-    lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
-    lxrs_l  = [lxr for lxr in lxrs_l if app.lexer_proc(app.LEXER_GET_ENABLED, lxr)]
-    lxrs_l += ['(none)']
-    return lxrs_l
+#def _get_lexers():
+#   lxrs_l  = app.lexer_proc(app.LEXER_GET_LIST, '').splitlines()
+#   lxrs_l  = [lxr for lxr in lxrs_l if app.lexer_proc(app.LEXER_GET_ENABLED, lxr)]
+#   lxrs_l += ['(none)']
+#   return lxrs_l
    #def _get_lexers
 
 #if __name__ == '__main__' :     # Tests

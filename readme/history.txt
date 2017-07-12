@@ -1,8 +1,11 @@
+1.2.18 (2017-06-21)
+fixed: don't use deprecated API
+
 1.2.15 (2017-06-21)
-fixed: avoid deprecated api
+fixed: don't use deprecated api
 
 1.2.14 (2017-06-16)
-fixed: avoid deprecated api
+fixed: don't use deprecated api
 
 1.2.13 (2017-04-25)
 added: def value of "init folder" set to {FileDir}
