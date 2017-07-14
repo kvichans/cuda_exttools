@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.18 2017-07-12'
+    '1.2.19 2017-07-14'
 ToDo: (see end of file)
 '''
 
@@ -141,7 +141,7 @@ All functions from all std Python modules can be used, but not methods.
 
 class Command:
     def __init__(self):
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update application'))
+        if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         # Static data
         self.savs_caps  = [SAVS_NOTHING, SAVS_ONLY_CUR, SAVS_ALL_DOCS]
         self.savs_vals  = [SAVS_N,       SAVS_Y,        SAVS_A]
@@ -203,6 +203,7 @@ class Command:
        #def __init__
        
     def on_start(self, ed_self):
+        if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         pass
         self._do_acts(acts='|reg|menu|')
        #def on_start
@@ -211,7 +212,7 @@ class Command:
         ''' Add or change top-level menu ExtTools
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
+        if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         pass;                  #LOG and log('id_menu={} stack={}',id_menu,inspect.stack())
         PLUG_AUTAG  = 'auto_config:cuda_exttools,adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
@@ -304,7 +305,7 @@ class Command:
     def run_lxr_main(self):
         lxr     = ed.get_prop(app.PROP_LEXER_FILE)
         if lxr not in self.ext4lxr:
-            return app.msg_status(f(_('No main lexer tool for "{}"'), lxr))
+            return log_status(f(_('No main lexer tool for "{}"'), lxr))
         self.run(self.ext4lxr[lxr])
        #def run_lxr_main
 
@@ -317,13 +318,13 @@ class Command:
         pass;                  #LOG and log('url_id={}',url_id)
         url     = self.url4id.get(url_id)
         if url is None:
-            return app.msg_status(f(_('No URL: {}'), url_id))
+            return log_status(f(_('No URL: {}'), url_id))
         ref = url['url']
 
         # Preparing
         file_nm = ed.get_filename()
         if  not file_nm and '{File' in ref:
-            return app.msg_status(f(_('Cannot open URL "{}" for untitled tab'), url['nm']))
+            return log_status(f(_('Cannot open URL "{}" for untitled tab'), url['nm']))
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
@@ -348,7 +349,7 @@ class Command:
         pass;                  #LOG and log('ext_id={}',ext_id)
         ext     = self.ext4id.get(ext_id)
         if ext is None:
-            return app.msg_status(_('No tool: {}').format(ext_id))
+            return log_status(_('No tool: {}').format(ext_id))
         nm      = ext['nm']
         lxrs    = ext['lxrs']
         lxr_cur = ed.get_prop(app.PROP_LEXER_FILE)
@@ -356,7 +357,7 @@ class Command:
         pass;                  #LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
         if (lxrs
         and not (','+lxr_cur+',' in ','+lxrs+',')):
-            return app.msg_status(_('Tool "{}" is only for lexer(s): {}').format(nm, lxrs))
+            return log_status(_('Tool "{}" is only for lexer(s): {}').format(nm, lxrs))
 #           return app.msg_status(_('Tool "{}" is not suitable for lexer "{}". It works only with "{}"').format(nm, lxr_cur, lxrs))
 
         jext    = ext.get('jext')
@@ -383,7 +384,7 @@ class Command:
         if  not file_nm and (
             '{File' in cmnd
         or  '{File' in prms_s
-        or  '{File' in ddir ):  return app.msg_status(_('Cannot run tool "{}" for untitled tab'.format(nm)))
+        or  '{File' in ddir ):  return log_status(_('Cannot run tool "{}" for untitled tab'.format(nm)))
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
@@ -609,7 +610,7 @@ class Command:
 #      #def dlg_export
             
     def dlg_config(self):
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
+        if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
 
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         
@@ -999,7 +1000,7 @@ class Command:
        #def _dlg_adj_list
 
     def _dlg_main_tool(self, ext_id=0):
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update application'))
+        if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         lxrs_l  = app.lexer_proc(app.LEXER_GET_LEXERS, False) + ['(none)']
 #       lxrs_l  = _get_lexers()
         nm4ids  = {ext['id']:ext['nm'] for ext in self.exts}
@@ -1290,7 +1291,7 @@ class Command:
        #def _dlg_url_prop
         
     def _dlg_ext_prop(self, src_ext, keys=None, for_ed='1'):
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update application'))
+        if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
             keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
@@ -1990,6 +1991,11 @@ def _file_open(op_file):
 #   return lxrs_l
    #def _get_lexers
 
+def log_status(msg):
+    print(msg)
+    app.msg_status(msg)
+   #def log_status
+    
 #if __name__ == '__main__' :     # Tests
 def _testing():
     Command()._dlg_pattern('', '', 'ext')

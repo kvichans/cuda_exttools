@@ -1,4 +1,7 @@
-1.2.18 (2017-06-21)
+1.2.19 (2017-07-14)
+fixed: show "Update app" in console
+
+1.2.18 (2017-07-12)
 fixed: don't use deprecated API
 
 1.2.15 (2017-06-21)
