@@ -45,7 +45,9 @@ try:
         prj_vars = cuda_project_man.project_variables()
         if prj_vars.get('ProjDir', ''):
             # Project loaded
-            return prj_vars
+            new_dict = {'{'+s+'}': prj_vars[s] for s in prj_vars}
+            #print(new_dict)
+            return new_dict
         return {}
     test    = get_proj_vars()
     with_proj_man   = True
