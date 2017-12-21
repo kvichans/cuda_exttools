@@ -1,23 +1,23 @@
 1.2.21 (2017-12-21)
-fixed: apply project macro
+fixed: project macros {ProjNNNN} didn't work
 
 1.2.19 (2017-07-14)
-fixed: show "Update app" in console
+fixed: show message "Need to update app" also in console
 
 1.2.18 (2017-07-12)
 fixed: don't use deprecated API
 
 1.2.15 (2017-06-21)
-fixed: don't use deprecated api
+fixed: don't use deprecated API
 
 1.2.14 (2017-06-16)
-fixed: don't use deprecated api
+fixed: don't use deprecated API
 
 1.2.13 (2017-04-25)
-added: def value of "init folder" set to {FileDir}
+added: default value of "init folder" set to {FileDir}
 
 1.2.12 (2016-12-12)
-fixed: use dlg_dir to reset Initial folder
+fixed: use dlg_dir to reset initial folder
 
 1.2.11 (2016-10-30)
 added: "filled" mode to view list of tools/urls/macros
