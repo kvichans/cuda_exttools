@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.19 2017-07-14'
+    '1.2.21 2017-12-21'
 ToDo: (see end of file)
 '''
 
@@ -1847,7 +1847,7 @@ def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
     if '{' not in prm:  return prm
     # Substitude Project vars
     for prj_k,prj_v in prjs.items():
-        prm = prm.replace('{'+prj_k+'}', prj_v)
+        prm = prm.replace(prj_k, prj_v)
         if '{' not in prm:  return prm
 
     if '{' not in prm:  return prm
@@ -1917,7 +1917,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
     prms_l  =['{}\t{}'.format(umc['nm'], umc['ex']) 
                 for umc in umacrs 
                 if (excl_umc is None or umc['nm']!=excl_umc)]
-    prms_l +=['{'+pj_k+'}\t'+pj_v 
+    prms_l +=[pj_k+'\t'+pj_v 
                 for pj_k, pj_v in get_proj_vars().items()]
     pass;                      #LOG and log('prms_l={}',(prms_l))
     prms_l +=([]
