@@ -1,3 +1,6 @@
+1.2.22 2018-01-12
+fixed: add captions in dlg-menus
+
 1.2.21 (2017-12-21)
 fixed: apply project macro
 

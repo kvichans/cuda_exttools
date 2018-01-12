@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.21 2017-12-21'
+    '1.2.22 2018-01-12'
 ToDo: (see end of file)
 '''
 
@@ -219,10 +219,11 @@ class Command:
         PLUG_AUTAG  = 'auto_config:cuda_exttools,adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
             # Use this id
-            pass;               LOG and log('Use par id_menu',)
+            pass;               LOG and log('###Use par id_menu',)
             app.menu_proc(              id_menu, app.MENU_CLEAR)
         else:
             top_its = app.menu_proc(    'top', app.MENU_ENUM)
+            pass;               LOG and log('top_its={}',top_its)
             if PLUG_AUTAG in [it['tag'] for it in top_its]:
                 # Reuse id from 'top'
                 pass;           LOG and log('Reuse by tag',)
@@ -1533,7 +1534,7 @@ class Command:
             
             elif btn=='?enc':
                 enc_nms = get_encoding_names()
-                enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms))
+                enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms), caption=_('Encodings'))
                 if enc_ind is not None:
                     ed_ext['encd'] = enc_nms[enc_ind].split('\t')[0]
 
@@ -1632,13 +1633,13 @@ class Command:
                 return (pttn_re, pttn_test)
             
             elif btn == 'apnd':
-                grps    = [['(?P<file>)' , 'Filename (default - current file name)']
-                          ,['(?P<line>)' , 'Number of line (default - 1)']
-                          ,['(?P<col>)'  , 'Number of column (default - 1)']
-                          ,['(?P<line0>)', 'Number of line (0-based, default - 0)']
-                          ,['(?P<col0>)' , 'Number of column (0-based, default - 0)']
+                grps    = [['(?P<file>)' , _('Filename (default - current file name)')]
+                          ,['(?P<line>)' , _('Number of line (default - 1)')]
+                          ,['(?P<col>)'  , _('Number of column (default - 1)')]
+                          ,['(?P<line0>)', _('Number of line (0-based, default - 0)')]
+                          ,['(?P<col0>)' , _('Number of column (0-based, default - 0)')]
                         ]
-                grp_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(['\t'.join(g) for g in grps]))
+                grp_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(['\t'.join(g) for g in grps]), caption=_('Pattern variables'))
                 if grp_i is not None:
                     pttn_re += grps[grp_i][0]
                 
@@ -1659,7 +1660,7 @@ class Command:
             
             elif btn == 'load':
                 ps_nms  = ['{}\t{}'.format(ps['name'], ps['run']) for ps in self.preset]
-                ps_ind  = app.dlg_menu(app.MENU_LIST, '\n'.join(ps_nms))
+                ps_ind  = app.dlg_menu(app.MENU_LIST, '\n'.join(ps_nms), caption=_('Ready patterns'))
                 if ps_ind is not None:
                     pttn_re     = self.preset[ps_ind]['re']
                     pttn_test   = self.preset[ps_ind].get('test', '')
@@ -1940,7 +1941,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{Interactive}\tText will be asked at each running')]
             +[_('{InteractiveFile}\tFile name will be asked')])
                         
-    prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l))
+    prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))
     if prm_i is not None:
         tostr  = (tostr + (' '+prms_l[prm_i].split('\t')[0])).lstrip()
     return tostr
