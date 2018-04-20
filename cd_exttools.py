@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.22 2018-01-12'
+    '1.2.23 2018-04-20'
 ToDo: (see end of file)
 '''
 
@@ -476,7 +476,8 @@ class Command:
             app.file_open('')
 
         while True:
-            out_ln = pipe.stdout.readline().decode(ext.get('encd', 'utf_8'))
+            # 'encd' can be empty string, fixed here
+            out_ln = pipe.stdout.readline().decode(ext.get('encd') or 'utf_8')
             if 0==len(out_ln): break
             out_ln = out_ln.strip('\r\n')
             pass;              #LOG and log('out_ln={}',out_ln)
