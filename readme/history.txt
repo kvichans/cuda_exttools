@@ -1,84 +1,85 @@
 1.2.22 2018-01-12
-fixed: add captions in dlg-menus
+added: captions in menu dialogs
 
 1.2.21 (2017-12-21)
-fixed: apply project macro
+fixed: applying project-related macro
 
 1.2.19 (2017-07-14)
-fixed: show "Update app" in console
+fixed: showing "Need to update app" in console
 
 1.2.18 (2017-07-12)
 fixed: don't use deprecated API
 
 1.2.15 (2017-06-21)
-fixed: don't use deprecated api
+fixed: don't use deprecated API
 
 1.2.14 (2017-06-16)
-fixed: don't use deprecated api
+fixed: don't use deprecated API
 
 1.2.13 (2017-04-25)
-added: def value of "init folder" set to {FileDir}
+added: default value of "Initial folder" must be {FileDir}
 
 1.2.12 (2016-12-12)
-fixed: use dlg_dir to reset Initial folder
+fixed: use API dlg_dir to reset "Initial folder"
 
 1.2.11 (2016-10-30)
-added: "filled" mode to view list of tools/urls/macros
-added: restore default layout for list tools/urls
-fixed: width of list tools/urls
-fixed: over-quoted for url
+added: "filled" mode to view list of tools/URLs/macros
+added: command to restore default layout for list of tools/URLs
+fixed: width of list of tools/URLs
+fixed: over-quoting for URLs
 
 1.2.10 (2016-10-29)
 added: filters for any macro: {CurrentWord|func1[:par1,par2[|func2]]}
 
 1.2.9 (2016-10-04)
-added: {CurrentWord}
+added: macro {CurrentWord}
 
 1.2.8 (2016-10-04)
-added: URLs
+added: new kind of tools: URLs, separate tab for URLs
 
 1.2.7 (2016-09-19)
-fixed: Design of Adv.props dlg
-added: {Lexer}, {LexerAtCaret}
+fixed: design of "Adv. props" dialog
+added: macros {Lexer}, {LexerAtCaret}
 
 1.2.6 (2016-09-11)
-fixed: work w/o project
-fixed: LOG
+fixed: work without project opened
+fixed: logging
 
 1.2.5 (2016-09-07)
-added: project vars (from plugin cuda_project_man)
+added: project variables, from plugin Project Manager
 
 1.2.4 (2016-07-24)
-fixed: down joined tool
+fixed: pressing Down button for joined tool
 
 1.2.3 (2016-05-04)
 added: hotkeys in submenu
 
 1.2.2 (2016-04-04)
-added: joined tool (tool serial)
+added: joined tools (several tools in one)
 
 1.2.1 (2016-03-14)
-added: user macro vars
+added: user macro variables
 
 1.2.0 (2016-03-12)
-added: i18n, ru-translation
+added: i18n
+added: russian translation
 
 1.1.3 (2016-03-11)
-rework: adv-props dlg
+rework: Adv. props dialog
 fixed: position in main menu
 
 1.1.2 (2016-03-03)
-fixed: output navigation with {FileDir} in Folder
+fixed: adding macro {FileDir} in Folder field
 
 1.1.1 (2016-02-01)
-fixed: correct work after hide some lexer
+fixed: correct work after hiding some lexer
 
 1.1.0 (2016-01-22)
-change: rename cmds with "Tools: ..."
+change: renamed commands with "Tools:" prefix
 
 1.0.3 (2016-01-18)
-added: navigation from output result to source by DblClick/Enter/menu/cmds
-added: adaption to tidy tab-size with advance props
+added: navigation from Output panel to source code by dbl-click/Enter/menu/commands
+added: adapted to Tidy tool tab-size with advanced props
 fixed: try-catch calling
 
 1.0.0 (2016-01-12)
