@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.23 2018-04-20'
+    '1.2.24 2018-09-24'
 ToDo: (see end of file)
 '''
 
@@ -465,10 +465,9 @@ class Command:
             crc_tag = gen_save_crc(ext, os.path.abspath('.'), file_nm, cCrt, rCrt)
             self.last_op_ind = -1
             ed.cmd(cmds.cmd_ShowPanelOutput)
-            app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
             ed.focus()
             if rslt==RSLT_OP:
-                app.app_log(app.LOG_CLEAR, '')
+                app.app_log(app.LOG_CLEAR, '', panel=app.LOG_PANEL_OUTPUT)
 #               self.last_op_ind = -1
             else: # rslt==RSLT_OPA
                 pass
@@ -483,7 +482,7 @@ class Command:
             pass;              #LOG and log('out_ln={}',out_ln)
             if False:pass
             elif rslt in (RSLT_OP, RSLT_OPA):
-                app.app_log(app.LOG_ADD, out_ln, crc_tag)
+                app.app_log(app.LOG_ADD, out_ln, crc_tag, panel=app.LOG_PANEL_OUTPUT)
             elif rslt ==  RSLT_ND:
                 ed.set_text_line(-1, out_ln)
             elif rslt in (RSLT_CB, RSLT_SEL):
@@ -533,8 +532,7 @@ class Command:
         pass;                  #LOG and log('nav_file={}',(nav_file))
         if not os.path.exists(nav_file):    app.msg_status(_('Cannot open: {}').format(nav_file));return
         
-        app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
-        self.last_op_ind = app.app_log(app. LOG_GET_LINEINDEX, '')
+        self.last_op_ind = app.app_log(app. LOG_GET_LINEINDEX, '', panel=app.LOG_PANEL_OUTPUT)
         
         nav_ed  = _file_open(nav_file)
         if nav_ed is None:                  app.msg_status(_('Cannot open: {}').format(nav_file));return
@@ -565,10 +563,9 @@ class Command:
         crc_inf     = self.crcs.get(self.last_crc, {})
         ext         = crc_inf.get('ext')
         ext_pttn    = ext['pttn']
-        app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
-        op_line_tags=app.app_log(app.LOG_GET_LINES_LIST, '')
+        op_line_tags=app.app_log(app.LOG_GET_LINES_LIST, '', panel=app.LOG_PANEL_OUTPUT)
         pass;                  #LOG and log('op_line_tags={}',op_line_tags)
-#       op_line_tags=app.app_log(app.LOG_GET_LINES, '')
+#       op_line_tags=app.app_log(app.LOG_GET_LINES, '', panel=app.LOG_PANEL_OUTPUT)
 #       pass;                   LOG and log('op_line_tags={}',op_line_tags)
 #       op_line_tags=[(item.split(c13)[0], int(item.split(c13)[1])) 
 #                       if c13 in item else 
@@ -583,8 +580,7 @@ class Command:
             if crc != self.last_crc:            continue    #for
             if not re.search(ext_pttn, line):   continue    #for
             self.last_op_ind = op_ind
-            app.app_log(app.LOG_SET_PANEL, app.LOG_PANEL_OUTPUT)
-            app.app_log(app. LOG_SET_LINEINDEX, str(op_ind))
+            app.app_log(app. LOG_SET_LINEINDEX, str(op_ind), panel=app.LOG_PANEL_OUTPUT)
             self.on_output_nav(ed, line, crc)
             break   #for
         else:#for
