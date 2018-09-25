@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.24 2018-09-24'
+    '1.2.24 2018-09-25'
 ToDo: (see end of file)
 '''
 
