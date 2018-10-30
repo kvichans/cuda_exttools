@@ -162,13 +162,9 @@ DEF_PRESETS = [
             "re": "^(?P<file>.+)\\((?P<line>\\d+)\\) .*",
             "name": "Delphi"
         },
-        {   "run": "gcc-*.exe",
-            "re": "(?P<file>\\w:[\\w\\\\\\. ]+):(?P<line>\\d+):.*",
-            "name": "GNU C++"
-        },
-        {   "run": "gcc",
+        {   "run": "gcc*",
             "re": "(?P<file>[^:]+):(?P<line>\d+):(?P<col>\d+): .+",
-            "name": "GCC compiler"
+            "name": "GNU C++"
         },
         {   "run": "iscc.exe",
             "re": ".+ on line (?P<line>\\d+) in (?P<file>.+\\.iss):.+",
