@@ -1,4 +1,7 @@
-1.5.24 (2018-09-25)
+1.2.25 (2018-10-30)
+fixed: show list of ready preset to parse output lines
+
+1.2.24 (2018-09-25)
 fixed: avoid deprecated API
 
 1.2.23 2018-04-20

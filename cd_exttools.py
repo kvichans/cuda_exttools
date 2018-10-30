@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.24 2018-09-25'
+    '1.2.25 2018-10-30'
 ToDo: (see end of file)
 '''
 
@@ -141,6 +141,101 @@ All functions from all std Python modules can be used, but not methods.
          ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
    #def dlg_help_vars
 
+DEF_PRESETS = [
+        {   "run": "bcc32.exe",
+            "re": "\\w+ \\w+ (?P<file>.+) (?P<line>\\d+):.*",
+            "name": "Borland C++"
+        },
+        {   "run": "brcc32.exe",
+            "re": "\\w+ (?P<file>.+) (?P<line>\\d+) (?P<col>\\d+): .+",
+            "name": "Borland Resource Compiler"
+        },
+        {   "run": "csslint-wsh.js",
+            "re": "(?P<file>.+)\\((?P<line>\\d+),(?P<col>\\d+)\\) .+",
+            "name": "CSS Lint"
+        },
+        {   "run": "dart2js.bat",
+            "re": "(?P<file>.+?):(?P<line>\\d+):(?P<col>\\d+): Error:.+",
+            "name": "Dart"
+        },
+        {   "run": "dcc32.exe",
+            "re": "^(?P<file>.+)\\((?P<line>\\d+)\\) .*",
+            "name": "Delphi"
+        },
+        {   "run": "gcc-*.exe",
+            "re": "(?P<file>\\w:[\\w\\\\\\. ]+):(?P<line>\\d+):.*",
+            "name": "GNU C++"
+        },
+        {   "run": "gcc",
+            "re": "(?P<file>[^:]+):(?P<line>\d+):(?P<col>\d+): .+",
+            "name": "GCC compiler"
+        },
+        {   "run": "iscc.exe",
+            "re": ".+ on line (?P<line>\\d+) in (?P<file>.+\\.iss):.+",
+            "name": "Inno Setup"
+        },
+        {   "run": "javac.exe",
+            "re": "(?P<file>.+):(?P<line>\\d+): .+",
+            "name": "Java"
+        },
+        {   "run": "jshint.js",
+            "re": "Line (?P<file>\\d+) character (?P<line>\\d+):.+",
+            "name": "JSHint"
+        },
+        {   "run": "jsl.exe",
+            "re": "(?P<file>.+)\\((?P<line>\\d+)\\): .+",
+            "name": "JavaScript Lint"
+        },
+        {   "run": "ml.exe",
+            "re": "(?P<file>.+)\\((?P<line>\\d+)\\).*",
+            "name": "MS Macro Assembler"
+        },
+        {   "run": "msbuild.exe",
+            "re": "(?P<file>.+)\\((?P<line>\\d+)\\,(?P<col>\\d+)\\): .*",
+            "name": "MSBuild"
+        },
+        {   "run": "csc.exe",
+            "re": "(?P<file>.+)\\((?P<line>\\d+)\\,(?P<col>\\d+)\\): .*",
+            "name": "MS C#"
+        },
+        {   "run": "cl.exe",
+            "re": "(?P<file>.+)\\((?P<line>\\d+)\\).*",
+            "name": "MS C++"
+        },
+        {   "run": "makensis.exe",
+            "re": ".+ \"(?P<file>.+)\" on line (?P<line>\\d+) .+",
+            "name": "NSIS"
+        },
+        {   "run": "rexxc.exe",
+            "re": ".+ running (?P<file>.+) line (?P<line>\\d+):.+",
+            "name": "ooRexx"
+        },
+        {   "run": "perl.exe",
+            "re": "^.+ at (?P<file>.+) line (?P<line>\\d+).*",
+            "name": "Perl"
+        },
+        {   "run": "php.exe",
+            "re": "^.+ in (?P<file>.+) on line (?P<line>\\d+)",
+            "name": "PHP"
+        },
+        {   "test": "  File \"C:\\work-folder\\work-file.py\", line 123",
+            "run": "python.exe",
+            "re": "  \\w+ \"(?P<file>.+)\", line (?P<line>\\d+).*",
+            "name": "Python"
+        },
+        {   "run": "ruby.exe",
+            "re": "^.+/(?P<file>.+):(?P<line>\\d+):",
+            "name": "Ruby"
+        },
+        {   "run": "tasm32.exe",
+            "re": "\\*+\\w+\\*+ (?P<file>.+)\\((?P<line>\\d+)\\).*",
+            "name": "Turbo Assembler"
+        },
+        {   "run": "tsc.exe",
+            "re": "(?P<file>.+?)\\s*\\((?P<line>\\d+),(?P<col>\\d+)\\):.+",
+            "name": "TypeScript"}
+        ]
+
 class Command:
     def __init__(self):
         if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
@@ -172,6 +267,9 @@ class Command:
         if self.saving.setdefault('ver', '') < JSON_FORMAT_VER:
             # Adapt to new format
             pass
+        # Upgrade
+        if not self.saving.get('preset'):
+            self.saving['preset'] = DEF_PRESETS
         self.dlg_prs    = self.saving.setdefault('dlg_prs', {})
         self.ext4lxr    = self.saving.setdefault('ext4lxr', {})
         self.preset     = self.saving.setdefault('preset', [])
