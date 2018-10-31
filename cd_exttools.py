@@ -1,4 +1,4 @@
-''' Plugin for CudaText editor
+ï»¿''' Plugin for CudaText editor
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
@@ -97,17 +97,17 @@ def dlg_help_vars():
     EXT_HELP_BODY   = \
 _('''In tool properties "File name", "Parameters", "Initial folder"
     the following macros are processed.
-• Application macros:
+â€¢ Application macros:
    {AppDir}           - Directory with app executable
    {AppDrive}         - (Win only) Disk of app executable, eg "C:"
-• Currently focused file macros:
+â€¢ Currently focused file macros:
    {FileName}         - Full path
    {FileDir}          - Folder path, without file name
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
    {Lexer}            - Name of global lexer
-• Currently focused editor macros (for top caret):
+â€¢ Currently focused editor macros (for top caret):
    {CurrentLine}      - text
    {CurrentLineNum}   - number
    {CurrentLineNum0}  - number
@@ -116,7 +116,7 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {LexerAtCaret}     - Name of local lexer
    {SelectedText}     - text 
    {CurrentWord}      - text 
-• Prompted macros:
+â€¢ Prompted macros:
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked
    
