@@ -1,3 +1,6 @@
+1.2.26 (2018-10-31)
+fixed: change tool defaults
+
 1.2.25 (2018-10-30)
 fixed: show list of ready preset to parse output lines
 

@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.25 2018-10-30'
+    '1.2.26 2018-10-31'
 ToDo: (see end of file)
 '''
 
@@ -95,22 +95,19 @@ SAVS_A          = 'A'
 
 def dlg_help_vars():
     EXT_HELP_BODY   = \
-_('''In tool properties
-   File name
-   Parameters
-   Initial folder
-the following macros are processed.
-- Application macros:
+_('''In tool properties "File name", "Parameters", "Initial folder"
+    the following macros are processed.
+• Application macros:
    {AppDir}           - Directory with app executable
    {AppDrive}         - (Win only) Disk of app executable, eg "C:"
-- Currently focused file macros:
+• Currently focused file macros:
    {FileName}         - Full path
    {FileDir}          - Folder path, without file name
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
    {Lexer}            - Name of global lexer
-- Currently focused editor macros (for top caret):
+• Currently focused editor macros (for top caret):
    {CurrentLine}      - text
    {CurrentLineNum}   - number
    {CurrentLineNum0}  - number
@@ -119,7 +116,7 @@ the following macros are processed.
    {LexerAtCaret}     - Name of local lexer
    {SelectedText}     - text 
    {CurrentWord}      - text 
-- Prompted macros:
+• Prompted macros:
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked
    
@@ -135,9 +132,9 @@ Predefined functions are:
 All functions from all std Python modules can be used, but not methods.
    q is short form of urllib.parse.quote
 ''')
-    dlg_wrapper(_('Tool macros'), GAP*2+550, GAP*3+25+550,
-         [dict(cid='htx',tp='me'    ,t=GAP  ,h=550  ,l=GAP          ,w=550  ,props='1,1,1' ) #  ro,mono,border
-         ,dict(cid='-'  ,tp='bt'    ,t=GAP+550+GAP  ,l=GAP+550-90   ,w=90   ,cap='&Close'  )
+    dlg_wrapper(_('Tool macros'), GAP*2+590, GAP*3+25+600,
+         [dict(cid='htx',tp='me'    ,t=GAP  ,h=600  ,l=GAP          ,w=590  ,props='1,1,1' ) #  ro,mono,border
+         ,dict(cid='-'  ,tp='bt'    ,t=GAP+600+GAP  ,l=GAP+590-90   ,w=90   ,cap='&Close'  )
          ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
    #def dlg_help_vars
 
@@ -958,7 +955,8 @@ class Command:
                     ext         = self._fill_ext({'id':id4ext
                                         ,'nm':(run_nm if file4run else f('tool{}', 1+len(self.exts)))
                                         ,'file':file4run
-                                        ,'ddir':os.path.dirname(file4run)
+                                        ,'ddir':'{FileDir}'
+#                                       ,'ddir':os.path.dirname(file4run)
                                         })
                     if run_nm in pttn4run:
                         ext['pttn']     = pttn4run.get(run_nm, '')
@@ -1406,8 +1404,11 @@ class Command:
         focus_cid       = 'nm'
         while True:
             ed_kys  = get_keys_desc('cuda_exttools,run', ed_ext['id'], keys)
-            val_savs= self.savs_vals.index(ed_ext['savs']) if ed_ext is not None else 0
-            val_rslt= self.rslt_vals.index(ed_ext['rslt']) if ed_ext is not None else 0
+#           val_savs= self.savs_vals.index(ed_ext['savs']) if ed_ext is not None else 0
+#           val_rslt= self.rslt_vals.index(ed_ext['rslt']) if ed_ext is not None else 0
+            val_savs= self.savs_vals.index(ed_ext['savs'] if ed_ext else SAVS_N)        # def is "not save"
+            val_rslt= self.rslt_vals.index(ed_ext['rslt'] if ed_ext else RSLT_OP)       # def is "to panel"
+
             
             jext_nms= [self.ext4id[str(eid)]['nm'] for eid in jex_ids] if joined else None
             
@@ -1779,11 +1780,13 @@ class Command:
         ext.pop('name', None)   # obsolete
         if not ext['nm']:
             ext['nm']='tool'+str(random.randint(100, 999))
-        ext['ddir'] = ext.get('ddir', '')
+        ext['ddir'] = ext.get('ddir', '{FileDir}')
+#       ext['ddir'] = ext.get('ddir', '')
         ext['shll'] = ext.get('shll', 'N')=='Y' if str(ext.get('shll', 'N'))    in 'NY'            else ext.get('shll', False)
         ext['prms'] = ext.get('prms', '')
         ext['savs'] = ext.get('savs', SAVS_N)
-        ext['rslt'] = ext.get('rslt', RSLT_N)   if     ext.get('rslt', RSLT_N)  in self.rslt_vals  else RSLT_N
+        ext['rslt'] = ext.get('rslt', RSLT_OP)  if     ext.get('rslt', RSLT_OP) in self.rslt_vals  else RSLT_OP     # def is "to panel"
+#       ext['rslt'] = ext.get('rslt', RSLT_N)   if     ext.get('rslt', RSLT_N)  in self.rslt_vals  else RSLT_N
         ext['encd'] = ext.get('encd', '')
         ext['lxrs'] = ext.get('lxrs', '')
         ext['pttn'] = ext.get('pttn', '')
