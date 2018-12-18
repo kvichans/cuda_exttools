@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.26 2018-10-31'
+    '1.2.27 2018-12-18'
 ToDo: (see end of file)
 '''
 
@@ -107,6 +107,13 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
    {Lexer}            - Name of global lexer
+• Current file in group N macros (N in [1,2,3,4,5,6]):
+   {FileName_gN}      - Full path
+   {FileDir_gN}       - Folder path, without file name
+   {FileNameOnly_gN}  - Name only, without folder path
+   {FileNameNoExt_gN} - Name without extension and path
+   {FileExt_gN}       - Extension
+   {Lexer_gN}         - Name of global lexer
 • Currently focused editor macros (for top caret):
    {CurrentLine}      - text
    {CurrentLineNum}   - number
@@ -1895,6 +1902,23 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{AppDir'             in prm: prm = _replace_mcr(prm, '{AppDir}'        ,   app_dir)
     if      '{AppDrive'           in prm: prm = _replace_mcr(prm, '{AppDrive}'      ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
             
+    for gr in range(apx.get_groups_count()):
+        sGN         = 'g'+str(gr+1)
+        pass;                  #log('sGN,prm,_+sGN+}} in prm={}',(sGN,prm,'_'+sGN+'}' in prm))
+        if '_'+sGN+'}' not in prm and \
+           '_'+sGN+'|' not in prm:  continue        
+        gr_ed       = app.ed_group(gr)
+        if not gr_ed:               continue        
+        f_gN_nm     = gr_ed.get_filename()
+        if not f_gN_nm:             continue        
+        if  '{FileName_' +sGN+'}' in prm \
+        or  '{FileName_' +sGN+'|' in prm: prm = _replace_mcr(prm, '{FileName_'     +sGN+'}' ,                          f_gN_nm)
+        if  '{FileDir_'  +sGN     in prm: prm = _replace_mcr(prm, '{FileDir_'      +sGN+'}' ,          os.path.dirname(f_gN_nm))
+        if  '{FileNameOnly_'+sGN  in prm: prm = _replace_mcr(prm, '{FileNameOnly_' +sGN+'}' ,         os.path.basename(f_gN_nm))
+        if  '{FileNameNoExt_'+sGN in prm: prm = _replace_mcr(prm, '{FileNameNoExt_'+sGN+'}' ,'.'.join(os.path.basename(f_gN_nm).split('.')[0:-1]))
+        if  '{FileExt_'  +sGN     in prm: prm = _replace_mcr(prm, '{FileExt_'      +sGN+'}' ,         os.path.basename(f_gN_nm).split('.')[-1])
+        if  '{Lexer_'    +sGN+'}' in prm \
+        or  '{Lexer_'    +sGN+'|' in prm: prm = _replace_mcr(prm, '{Lexer_'        +sGN+'}' , gr_ed.get_prop(app.PROP_LEXER_FILE))
     if      '{FileName}'          in prm \
     or      '{FileName|'          in prm: prm = _replace_mcr(prm, '{FileName}'      ,                          file_nm)
     if      '{FileDir'            in prm: prm = _replace_mcr(prm, '{FileDir}'       ,          os.path.dirname(file_nm))
@@ -2033,7 +2057,14 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{SelectedText}\tText')]
             +[_('{CurrentWord}\tText')]
             +[_('{Interactive}\tText will be asked at each running')]
-            +[_('{InteractiveFile}\tFile name will be asked')])
+            +[_('{InteractiveFile}\tFile name will be asked')]
+            +[f(_('{{FileName_g{0}}}\tFull path of current file in group {0}')                                  , gr+1) for gr in range(6)]
+            +[f(_('{{FileDir_g{0}}}\tFolder path, without file name, of current file in group {0}')             , gr+1) for gr in range(6)]
+            +[f(_('{{FileNameOnly_g{0}}}\tFile name only, without folder path, of current file in group {0}')   , gr+1) for gr in range(6)]
+            +[f(_('{{FileNameNoExt_g{0}}}\tFile name without extension and path of current file in group {0}')  , gr+1) for gr in range(6)]
+            +[f(_('{{FileExt_g{0}}}\tExtension of current file in group {0}')                                   , gr+1) for gr in range(6)]
+            +[f(_('{{Lexer_g{0}}}\tLexer of current file in group {0}')                                         , gr+1) for gr in range(6)]
+             )
                         
     prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))
     if prm_i is not None:

@@ -1,3 +1,6 @@
+1.2.27 (2018-12-18)
+added: macros {FileName_gN},{FileDir_gN},... to use current files from groups
+
 1.2.26 (2018-10-31)
 fixed: change tool defaults
 
