@@ -1,13 +1,14 @@
-﻿''' Plugin for CudaText editor
+''' Plugin for CudaText editor
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.27 2018-12-18'
+    '1.2.28 2018-12-20'
 ToDo: (see end of file)
 '''
 
 import  os, json, random, subprocess, shlex, copy, collections, re, zlib
 import  webbrowser, urllib
+import  tempfile
 import  importlib
 import  cudatext            as app
 from    cudatext        import ed
@@ -122,7 +123,9 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {CurrentColumnNum0}- number
    {LexerAtCaret}     - Name of local lexer
    {SelectedText}     - text 
-   {CurrentWord}      - text 
+   {CurrentWord}      - text
+   {TempFile.ext}     - Path of temporary file with current text,
+                        with extension .ext  
 • Prompted macros:
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked
@@ -1928,6 +1931,15 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{Lexer}'             in prm \
     or      '{Lexer|'             in prm: prm = _replace_mcr(prm, '{Lexer}'         ,    ed.get_prop(app.PROP_LEXER_FILE))
     if      '{LexerAtCaret'       in prm: prm = _replace_mcr(prm, '{LexerAtCaret}'  ,    ed.get_prop(app.PROP_LEXER_CARET))
+
+    t_pos = prm.find('{TempFile')
+    if t_pos>=0:
+        t_ext = prm[t_pos+9:]
+        t_ext = t_ext[:t_ext.find('}')]
+        t_fn = tempfile.gettempdir()+os.sep+'cuda_exttools'+t_ext
+        with open(t_fn, 'w') as f:
+            f.write(ed.get_text_all())
+        prm = prm[:t_pos] + t_fn + prm[t_pos+10+len(t_ext):]
 
     if rCrt!=-1:
         if  '{CurrentLine}'       in prm \
