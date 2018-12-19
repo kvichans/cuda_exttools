@@ -1936,7 +1936,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if t_pos>=0:
         t_ext = prm[t_pos+9:]
         t_ext = t_ext[:t_ext.find('}')]
-        t_fn = tempfile.gettempdir()+os.sep+'cuda_exttools'+t_ext
+        t_fn = tempfile.gettempdir()+os.sep+'cuda_tool'+t_ext
         with open(t_fn, 'w') as f:
             f.write(ed.get_text_all())
         prm = prm[:t_pos] + t_fn + prm[t_pos+10+len(t_ext):]
