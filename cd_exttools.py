@@ -106,16 +106,18 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
-   {ContentAsTemp}    - Name of temporary file with current text
    {Lexer}            - Name of global lexer
+   {ContentAsTemp}    - Name of temporary file with current text
+                        (created only when file modified)
 • Current file in group N (N is 1...6):
    {FileName_gN}      - Full path
    {FileDir_gN}       - Folder path, without file name
    {FileNameOnly_gN}  - Name only, without folder path
    {FileNameNoExt_gN} - Name without extension and path
    {FileExt_gN}       - Extension
-   {ContentAsTemp_gN} - Name of temporary file with current text
    {Lexer_gN}         - Name of global lexer
+   {ContentAsTemp_gN} - Name of temporary file with current text
+                        (created only when file modified)
 • Currently focused editor (for top caret):
    {CurrentLine}      - Text of caret's line
    {CurrentLineNum}   - Index of caret's line
