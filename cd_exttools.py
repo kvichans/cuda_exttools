@@ -1,4 +1,4 @@
-﻿''' Plugin for CudaText editor
+''' Plugin for CudaText editor
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
@@ -97,35 +97,35 @@ def dlg_help_vars():
     EXT_HELP_BODY   = \
 _('''In tool properties "File name", "Parameters", "Initial folder"
     the following macros are processed.
-• Application macros:
+• Application:
    {AppDir}           - Directory with app executable
-   {AppDrive}         - (Win only) Disk of app executable, eg "C:"
-• Currently focused file macros:
+   {AppDrive}         - (Windows) Disk of app executable, eg "C:"
+• Currently focused file:
    {FileName}         - Full path
    {FileDir}          - Folder path, without file name
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
-   {ContentAsTemp}    - Copy of text as a temporary file
+   {ContentAsTemp}    - Name of temporary file with current text
    {Lexer}            - Name of global lexer
-• Current file in group N macros (N in 1..6):
+• Current file in group N (N is 1...6):
    {FileName_gN}      - Full path
    {FileDir_gN}       - Folder path, without file name
    {FileNameOnly_gN}  - Name only, without folder path
    {FileNameNoExt_gN} - Name without extension and path
    {FileExt_gN}       - Extension
-   {ContentAsTemp_gN} - Copy of text as a temporary file
+   {ContentAsTemp_gN} - Name of temporary file with current text
    {Lexer_gN}         - Name of global lexer
-• Currently focused editor macros (for top caret):
-   {CurrentLine}      - text
-   {CurrentLineNum}   - number
-   {CurrentLineNum0}  - number
-   {CurrentColumnNum} - number
-   {CurrentColumnNum0}- number
-   {LexerAtCaret}     - Name of local lexer
-   {SelectedText}     - text 
-   {CurrentWord}      - text 
-• Prompted macros:
+• Currently focused editor (for top caret):
+   {CurrentLine}      - Text of caret's line
+   {CurrentLineNum}   - Index of caret's line
+   {CurrentLineNum0}  - Index of caret's line, 0-based
+   {CurrentColumnNum} - Index of caret's column
+   {CurrentColumnNum0}- Index of caret's column, 0-based
+   {LexerAtCaret}     - Name of lexer at caret position
+   {SelectedText}     - Text of selection
+   {CurrentWord}      - Word at caret position
+• Prompts:
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked
    
