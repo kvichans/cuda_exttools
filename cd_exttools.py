@@ -6,7 +6,7 @@ Version:
 ToDo: (see end of file)
 '''
 
-import  os, json, random, subprocess, shlex, copy, collections, re, zlib
+import  os, json, random, subprocess, shlex, copy, collections, re, zlib, tempfile
 import  webbrowser, urllib
 import  importlib
 import  cudatext            as app
@@ -106,13 +106,15 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
+   {ContentAsTemp}    - Copy of text as a temporary file
    {Lexer}            - Name of global lexer
-• Current file in group N macros (N in [1,2,3,4,5,6]):
+• Current file in group N macros (N in 1..6):
    {FileName_gN}      - Full path
    {FileDir_gN}       - Folder path, without file name
    {FileNameOnly_gN}  - Name only, without folder path
    {FileNameNoExt_gN} - Name without extension and path
    {FileExt_gN}       - Extension
+   {ContentAsTemp_gN} - Copy of text as a temporary file
    {Lexer_gN}         - Name of global lexer
 • Currently focused editor macros (for top caret):
    {CurrentLine}      - text
@@ -1902,6 +1904,26 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{AppDir'             in prm: prm = _replace_mcr(prm, '{AppDir}'        ,   app_dir)
     if      '{AppDrive'           in prm: prm = _replace_mcr(prm, '{AppDrive}'      ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
             
+    def text2temp(ed_):
+        src_fn  = ed_.get_filename()
+        if src_fn and not ed_.get_prop(app.PROP_MODIFIED):
+            return src_fn
+        
+        src_stem= '.'.join(os.path.basename(src_fn).split('.')[0:-1])
+        src_ext =          os.path.basename(src_fn).split('.')[-1]
+        trg_dir = tempfile.gettempdir() + os.sep + 'cudatext'
+        if not os.path.isdir(trg_dir):
+            os.mkdir(trg_dir)
+        trg_fn      = trg_dir + os.sep + src_stem + '.text.'              + src_ext
+        uni_nm      = 0
+        while os.path.isfile(trg_fn):
+            uni_nm += 1
+            trg_fn  = trg_dir + os.sep + src_stem + f('.text{}.', uni_nm) + src_ext
+            
+        open(trg_fn, 'w').write(ed_.get_text_all())
+        return trg_fn
+       #def text2temp
+    
     for gr in range(apx.get_groups_count()):
         sGN         = 'g'+str(gr+1)
         pass;                  #log('sGN,prm,_+sGN+}} in prm={}',(sGN,prm,'_'+sGN+'}' in prm))
@@ -1917,6 +1939,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
         if  '{FileNameOnly_'+sGN  in prm: prm = _replace_mcr(prm, '{FileNameOnly_' +sGN+'}' ,         os.path.basename(f_gN_nm))
         if  '{FileNameNoExt_'+sGN in prm: prm = _replace_mcr(prm, '{FileNameNoExt_'+sGN+'}' ,'.'.join(os.path.basename(f_gN_nm).split('.')[0:-1]))
         if  '{FileExt_'  +sGN     in prm: prm = _replace_mcr(prm, '{FileExt_'      +sGN+'}' ,         os.path.basename(f_gN_nm).split('.')[-1])
+        if  '{ContentAsTemp_'+sGN in prm: prm = _replace_mcr(prm, '{ContentAsTemp_'+sGN+'}' ,    text2temp(gr_ed))
         if  '{Lexer_'    +sGN+'}' in prm \
         or  '{Lexer_'    +sGN+'|' in prm: prm = _replace_mcr(prm, '{Lexer_'        +sGN+'}' , gr_ed.get_prop(app.PROP_LEXER_FILE))
     if      '{FileName}'          in prm \
@@ -1925,6 +1948,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{FileNameOnly'       in prm: prm = _replace_mcr(prm, '{FileNameOnly}'  ,         os.path.basename(file_nm))
     if      '{FileNameNoExt'      in prm: prm = _replace_mcr(prm, '{FileNameNoExt}' ,'.'.join(os.path.basename(file_nm).split('.')[0:-1]))
     if      '{FileExt'            in prm: prm = _replace_mcr(prm, '{FileExt}'       ,         os.path.basename(file_nm).split('.')[-1])
+    if      '{ContentAsTemp'      in prm: prm = _replace_mcr(prm, '{ContentAsTemp}'         ,    text2temp(ed))
     if      '{Lexer}'             in prm \
     or      '{Lexer|'             in prm: prm = _replace_mcr(prm, '{Lexer}'         ,    ed.get_prop(app.PROP_LEXER_FILE))
     if      '{LexerAtCaret'       in prm: prm = _replace_mcr(prm, '{LexerAtCaret}'  ,    ed.get_prop(app.PROP_LEXER_CARET))
@@ -1960,55 +1984,55 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     return prm
    #_subst_fltd_props
 
-def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
-    pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
-    pass;                       LOG and log('umcs, prjs={}',(umcs, prjs))
-    if '{' not in prm:  return prm
-    # Substitude Project vars
-    for prj_k,prj_v in prjs.items():
-        prm = prm.replace(prj_k, prj_v)
-        if '{' not in prm:  return prm
-
-    if '{' not in prm:  return prm
-    # Substitude std vars
-    app_dir = app.app_path(app.APP_DIR_EXE)
-    if      '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
-    if      '{AppDrive}'          in prm: prm = prm.replace('{AppDrive}'     ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
-            
-    if      '{FileName}'          in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
-    if      '{FileDir}'           in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
-    if      '{FileNameOnly}'      in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
-    if      '{FileNameNoExt}'     in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
-    if      '{FileExt}'           in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
-    if      '{Lexer}'             in prm: prm = prm.replace('{Lexer}'        ,    ed.get_prop(app.PROP_LEXER_FILE))
-    if      '{LexerAtCaret}'      in prm: prm = prm.replace('{LexerAtCaret}' ,    ed.get_prop(app.PROP_LEXER_CARET))
-
-    if rCrt!=-1:
-        if  '{CurrentLine}'       in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
-        if  '{CurrentLineNum}'    in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
-        if  '{CurrentLineNum0}'   in prm: prm = prm.replace('{CurrentLineNum0}' , str(  rCrt))
-        if  '{CurrentColumnNum}'  in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-        if  '{CurrentColumnNum0}' in prm: prm = prm.replace('{CurrentColumnNum0}',str(  ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
-        if  '{SelectedText}'      in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
-        if  '{CurrentWord}'       in prm: prm = prm.replace('{CurrentWord}'     , get_current_word(ed, cCrt, rCrt))
-
-    if '{Interactive}' in prm:
-        ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
-        if ans is None: return
-        prm = prm.replace('{Interactive}'     , ans)
-    if '{InteractiveFile}' in prm:
-        ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
-        if ans is None: return
-        prm = prm.replace('{InteractiveFile}' , ans)
-        
-    if '{' not in prm:  return prm
-    # Substitude user vars
-    for umc_k,umc_v in umcs.items():
-        prm = prm.replace(umc_k, umc_v)
-        if '{' not in prm:  return prm
-        
-    return prm
-   #def _subst_props
+#def _subst_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={}):
+#   pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
+#   pass;                       LOG and log('umcs, prjs={}',(umcs, prjs))
+#   if '{' not in prm:  return prm
+#   # Substitude Project vars
+#   for prj_k,prj_v in prjs.items():
+#       prm = prm.replace(prj_k, prj_v)
+#       if '{' not in prm:  return prm
+#
+#   if '{' not in prm:  return prm
+#   # Substitude std vars
+#   app_dir = app.app_path(app.APP_DIR_EXE)
+#   if      '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
+#   if      '{AppDrive}'          in prm: prm = prm.replace('{AppDrive}'     ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
+#           
+#   if      '{FileName}'          in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
+#   if      '{FileDir}'           in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
+#   if      '{FileNameOnly}'      in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
+#   if      '{FileNameNoExt}'     in prm: prm = prm.replace('{FileNameNoExt}','.'.join(os.path.basename(file_nm).split('.')[0:-1]))
+#   if      '{FileExt}'           in prm: prm = prm.replace('{FileExt}'      ,         os.path.basename(file_nm).split('.')[-1])
+#   if      '{Lexer}'             in prm: prm = prm.replace('{Lexer}'        ,    ed.get_prop(app.PROP_LEXER_FILE))
+#   if      '{LexerAtCaret}'      in prm: prm = prm.replace('{LexerAtCaret}' ,    ed.get_prop(app.PROP_LEXER_CARET))
+#
+#   if rCrt!=-1:
+#       if  '{CurrentLine}'       in prm: prm = prm.replace('{CurrentLine}'     , ed.get_text_line(rCrt))
+#       if  '{CurrentLineNum}'    in prm: prm = prm.replace('{CurrentLineNum}'  , str(1+rCrt))
+#       if  '{CurrentLineNum0}'   in prm: prm = prm.replace('{CurrentLineNum0}' , str(  rCrt))
+#       if  '{CurrentColumnNum}'  in prm: prm = prm.replace('{CurrentColumnNum}', str(1+ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+#       if  '{CurrentColumnNum0}' in prm: prm = prm.replace('{CurrentColumnNum0}',str(  ed.convert(app.CONVERT_CHAR_TO_COL, cCrt, rCrt)[0]))
+#       if  '{SelectedText}'      in prm: prm = prm.replace('{SelectedText}'    , ed.get_text_sel())
+#       if  '{CurrentWord}'       in prm: prm = prm.replace('{CurrentWord}'     , get_current_word(ed, cCrt, rCrt))
+#
+#   if '{Interactive}' in prm:
+#       ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
+#       if ans is None: return
+#       prm = prm.replace('{Interactive}'     , ans)
+#   if '{InteractiveFile}' in prm:
+#       ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
+#       if ans is None: return
+#       prm = prm.replace('{InteractiveFile}' , ans)
+#       
+#   if '{' not in prm:  return prm
+#   # Substitude user vars
+#   for umc_k,umc_v in umcs.items():
+#       prm = prm.replace(umc_k, umc_v)
+#       if '{' not in prm:  return prm
+#       
+#   return prm
+#  #def _subst_props
 
 def get_current_word(ed, c_crt, r_crt):
     sel_text    = ed.get_text_sel()
@@ -2047,6 +2071,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{FileNameOnly}\tFile name only, without folder path')]
             +[_('{FileNameNoExt}\tFile name without extension and path')]
             +[_('{FileExt}\tExtension')]
+            +[_('{ContentAsTemp}\tCopy text of the file to temporary file (if need)')]
             +[_('{Lexer}\tFile lexer')]
             +[_('{LexerAtCaret}\tLocal lexer (at 1st caret)')]
             +[_('{CurrentLine}\tText of current line')]
@@ -2063,6 +2088,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[f(_('{{FileNameOnly_g{0}}}\tFile name only, without folder path, of current file in group {0}')   , gr+1) for gr in range(6)]
             +[f(_('{{FileNameNoExt_g{0}}}\tFile name without extension and path of current file in group {0}')  , gr+1) for gr in range(6)]
             +[f(_('{{FileExt_g{0}}}\tExtension of current file in group {0}')                                   , gr+1) for gr in range(6)]
+            +[f(_('{{ContentAsTemp_g{0}}}\tCopy text of current file in group {0} to temporary file (if need)') , gr+1) for gr in range(6)]
             +[f(_('{{Lexer_g{0}}}\tLexer of current file in group {0}')                                         , gr+1) for gr in range(6)]
              )
                         

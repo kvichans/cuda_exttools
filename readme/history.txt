@@ -1,3 +1,6 @@
+1.2.28 (2018-12-20)
+added: macros {ContentAsTemp},{ContentAsTempr_gN} to use modified text of file via temporary file 
+
 1.2.27 (2018-12-18)
 added: macros {FileName_gN},{FileDir_gN},... to use current files from groups
 
