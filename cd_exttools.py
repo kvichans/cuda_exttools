@@ -106,18 +106,16 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {FileNameOnly}     - Name only, without folder path
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
+   {ContentAsTemp}    - Name of [temporary] file with current text
    {Lexer}            - Name of global lexer
-   {ContentAsTemp}    - Name of temporary file with current text
-                        (created only when file modified)
 • Current file in group N (N is 1...6):
    {FileName_gN}      - Full path
    {FileDir_gN}       - Folder path, without file name
    {FileNameOnly_gN}  - Name only, without folder path
    {FileNameNoExt_gN} - Name without extension and path
    {FileExt_gN}       - Extension
+   {ContentAsTemp_gN} - Name of [temporary] file with current text
    {Lexer_gN}         - Name of global lexer
-   {ContentAsTemp_gN} - Name of temporary file with current text
-                        (created only when file modified)
 • Currently focused editor (for top caret):
    {CurrentLine}      - Text of caret's line
    {CurrentLineNum}   - Index of caret's line
@@ -2073,7 +2071,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{FileNameOnly}\tFile name only, without folder path')]
             +[_('{FileNameNoExt}\tFile name without extension and path')]
             +[_('{FileExt}\tExtension')]
-            +[_('{ContentAsTemp}\tCopy text of the file to temporary file (if need)')]
+            +[_('{ContentAsTemp}\tName of [temporary] file with current text')]
             +[_('{Lexer}\tFile lexer')]
             +[_('{LexerAtCaret}\tLocal lexer (at 1st caret)')]
             +[_('{CurrentLine}\tText of current line')]
@@ -2090,7 +2088,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[f(_('{{FileNameOnly_g{0}}}\tFile name only, without folder path, of current file in group {0}')   , gr+1) for gr in range(6)]
             +[f(_('{{FileNameNoExt_g{0}}}\tFile name without extension and path of current file in group {0}')  , gr+1) for gr in range(6)]
             +[f(_('{{FileExt_g{0}}}\tExtension of current file in group {0}')                                   , gr+1) for gr in range(6)]
-            +[f(_('{{ContentAsTemp_g{0}}}\tCopy text of current file in group {0} to temporary file (if need)') , gr+1) for gr in range(6)]
+            +[f(_('{{ContentAsTemp_g{0}}}\tName of [temporary] file with current text in group {0}')            , gr+1) for gr in range(6)]
             +[f(_('{{Lexer_g{0}}}\tLexer of current file in group {0}')                                         , gr+1) for gr in range(6)]
              )
                         
