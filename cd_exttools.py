@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.27 2018-12-18'
+    '1.2.29 2018-12-22'
 ToDo: (see end of file)
 '''
 
@@ -74,12 +74,18 @@ RSLT_NO         = _('Ignore')
 RSLT_TO_PANEL   = _('Output panel')
 RSLT_TO_PANEL_AP= _('Output panel (append)')
 RSLT_TO_NEWDOC  = _('Copy to new document')
+RSLT_TO_NEWDOC1 = _('Copy to new document, group 1')
+RSLT_TO_NEWDOC2 = _('Copy to new document, group 2')
+RSLT_TO_NEWDOC3 = _('Copy to new document, group 3')
 RSLT_TO_CLIP    = _('Copy to clipboard')
 RSLT_REPL_SEL   = _('Replace selection')
 RSLT_N          = 'N'
 RSLT_OP         = 'OP'
 RSLT_OPA        = 'OPA'
 RSLT_ND         = 'ND'
+RSLT_ND1        = 'ND1'
+RSLT_ND2        = 'ND2'
+RSLT_ND3        = 'ND3'
 RSLT_CB         = 'CB'
 RSLT_SEL        = 'SEL'
 
@@ -247,12 +253,15 @@ class Command:
         self.savs_v2c   = {SAVS_N:SAVS_NOTHING
                           ,SAVS_Y:SAVS_ONLY_CUR
                           ,SAVS_A:SAVS_ALL_DOCS}
-        self.rslt_caps  = [RSLT_NO, RSLT_TO_PANEL, RSLT_TO_PANEL_AP, RSLT_TO_NEWDOC, RSLT_TO_CLIP, RSLT_REPL_SEL]
-        self.rslt_vals  = [RSLT_N,  RSLT_OP,       RSLT_OPA,         RSLT_ND,        RSLT_CB,      RSLT_SEL]
+        self.rslt_caps  = [RSLT_NO, RSLT_TO_PANEL, RSLT_TO_PANEL_AP, RSLT_TO_NEWDOC, RSLT_TO_NEWDOC1, RSLT_TO_NEWDOC2, RSLT_TO_NEWDOC3, RSLT_TO_CLIP, RSLT_REPL_SEL]
+        self.rslt_vals  = [RSLT_N,  RSLT_OP,       RSLT_OPA,         RSLT_ND,        RSLT_ND1,        RSLT_ND2,        RSLT_ND3,        RSLT_CB,      RSLT_SEL]
         self.rslt_v2c   = {RSLT_N:  RSLT_NO
                           ,RSLT_OP: RSLT_TO_PANEL
                           ,RSLT_OPA:RSLT_TO_PANEL_AP
                           ,RSLT_ND: RSLT_TO_NEWDOC
+                          ,RSLT_ND1: RSLT_TO_NEWDOC1
+                          ,RSLT_ND2: RSLT_TO_NEWDOC2
+                          ,RSLT_ND3: RSLT_TO_NEWDOC3
                           ,RSLT_CB: RSLT_TO_CLIP
                           ,RSLT_SEL:RSLT_REPL_SEL}
 
@@ -573,6 +582,16 @@ class Command:
                 pass
         elif rslt ==  RSLT_ND:
             app.file_open('')
+        elif rslt == RSLT_ND1:
+            app.file_open('', group=0)
+        elif rslt == RSLT_ND2:
+            if app.app_proc(app.PROC_GET_GROUPING, '') == app.GROUPS_ONE:
+                app.app_proc(app.PROC_SET_GROUPING, app.GROUPS_2VERT)
+            app.file_open('', group=1)
+        elif rslt == RSLT_ND3:
+            if app.app_proc(app.PROC_GET_GROUPING, '') in (app.GROUPS_ONE, app.GROUPS_2HORZ, app.GROUPS_2VERT):
+                app.app_proc(app.PROC_SET_GROUPING, app.GROUPS_3VERT)
+            app.file_open('', group=2)
 
         while True:
             # 'encd' can be empty string, fixed here
@@ -583,7 +602,7 @@ class Command:
             if False:pass
             elif rslt in (RSLT_OP, RSLT_OPA):
                 app.app_log(app.LOG_ADD, out_ln, crc_tag, panel=app.LOG_PANEL_OUTPUT)
-            elif rslt ==  RSLT_ND:
+            elif rslt in (RSLT_ND, RSLT_ND1, RSLT_ND2, RSLT_ND3):
                 ed.set_text_line(-1, out_ln)
             elif rslt in (RSLT_CB, RSLT_SEL):
                 rslt_txt+= out_ln + '\n'
