@@ -1,3 +1,6 @@
+1.2.30 (2018-12-23)
+added: tool output can be also "Console"
+
 1.2.29 (2018.12.22)
 added: tool output can be also "Copy to new document, group N", where N is 1...3
 
