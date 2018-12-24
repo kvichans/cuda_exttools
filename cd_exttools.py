@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.29 2018-12-22'
+    '1.2.30 2018-12-23'
 ToDo: (see end of file)
 '''
 
@@ -72,7 +72,8 @@ ADV_PROPS       = [ {'key':'source_tab_as_blanks'
 
 RSLT_NO         = _('Ignore')
 RSLT_TO_PANEL   = _('Output panel')
-RSLT_TO_PANEL_AP= _('Output panel (append)')
+RSLT_TO_PANEL_AP= _('Output panel, append')
+RSLT_TO_CONSOLE = _('Console')
 RSLT_TO_NEWDOC  = _('Copy to new document')
 RSLT_TO_NEWDOC1 = _('Copy to new document, group 1')
 RSLT_TO_NEWDOC2 = _('Copy to new document, group 2')
@@ -82,6 +83,7 @@ RSLT_REPL_SEL   = _('Replace selection')
 RSLT_N          = 'N'
 RSLT_OP         = 'OP'
 RSLT_OPA        = 'OPA'
+RSLT_CON        = 'CON'
 RSLT_ND         = 'ND'
 RSLT_ND1        = 'ND1'
 RSLT_ND2        = 'ND2'
@@ -253,11 +255,12 @@ class Command:
         self.savs_v2c   = {SAVS_N:SAVS_NOTHING
                           ,SAVS_Y:SAVS_ONLY_CUR
                           ,SAVS_A:SAVS_ALL_DOCS}
-        self.rslt_caps  = [RSLT_NO, RSLT_TO_PANEL, RSLT_TO_PANEL_AP, RSLT_TO_NEWDOC, RSLT_TO_NEWDOC1, RSLT_TO_NEWDOC2, RSLT_TO_NEWDOC3, RSLT_TO_CLIP, RSLT_REPL_SEL]
-        self.rslt_vals  = [RSLT_N,  RSLT_OP,       RSLT_OPA,         RSLT_ND,        RSLT_ND1,        RSLT_ND2,        RSLT_ND3,        RSLT_CB,      RSLT_SEL]
+        self.rslt_caps  = [RSLT_NO, RSLT_TO_PANEL, RSLT_TO_PANEL_AP, RSLT_TO_CONSOLE, RSLT_TO_NEWDOC, RSLT_TO_NEWDOC1, RSLT_TO_NEWDOC2, RSLT_TO_NEWDOC3, RSLT_TO_CLIP, RSLT_REPL_SEL]
+        self.rslt_vals  = [RSLT_N,  RSLT_OP,       RSLT_OPA,         RSLT_CON,        RSLT_ND,        RSLT_ND1,        RSLT_ND2,        RSLT_ND3,        RSLT_CB,      RSLT_SEL]
         self.rslt_v2c   = {RSLT_N:  RSLT_NO
                           ,RSLT_OP: RSLT_TO_PANEL
                           ,RSLT_OPA:RSLT_TO_PANEL_AP
+                          ,RSLT_CON:RSLT_TO_CONSOLE
                           ,RSLT_ND: RSLT_TO_NEWDOC
                           ,RSLT_ND1: RSLT_TO_NEWDOC1
                           ,RSLT_ND2: RSLT_TO_NEWDOC2
@@ -580,6 +583,9 @@ class Command:
 #               self.last_op_ind = -1
             else: # rslt==RSLT_OPA
                 pass
+        elif rslt == RSLT_CON:
+            ed.cmd(cmds.cmd_ShowPanelConsole)
+            print('--- Output of external tool ---')
         elif rslt ==  RSLT_ND:
             app.file_open('')
         elif rslt == RSLT_ND1:
@@ -602,6 +608,8 @@ class Command:
             if False:pass
             elif rslt in (RSLT_OP, RSLT_OPA):
                 app.app_log(app.LOG_ADD, out_ln, crc_tag, panel=app.LOG_PANEL_OUTPUT)
+            elif rslt == RSLT_CON:
+                print(out_ln)
             elif rslt in (RSLT_ND, RSLT_ND1, RSLT_ND2, RSLT_ND3):
                 ed.set_text_line(-1, out_ln)
             elif rslt in (RSLT_CB, RSLT_SEL):
