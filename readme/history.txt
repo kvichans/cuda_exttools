@@ -1,3 +1,6 @@
+1.2.31 (2019-02-11)
+fixed: don't use deprecated API
+
 1.2.30 (2018-12-23)
 added: tool output can be also "Console"
 

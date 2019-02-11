@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.30 2018-12-23'
+    '1.2.31 2019-02-11'
 ToDo: (see end of file)
 '''
 
@@ -335,7 +335,7 @@ class Command:
             app.menu_proc(              id_menu, app.MENU_CLEAR)
         else:
             top_its = app.menu_proc(    'top', app.MENU_ENUM)
-            pass;               LOG and log('top_its={}',top_its)
+            pass;              #LOG and log('top_its={}',top_its)
             if PLUG_AUTAG in [it['tag'] for it in top_its]:
                 # Reuse id from 'top'
                 pass;           LOG and log('Reuse by tag',)
@@ -490,9 +490,13 @@ class Command:
         
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
-            if not app.file_save():  return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
+            if not ed.save():       return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
+#           if not app.file_save(): return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
         if SAVS_A==ext.get('savs', SAVS_N):
             ed.cmd(cmds.cmd_FileSaveAll)
+            for h in app.ed_handles():
+                if app.Editor(h).get_prop(app.PROP_MODIFIED):
+                    return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
         
         # Preparing
         file_nm = ed.get_filename()
