@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.31 2019-02-11'
+    '1.2.32 2019-02-28'
 ToDo: (see end of file)
 '''
 
@@ -136,6 +136,10 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
 • Prompts:
    {Interactive}      - Text will be asked at each running
    {InteractiveFile}  - File name will be asked
+• Project:
+    {PRJNAME}         - If current project is loaded and has the PRJNAME var
+• OS environments:
+    {OS:ENVNAME}      - If OS has ENVNAME environment
    
 All macros can include suffix (function) to transform value.
    {Lexer|fun}             - gets fun({Lexer})
@@ -1919,14 +1923,14 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
     pass;                      #LOG and log('umcs, prjs={}',(umcs, prjs))
     if '{' not in prm:  return prm
+    # Substitude OS environments
+    for env_k,env_v in os.environ.items():
+        prm     = _replace_mcr(prm, 'OS:'+env_k, env_v)
+        if '{' not in prm:  return prm
+    
     # Substitude Project vars
     for prj_k,prj_v in prjs.items():
         prm     = _replace_mcr(prm, prj_k, prj_v)
-#       prm = prm.replace('{'+prj_k+'}', prj_v)
-#       if '{'+prj_k+'|' in prm:    # Has Filters
-#           prm = re.sub(re.escape('{'+prj_k+'|') + r'[^}]+}'
-#                       ,lambda match: _fltrd_to(match.group(0).strip('{}'), prj_v)
-#                       ,prm)
         if '{' not in prm:  return prm
 
     if '{' not in prm:  return prm
@@ -2122,6 +2126,8 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[f(_('{{ContentAsTemp_g{0}}}\tName of [temporary] file with current text in group {0}')            , gr+1) for gr in range(6)]
             +[f(_('{{Lexer_g{0}}}\tLexer of current file in group {0}')                                         , gr+1) for gr in range(6)]
              )
+    prms_l +=['OS:'+env_k+'\t'+env_v 
+                for env_k, env_v in os.environ.items()]
                         
     prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))
     if prm_i is not None:
