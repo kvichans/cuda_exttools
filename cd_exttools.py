@@ -2126,7 +2126,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[f(_('{{ContentAsTemp_g{0}}}\tName of [temporary] file with current text in group {0}')            , gr+1) for gr in range(6)]
             +[f(_('{{Lexer_g{0}}}\tLexer of current file in group {0}')                                         , gr+1) for gr in range(6)]
              )
-    prms_l +=['OS:'+env_k+'\t'+env_v 
+    prms_l +=['{OS:'+env_k+'}\t'+env_v 
                 for env_k, env_v in os.environ.items()]
                         
     prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))

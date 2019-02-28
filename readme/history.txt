@@ -1,5 +1,5 @@
 1.2.32 (2019-02-28)
-added: os-env macro
+added: support for OS env variables, using macros {OS:.....}
 
 1.2.31 (2019-02-11)
 fixed: don't use deprecated API
