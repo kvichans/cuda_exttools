@@ -1925,7 +1925,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if '{' not in prm:  return prm
     # Substitude OS environments
     for env_k,env_v in os.environ.items():
-        prm     = _replace_mcr(prm, 'OS:'+env_k, env_v)
+        prm     = _replace_mcr(prm, '{OS:'+env_k+'}', env_v)
         if '{' not in prm:  return prm
     
     # Substitude Project vars
