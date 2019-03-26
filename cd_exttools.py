@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.34 2019-03-26'
+    '1.2.35 2019-03-26'
 ToDo: (see end of file)
 '''
 
@@ -1504,7 +1504,8 @@ class Command:
                      +[dict(           tp='lb'   ,tid='file'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&File name:')                   )] # &f
                      +[dict(cid='file',tp='ed'   ,t=PROP_T[2]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                      +[dict(cid='?fil',tp='bt'   ,tid='file'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Browse...')    ,en=for_ed      )] # &b
-                     +[dict(cid='shll',tp='ch'   ,t=PROP_T[3]-2 ,l=PRP2_L   ,w=PRP2_W   ,cap=_('&Shell command'),en=for_ed      )] # &s
+                     +[dict(cid='shll',tp='ch'   ,t=PROP_T[3]-2 ,l=PRP2_L   ,w=PRP2_W   ,cap=_('&Shell command'),en=for_ed         # &s
+                                                                                        ,hint=_('Run the tool via OS shell interpreter (e.g. Bash on Unix, Cmd on Windows)')    )]
                                                  
                      +[dict(           tp='lb'   ,tid='prms'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Parameters:')                  )] # &p
                      +[dict(cid='prms',tp='ed'   ,t=PROP_T[4]   ,l=PRP2_L   ,w=PRP2_W                                           )] #

@@ -1,5 +1,7 @@
-1.2.33 (2019-03-26)
+1.2.35 (2019-03-26)
 added: FPS preset
+added: tooltip for "Shell command" check
+fixed: crash with incorrect RegEx by Test button
 
 1.2.32 (2019-02-28)
 added: support for OS env variables, using macros {OS:.....}
