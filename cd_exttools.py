@@ -1,8 +1,9 @@
 ''' Plugin for CudaText editor
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
+    Alexey Torgashin (CudaText)
 Version:
-    '1.2.33 2019-03-26'
+    '1.2.34 2019-03-26'
 ToDo: (see end of file)
 '''
 
@@ -1803,7 +1804,10 @@ class Command:
 #               , app.MB_OK)
             
             elif btn == 'test':
-                grp_dic = re.search(pttn_re, pttn_test).groupdict('') if re.search(pttn_re, pttn_test) is not None else {}
+                try:
+                    grp_dic = re.search(pttn_re, pttn_test).groupdict('') if re.search(pttn_re, pttn_test) is not None else {}
+                except Exception as e:
+                    app.msg_box(_('RegEx is incorrect: '+str(e)), app.MB_OK+app.MB_ICONERROR)
             
             elif btn == 'load':
                 ps_nms  = ['{}\t{}'.format(ps['name'], ps['run']) for ps in self.preset]
