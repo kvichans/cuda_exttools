@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.33 2019-03-26'
+    '1.2.34 2019-03-26'
 ToDo: (see end of file)
 '''
 
@@ -179,6 +179,10 @@ DEF_PRESETS = [
         {   "run": "dcc32.exe",
             "re": "^(?P<file>.+)\\((?P<line>\\d+)\\) .*",
             "name": "Delphi"
+        },
+        {   "run": "fpc",
+            "re": "^(?P<file>[^\(]+)\((?P<line>\d+),(?P<col>\d+)\) .+",
+            "name": "FreePascal"
         },
         {   "run": "gcc*",
             "re": "(?P<file>[^:]+):(?P<line>\d+):(?P<col>\d+): .+",
