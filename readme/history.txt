@@ -1,3 +1,6 @@
+1.2.33 (2019-03-26)
+added: FPS preset
+
 1.2.32 (2019-02-28)
 added: support for OS env variables, using macros {OS:.....}
 

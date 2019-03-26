@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.2.32 2019-02-28'
+    '1.2.33 2019-03-26'
 ToDo: (see end of file)
 '''
 
@@ -247,7 +247,12 @@ DEF_PRESETS = [
         },
         {   "run": "tsc.exe",
             "re": "(?P<file>.+?)\\s*\\((?P<line>\\d+),(?P<col>\\d+)\\):.+",
-            "name": "TypeScript"}
+            "name": "TypeScript"
+        },
+        {   "run": "fpc",
+            "re": "^(?P<file>[^\(]+)\((?P<line>\d+),(?P<col>\d+)\) .+",
+            "name": "FreePascal"
+        },
         ]
 
 class Command:
@@ -294,6 +299,12 @@ class Command:
         self.umacrs     = self.saving.setdefault('umacrs', [])
         self.urls       = self.saving.setdefault('urls', [])
         self.exts       = self.saving['list']
+            
+        # Update
+        nms = {m['name'] for m in self.preset}
+        for m in DEF_PRESETS:
+            if m['name'] not in nms:
+                self.preset.append(m)
             
         # Runtime data
         self.last_is_ext= True
