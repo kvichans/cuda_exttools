@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.35 2019-03-26'
+    '1.2.36 2019-05-27'
 ToDo: (see end of file)
 '''
 
@@ -642,7 +642,8 @@ class Command:
             app.app_proc(app.PROC_SET_CLIP, rslt_txt)
         elif rslt == RSLT_SEL:
             crts    = ed.get_carets()
-            for (cCrt, rCrt, cEnd, rEnd) in crts.reverse():
+            crts.reverse()
+            for (cCrt, rCrt, cEnd, rEnd) in crts:
                 if -1!=cEnd:
                     (rCrt, cCrt), (rEnd, cEnd) = apx.minmax((rCrt, cCrt), (rEnd, cEnd))
                     ed.delete(cCrt, rCrt, cEnd, rEnd)

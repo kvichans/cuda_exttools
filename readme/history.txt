@@ -1,5 +1,8 @@
+1.2.36 (2019-05-27)
+fixed: crash with "Replace selection"
+
 1.2.35 (2019-03-26)
-added: FPS preset
+added: preset for FreePascal
 added: tooltip for "Shell command" check
 fixed: crash with incorrect RegEx by Test button
 
