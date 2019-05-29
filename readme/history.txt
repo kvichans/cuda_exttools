@@ -1,3 +1,6 @@
+1.2.37 (2019-05-28)
+fixed: Use output "Replace selection" as inline or lines
+
 1.2.36 (2019-05-27)
 fixed: crash with "Replace selection"
 

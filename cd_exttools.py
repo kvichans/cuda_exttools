@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.36 2019-05-27'
+    '1.2.37 2019-05-28'
 ToDo: (see end of file)
 '''
 
@@ -636,7 +636,7 @@ class Command:
                 rslt_txt+= out_ln + '\n'
            #while True
 
-        rslt_txt= rslt_txt.strip('\n')
+#       rslt_txt= rslt_txt.strip('\n')
         if False:pass
         elif rslt == RSLT_CB:
             app.app_proc(app.PROC_SET_CLIP, rslt_txt)
@@ -644,10 +644,19 @@ class Command:
             crts    = ed.get_carets()
             crts.reverse()
             for (cCrt, rCrt, cEnd, rEnd) in crts:
+                stripped    = False
                 if -1!=cEnd:
                     (rCrt, cCrt), (rEnd, cEnd) = apx.minmax((rCrt, cCrt), (rEnd, cEnd))
+                    stripped= not(cEnd==0                           # Sel ends with EOL (at start of last line)
+                              or  cEnd==len(ed.get_text_line(rEnd)) # Sel ends before EOL/EOF
+                                )
                     ed.delete(cCrt, rCrt, cEnd, rEnd)
-                ed.insert(cCrt, rCrt, rslt_txt)
+                else:
+                    stripped= not(cCrt==0                           # Caret at start of line
+                              or  cCrt==len(ed.get_text_line(rCrt)) # Caret before EOL/EOF
+                                )
+                ed.insert(cCrt, rCrt
+                         ,rslt_txt.strip('\n') if stripped else rslt_txt)
         elif rslt in (RSLT_OP, RSLT_OPA):
             ed.focus()
             
