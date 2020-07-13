@@ -669,12 +669,12 @@ class Command:
         crc_inf = self.crcs.get(crc_tag, {})
         ext     = crc_inf.get('ext')
         if not ext:                         app.msg_status(_('No tool to parse the output line'));return
-        if not ext['pttn']:                 app.msg_status(_('Tool "{}" has not Pattern property').format(ext['nm']));return
+        if not ext['pttn']:                 app.msg_status(_('Tool "{}" has no Pattern property').format(ext['nm']));return
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
         if not grp_dic or not (
             'line'  in grp_dic 
-        or  'line0' in grp_dic):            app.msg_status(_('Tool "{}" could not find a line-number into output line').format(ext['nm']));return # '
+        or  'line0' in grp_dic):            app.msg_status(_('Tool "{}" could not find line-number in the output').format(ext['nm']));return # '
         nav_file=     grp_dic.get('file' , crc_inf['pth']  )
         nav_line= int(grp_dic.get('line' , 1+int(grp_dic.get('line0', 0))))-1
         nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
@@ -715,7 +715,7 @@ class Command:
     def _show_result(self, what):
         pass;                  #LOG and log('what, last_crc, self.last_op_ind={}',(what, self.last_crc, self.last_op_ind))
         if self.last_crc==-1:
-            return app.msg_status(_('No any results for navigation'))
+            return app.msg_status(_('No results for navigation'))
 
         crc_inf     = self.crcs.get(self.last_crc, {})
         ext         = crc_inf.get('ext')
