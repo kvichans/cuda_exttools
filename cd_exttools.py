@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.37 2019-05-28'
+    '1.2.38 2020-07-13'
 ToDo: (see end of file)
 '''
 
@@ -252,11 +252,9 @@ DEF_PRESETS = [
         },
         {   "run": "fpc",
             "re": "^(?P<file>[^\(]+)\((?P<line>\d+),(?P<col>\d+)\) .+",
-            "name": "FreePascal"
+            "name": "Free Pascal"
         },
         ]
-
-USERHOME        = os.path.expanduser('~')
 
 class Command:
     def __init__(self):
@@ -1950,7 +1948,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     pass;                      #return _subst_props(prm, file_nm, cCrt, rCrt, ext_nm, umcs, prjs)
     pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
     pass;                      #LOG and log('umcs, prjs={}',(umcs, prjs))
-    prm     = prm.replace('~', USERHOME)
+    prm     = os.path.expanduser(prm)
     if '{' not in prm:  return prm
     # Substitude OS environments
     for env_k,env_v in os.environ.items():
