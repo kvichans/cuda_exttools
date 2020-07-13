@@ -252,7 +252,7 @@ DEF_PRESETS = [
         },
         {   "run": "fpc",
             "re": "^(?P<file>[^\(]+)\((?P<line>\d+),(?P<col>\d+)\) .+",
-            "name": "FreePascal"
+            "name": "Free Pascal"
         },
         ]
 
