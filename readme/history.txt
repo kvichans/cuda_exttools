@@ -1,5 +1,5 @@
 1.2.38 (2020-07-13)
-added: new substitution in all fields: "~" as home folder
+added: properly expand "~" (home dir symbol) in tool paths
 
 1.2.37 (2019-05-28)
 fixed: Use output "Replace selection" as inline or lines
