@@ -1948,7 +1948,8 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     pass;                      #return _subst_props(prm, file_nm, cCrt, rCrt, ext_nm, umcs, prjs)
     pass;                      #LOG and log('prm, file_nm, cCrt=-1, rCrt=-1, ext_nm={}',(prm, file_nm, cCrt, rCrt, ext_nm))
     pass;                      #LOG and log('umcs, prjs={}',(umcs, prjs))
-    prm     = os.path.expanduser(prm)
+    # Expand ~ and %vars%
+    prm     = os.path.expandvars(os.path.expanduser(prm))
     if '{' not in prm:  return prm
     # Substitude OS environments
     for env_k,env_v in os.environ.items():
