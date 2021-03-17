@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.38 2020-07-13'
+    '1.2.38 2021-03-05'
 ToDo: (see end of file)
 '''
 
@@ -156,7 +156,7 @@ All functions from all std Python modules can be used, but not methods.
 ''')
     dlg_wrapper(_('Tool macros'), GAP*2+590, GAP*3+25+600,
          [dict(cid='htx',tp='me'    ,t=GAP  ,h=600  ,l=GAP          ,w=590  ,props='1,1,1' ) #  ro,mono,border
-         ,dict(cid='-'  ,tp='bt'    ,t=GAP+600+GAP  ,l=GAP+590-90   ,w=90   ,cap='&Close'  )
+         ,dict(cid='-'  ,tp='bt'    ,t=GAP+600+GAP  ,l=GAP+590-90   ,w=90   ,cap=_('&Close')  )
          ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
    #def dlg_help_vars
 
@@ -252,7 +252,7 @@ DEF_PRESETS = [
         },
         {   "run": "fpc",
             "re": "^(?P<file>[^\(]+)\((?P<line>\d+),(?P<col>\d+)\) .+",
-            "name": "Free Pascal"
+            "name": "FreePascal"
         },
         ]
 
@@ -506,20 +506,20 @@ class Command:
         
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
-            if not ed.save():       return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
-#           if not app.file_save(): return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
+            if not ed.save():       return app.msg_status(_('Cancel running tool "{}"').format(nm))
+#           if not app.file_save(): return app.msg_status(_('Cancel running tool "{}"').format(nm))
         if SAVS_A==ext.get('savs', SAVS_N):
             ed.cmd(cmds.cmd_FileSaveAll)
             for h in app.ed_handles():
                 if app.Editor(h).get_prop(app.PROP_MODIFIED):
-                    return app.msg_status(_('Cancel running tool "{}"'.format(nm)))
+                    return app.msg_status(_('Cancel running tool "{}"').format(nm))
         
         # Preparing
         file_nm = ed.get_filename()
         if  not file_nm and (
             '{File' in cmnd
         or  '{File' in prms_s
-        or  '{File' in ddir ):  return log_status(_('Cannot run tool "{}" for untitled tab'.format(nm)))
+        or  '{File' in ddir ):  return log_status(_('Cannot run tool "{}" for untitled tab').format(nm))
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
@@ -548,7 +548,7 @@ class Command:
         if RSLT_N==rslt:
             # Without capture
             try:
-                app.msg_status(_('Run: "{}"'.format(nm)))
+                app.msg_status(_('Run: "{}"').format(nm))
                 subprocess.Popen(val4call, **nmargs)
             except Exception as ex:
                 app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_ICONWARNING)
@@ -563,7 +563,7 @@ class Command:
         nmargs['shell'] =ext.get('shll', False)
         pass;                  #LOG and log('?? Popen nmargs={}',nmargs)
         try:
-            app.msg_status(_('Run: "{}"'.format(nm)))
+            app.msg_status(_('Run: "{}"').format(nm))
             pipe    = subprocess.Popen(val4call, **nmargs)
         except Exception as ex:
             app.msg_box('{}: {}'.format(type(ex).__name__, ex), app.MB_ICONWARNING)
@@ -669,12 +669,12 @@ class Command:
         crc_inf = self.crcs.get(crc_tag, {})
         ext     = crc_inf.get('ext')
         if not ext:                         app.msg_status(_('No tool to parse the output line'));return
-        if not ext['pttn']:                 app.msg_status(_('Tool "{}" has no Pattern property').format(ext['nm']));return
+        if not ext['pttn']:                 app.msg_status(_('Tool "{}" has not Pattern property').format(ext['nm']));return
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
         if not grp_dic or not (
             'line'  in grp_dic 
-        or  'line0' in grp_dic):            app.msg_status(_('Tool "{}" could not find line-number in the output').format(ext['nm']));return # '
+        or  'line0' in grp_dic):            app.msg_status(_('Tool "{}" could not find a line-number into output line').format(ext['nm']));return # '
         nav_file=     grp_dic.get('file' , crc_inf['pth']  )
         nav_line= int(grp_dic.get('line' , 1+int(grp_dic.get('line0', 0))))-1
         nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
@@ -715,7 +715,7 @@ class Command:
     def _show_result(self, what):
         pass;                  #LOG and log('what, last_crc, self.last_op_ind={}',(what, self.last_crc, self.last_op_ind))
         if self.last_crc==-1:
-            return app.msg_status(_('No results for navigation'))
+            return app.msg_status(_('No any results for navigation'))
 
         crc_inf     = self.crcs.get(self.last_crc, {})
         ext         = crc_inf.get('ext')
@@ -784,7 +784,7 @@ class Command:
         DTLS_USMS_H     = _("Edit list of user's macros to use in tool properties")
 #       DTLS_EXPT_H     = _("Select tools/urls to export its to portable form")
         DTLS_CUST_H     = _('Change this dialog sizes'
-                            '\rCtrl+Click - Restore default values')
+                            '\nCtrl+Click - Restore default values')
 
         GAP2    = GAP*2    
         prs     = self.dlg_prs
@@ -1085,7 +1085,7 @@ class Command:
                 what        = 'delete:'+str(id4del)
 
             elif btn=='del' and vals['tls']:# Delete Tool
-#               if app.msg_box( 'Delete Tool\n    {}'.format(exkys[ext_ind])
+#               if app.msg_box( _('Delete Tool\n    {}').format(exkys[ext_ind])
                 flds    = list(head_nz_d.keys())
 #               flds    = list(ext_nz_d.keys())
                 ext_vls = ext_vlss[ext_ind]
@@ -1750,7 +1750,7 @@ class Command:
                                                                                                             ,props=RE_REF                ) # &r
                  ,dict(cid='pttn_re'   ,tp='ed'     ,t=GAP+18       ,l=GAP              ,r=DLG_W-GAP*2-70                                ) #
                  ,dict(cid='apnd'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap=_('&Add...')
-                                                                                                            ,hint='Append named group'   ) # &a
+                                                                                                            ,hint=_('Append named group')   ) # &a
 #                ,dict(cid='help'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap='&?..'                  ) # &?
                  # Testing                                                                                         
                  ,dict(cid=''          ,tp='lb'     ,t= 60          ,l=GAP              ,w=300              ,cap=_('Test "&Output line":')) # &o
@@ -2029,7 +2029,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
 
     if '{Interactive}' in prm \
     or '{Interactive|' in prm:
-        ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
+        ans = app.dlg_input(_('Param for call {}').format(ext_nm), '')
         if ans is None: return
         prm = _replace_mcr(prm, '{Interactive}'     , ans)
     if '{InteractiveFile' in prm:
@@ -2079,7 +2079,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
 #       if  '{CurrentWord}'       in prm: prm = prm.replace('{CurrentWord}'     , get_current_word(ed, cCrt, rCrt))
 #
 #   if '{Interactive}' in prm:
-#       ans = app.dlg_input('Param for call {}'.format(ext_nm), '')
+#       ans = app.dlg_input(_('Param for call {}').format(ext_nm), '')
 #       if ans is None: return
 #       prm = prm.replace('{Interactive}'     , ans)
 #   if '{InteractiveFile}' in prm:

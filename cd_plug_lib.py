@@ -174,9 +174,9 @@ class Tr :
             Tr.se_fmt       = '{:'+str(3+Tr.sec_digs)+'.'+str(Tr.sec_digs)+'f}"'
             Tr.mise_fmt     = "{:2d}'"+Tr.se_fmt
             Tr.homise_fmt   = "{:2d}h"+Tr.mise_fmt
-        h = int( secs / 3600 )
+        h = secs // 3600
         secs = secs % 3600
-        m = int( secs / 60 )
+        m = secs // 60
         s = secs % 60
         return Tr.se_fmt.format(s) \
                 if 0==h+m else \
@@ -192,33 +192,43 @@ class Tr :
 def get_translation(plug_file):
     ''' Part of i18n.
         Full i18n-cycle:
-        1. All GUI-string in code are used in form 
+        1. All GUI-string in code are used in form
             _('')
-        2. These string are extracted from code to 
+        2. These string are extracted from code to
             lang/messages.pot
            with run
-            python.exe <pypython-root>\Tools\i18n\pygettext.py -p lang <plugin>.py
-        3. Poedit (or same program) create 
+            python.exe <python-root>\Tools\i18n\pygettext.py -p lang <plugin>.py
+        3. Poedit (or same program) create
             <module>\lang\ru_RU\LC_MESSAGES\<module>.po
-           from (cmd "Update from POT") 
+           from (cmd "Update from POT")
             lang/messages.pot
            It allows to translate all "strings"
            It creates (cmd "Save")
             <module>\lang\ru_RU\LC_MESSAGES\<module>.mo
-        4. get_translation uses the file to realize
+        4. <module>.mo can be placed also in dir
+            CudaText\data\langpy\ru_RU\LC_MESSAGES\<module>.mo
+           The dir is used first.
+        5. get_translation uses the file to realize
             _('')
     '''
-    plug_dir= os.path.dirname(plug_file)
-    plug_mod= os.path.basename(plug_dir)
-    lng     = app.app_proc(app.PROC_GET_LANG, '')
-    lng_mo  = plug_dir+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
-    if os.path.isfile(lng_mo):
-        t   = gettext.translation(plug_mod, plug_dir+'/lang', languages=[lng])
-        _   = t.gettext
-        t.install()
-    else:
-        _   =  lambda x: x
+    lng      = app.app_proc(app.PROC_GET_LANG, '')
+    plug_dir = os.path.dirname(plug_file)
+    plug_mod = os.path.basename(plug_dir)
+    lng_dirs = [
+                 app.app_path(app.APP_DIR_DATA)  + os.sep + 'langpy',
+                 plug_dir                        + os.sep + 'lang',
+               ]
+    _        =  lambda x: x
+    pass;                      #return _
+    for lng_dir in lng_dirs:
+        lng_mo = lng_dir+'/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
+        if os.path.isfile(lng_mo):
+            t = gettext.translation(plug_mod, lng_dir, languages = [lng])
+            _ = t.gettext
+            t.install()
+            break
     return _
+   #def get_translation
 
 _   = get_translation(__file__) # I18N
 
@@ -233,7 +243,7 @@ def get_desktop_environment():
         return "mac"
     else: #Most likely either a POSIX system or something not much common
         desktop_session = os.environ.get("DESKTOP_SESSION")
-        if desktop_session is not None: #easier to match if we doesn't have  to deal with caracter cases
+        if desktop_session is not None: #easier to match if we doesn't have  to deal with character cases
             desktop_session = desktop_session.lower()
             if desktop_session in ["gnome","unity", "cinnamon", "mate", "xfce4", "lxde", "fluxbox", 
                                    "blackbox", "openbox", "icewm", "jwm", "afterstep","trinity", "kde"]:
@@ -422,9 +432,14 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
             
         lst     = ['type='+tp]
         # Simple props
-        for k in ['cap', 'hint', 'props']:
+        for k in ['cap', 'hint']:
             if k in cnt:
                 lst += [k+'='+str(cnt[k])]
+        # Alexey: support 'ex0'..'ex9'
+        if 'props' in cnt:
+            props = cnt['props'].split(',')
+            for p_i, p_s in enumerate(props):
+                lst += ['ex'+str(p_i)+'='+p_s]
         # Props with preparation
         # Position:
         #   t[op] or tid, l[eft] required
@@ -529,7 +544,7 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
            #in_val = ','.join(in_val)
         elif tp in ['checklistbox', 'checklistview'] and isinstance(in_val, tuple):
             an_val = an_val.split(';')
-            an_val = (an_val[0], an_val[1].split(','))
+            an_val = (an_val[0], an_val[1].strip(',').split(','))
            #in_val = ';'.join(in_val[0], ','.join(in_val[1]))
         elif isinstance(in_val, bool): 
             an_val = an_val=='1'
@@ -708,8 +723,8 @@ if __name__ == '__main__' :     # Tests
     def test_ask_number(ask, def_val):
         cnts=[dict(        tp='lb',tid='v',l=3 ,w=70,cap=ask)
              ,dict(cid='v',tp='ed',t=3    ,l=73,w=70)
-             ,dict(cid='!',tp='bt',t=45   ,l=3 ,w=70,cap='OK',props='1')
-             ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap='Cancel')]
+             ,dict(cid='!',tp='bt',t=45   ,l=3 ,w=70,cap=_('OK'),props='1')
+             ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap=_('Cancel'))]
         vals={'v':def_val}
         while True:
             btn,vals,fid,chds=dlg_wrapper('Example',146,75,cnts,vals,'v')
