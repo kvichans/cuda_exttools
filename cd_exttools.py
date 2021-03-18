@@ -784,7 +784,7 @@ class Command:
         DTLS_USMS_H     = _("Edit list of user's macros to use in tool properties")
 #       DTLS_EXPT_H     = _("Select tools/urls to export its to portable form")
         DTLS_CUST_H     = _('Change this dialog sizes'
-                            '\nCtrl+Click - Restore default values')
+                            '\rCtrl+Click - Restore default values')
 
         GAP2    = GAP*2    
         prs     = self.dlg_prs
