@@ -155,7 +155,7 @@ All functions from all std Python modules can be used, but not methods.
    q is short form of urllib.parse.quote
 ''')
     dlg_wrapper(_('Tool macros'), GAP*2+590, GAP*3+25+600,
-         [dict(cid='htx',tp='me'    ,t=GAP  ,h=600  ,l=GAP          ,w=590  ,props='1,1,1' ) #  ro,mono,border
+         [dict(cid='htx',tp='me'    ,t=GAP  ,h=600  ,l=GAP          ,w=590  ,ex0='1', ex1='1', ex2='1' ) #  ro,mono,border
          ,dict(cid='-'  ,tp='bt'    ,t=GAP+600+GAP  ,l=GAP+590-90   ,w=90   ,cap=_('&Close')  )
          ], dict(htx=EXT_HELP_BODY), focus_cid='htx')
    #def dlg_help_vars
@@ -897,7 +897,7 @@ class Command:
 
                     +[dict(cid='lst',tp='lvw'   ,t=GAP+20   ,l=GAP          ,w=4+WD_LST, h=HT_LST-20  ,items=itms                               )] #
 
-                    +[dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,props='1'  ,en=lG0 )] # &e  default
+                    +[dict(cid='edt',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Edit...')          ,ex0='1'    ,en=lG0 )] # &e  default
                     +[dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                               )] # &a
                     +[dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Delete...')                    ,en=lG0 )] # &d
                     +[dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne...')                     ,en=lG0 )] # &n
@@ -1231,7 +1231,7 @@ class Command:
             cnts    =[dict(          tp='lb'    ,tid='evl'     ,l=GAP          ,w=400  ,cap=_('&Vars')                              )   # &v
                      ,dict(cid='evl',tp='ch'    ,t=GAP         ,l=GAP+105      ,w=80   ,cap=_('Expanded mac&ros')       ,act='1'    )   # &r
                      ,dict(cid='lst',tp='lvw'   ,t=GAP+21,h=300,l=GAP          ,w=605  ,items=itms                                  )   # 
-                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,props='1'   ,en=nempty  )   # &e  default
+                     ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,ex0='1'     ,en=nempty  )   # &e  default
                      ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=nempty  )   # &a
                      ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                 ,en=nempty  )   # &n
                      ,dict(cid='del',tp='bt'    ,t=bt_t2       ,l=bt_l2        ,w=110  ,cap=_('&Delete...')             ,en=nempty  )   # &d
@@ -1266,7 +1266,7 @@ class Command:
                      ,dict(cid='var',tp='bt'    ,t=GAP+50     ,l=GAP+300      ,w=100  ,cap=_('Add &var...')   ) # &v
                      ,dict(          tp='lb'    ,tid='co'     ,l=GAP          ,w=100  ,cap=_('&Comment:')     ) # &c
                      ,dict(cid='co' ,tp='ed'    ,t=GAP+75     ,l=GAP+100      ,w=300                          ) #
-                     ,dict(cid='!'  ,tp='bt'    ,t=GAP+110    ,l=    400-140  ,w=70   ,cap=_('OK'),props='1'  ) #     default
+                     ,dict(cid='!'  ,tp='bt'    ,t=GAP+110    ,l=    400-140  ,w=70   ,cap=_('OK'), ex0='1'   ) #     default
                      ,dict(cid='-'  ,tp='bt'    ,t=GAP+110    ,l=GAP+400- 70  ,w=70   ,cap=_('Cancel')        ) #
                         ]
                 um_fcsd = 'nm'
@@ -1353,7 +1353,7 @@ class Command:
         crt     = str(sels.index('1') if '1' in sels else 0)
 
         cnts    =[dict(cid='exs',tp='ch-lbx',t=GAP,h=400    ,l=GAP          ,w=300  ,items=ext_nms          ) #
-                 ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    300-140  ,w=70   ,cap=_('OK'),props='1'  ) #  default
+                 ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    300-140  ,w=70   ,cap=_('OK'),ex0='1'  ) #  default
                  ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+300- 70  ,w=70   ,cap=_('Cancel')        ) #  
                 ]
         vals    = dict(exs=(crt,sels))
@@ -1396,12 +1396,12 @@ class Command:
                      ,dict(cid='?mcr',tp='bt'   ,tid='url'     ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Macro...')                  ) # &m
                                               
                      ,dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                    ) #
-                     ,dict(cid='keys',tp='ed'   ,t=PROP_T[3]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'   ) #     ro,mono,border
+                     ,dict(cid='keys',tp='ed'   ,t=PROP_T[3]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'   ) #     ro,mono,border
 #                    ,dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')                 ) # &g
 
                      ,dict(cid='help',tp='bt'   ,t=PROP_T[4]+9 ,l=GAP      ,w=PRP3_W       ,cap=_('Help')                   ) #
                      ,dict(cid='prjs',tp='bt'   ,t=PROP_T[4]+9 ,l=PRP2_L   ,w=PRP3_W       ,cap=_('Pro&ject...')            ) # &j
-                     ,dict(cid='!'   ,tp='bt'   ,t=PROP_T[4]+9 ,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,props='1'       ) #     default
+                     ,dict(cid='!'   ,tp='bt'   ,t=PROP_T[4]+9 ,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,ex0='1'       ) #     default
                      ,dict(cid='-'   ,tp='bt'   ,t=PROP_T[4]+9 ,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                 ) #
                     ]
             if not with_proj_man:
@@ -1526,37 +1526,37 @@ class Command:
                      +[dict(cid='?dir',tp='bt'   ,tid='ddir'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('B&rowse...')    ,en=for_ed      )] # &r
                     )
                      +[dict(           tp='lb'   ,tid='lxrs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Lexers:')                       )] #
-                     +[dict(cid='lxrs',tp='ed'   ,t=PROP_T[6]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
+                     +[dict(cid='lxrs',tp='ed'   ,t=PROP_T[6]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?lxr',tp='bt'   ,tid='lxrs'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Le&xers...')    ,en=for_ed      )] # &x
                                                  
                      +[dict(           tp='lb'   ,tid='main'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Main for:')                     )] #
-                     +[dict(cid='main',tp='ed'   ,t=PROP_T[7]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
+                     +[dict(cid='main',tp='ed'   ,t=PROP_T[7]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?man',tp='bt'   ,tid='main'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Set &main...')  ,en=for_ed      )] # &m
                                                  
                      +[dict(           tp='lb'   ,tid='savs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Sa&ve before:')                 )] # &v
                      +[dict(cid='savs',tp='cb-ro',t=PROP_T[8]   ,l=PRP2_L   ,w=PRP2_W   ,items=self.savs_caps   ,en=for_ed      )] #
                                               
                      +[dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                       )] #
-                     +[dict(cid='keys',tp='ed'   ,t=PROP_T[9]   ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
+                     +[dict(cid='keys',tp='ed'   ,t=PROP_T[9]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
 #                    +[dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')    ,en=for_ed      )] # &g
                     +([] if joined else []                     
                      +[dict(           tp='lb'   ,tid='rslt'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Capture output:')              )] # &c
                      +[dict(cid='rslt',tp='cb-ro',t=PROP_T[11]  ,l=PRP2_L   ,w=PRP2_W   ,items=self.rslt_caps   ,en=for_ed      )] 
                      +[dict(           tp='lb'   ,tid='encd'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Encoding:')                     )] #
-                     +[dict(cid='encd',tp='ed'   ,t=PROP_T[12]  ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
+                     +[dict(cid='encd',tp='ed'   ,t=PROP_T[12]  ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?enc',tp='bt'   ,tid='encd'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('S&elect...')    ,en=for_ed      )] # &
                      +[dict(           tp='lb'   ,tid='pttn'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Pattern:')                      )] #
-                     +[dict(cid='pttn',tp='ed'   ,t=PROP_T[13]  ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
+                     +[dict(cid='pttn',tp='ed'   ,t=PROP_T[13]  ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?ptn',tp='bt'   ,tid='pttn'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Se&t...')       ,en=for_ed      )] # &e
                     )                                         
                      +[dict(           tp='lb'   ,tid='more'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Advanced:')                     )] #
-                     +[dict(cid='more',tp='ed'   ,t=PROP_T[14]  ,l=PRP2_L   ,w=PRP2_W                       ,props='1,0,1'      )] #     ro,mono,border
+                     +[dict(cid='more',tp='ed'   ,t=PROP_T[14]  ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?mor',tp='bt'   ,tid='more'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Set...')        ,en=for_ed      )] #
                     +([] if joined else []                     
                      +[dict(cid='help',tp='bt'   ,t=PROP_T[15]+9,l=GAP      ,w=PRP3_W       ,cap=_('Help')      ,en=for_ed      )] #
                      +[dict(cid='prjs',tp='bt'   ,t=PROP_T[15]+9,l=PRP2_L   ,w=PRP3_W       ,cap=_('Pro&ject...'),en=for_ed     )] # &j
                     )                                         
-                     +[dict(cid='!'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,props='1',en=for_ed)] #     default
+                     +[dict(cid='!'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,ex0='1',en=for_ed)] #     default
                      +[dict(cid='-'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                    )] #
                     )
             if not with_proj_man:
@@ -1677,7 +1677,7 @@ class Command:
                 crt     = str(sels.index('1') if '1' in sels else 0)
 
                 lx_cnts =[dict(cid='lxs',tp='ch-lbx',t=GAP,h=400    ,l=GAP          ,w=200  ,items=lxrs_l           ) #
-                         ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    200-140  ,w=70   ,cap=_('OK'),props='1'  ) #  default
+                         ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    200-140  ,w=70   ,cap=_('OK'),ex0='1'  ) #  default
                          ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+200- 70  ,w=70   ,cap=_('Cancel')        ) #  
                         ]
                 lx_vals = dict(lxs=(crt,sels))
@@ -1719,7 +1719,7 @@ class Command:
                    #for (i, a)
                 avd_h   = len(ADV_PROPS)*50
                 ad_cnts   += [
-                     dict(cid='!'   ,tp='bt',t=GAP+avd_h+GAP,l=    600-140  ,w=70   ,cap=_('OK')     ,props='1' ) # default
+                     dict(cid='!'   ,tp='bt',t=GAP+avd_h+GAP,l=    600-140  ,w=70   ,cap=_('OK')     ,ex0='1' ) # default
                     ,dict(cid='-'   ,tp='bt',t=GAP+avd_h+GAP,l=GAP+600- 70  ,w=70   ,cap=_('Cancel')            )
                             ]
                 ad_btn, \
@@ -1747,7 +1747,7 @@ class Command:
         DLG_W,  \
         DLG_H   = GAP+550+GAP, GAP+250+3#+GAP
         cnts    =[dict(cid=''          ,tp='ln-lb'  ,t=GAP          ,l=GAP              ,w=300              ,cap=_('&Regular expression:')
-                                                                                                            ,props=RE_REF                ) # &r
+                                                                                                            ,ex0=RE_REF                  ) # &r
                  ,dict(cid='pttn_re'   ,tp='ed'     ,t=GAP+18       ,l=GAP              ,r=DLG_W-GAP*2-70                                ) #
                  ,dict(cid='apnd'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap=_('&Add...')
                                                                                                             ,hint=_('Append named group')   ) # &a
@@ -1759,16 +1759,16 @@ class Command:
                                                                                                                                
                  ,dict(cid=''          ,tp='lb'     ,t=110+GAP*0+23*0   ,l=GAP+ 80      ,w=300              ,cap=_('Testing results')    ) #
                  ,dict(cid=''          ,tp='lb'     ,tid='file'         ,l=GAP          ,w=80               ,cap=_('Filename:')          ) #
-                 ,dict(cid='file'      ,tp='ed'     ,t=110+GAP*0+23*1   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,props='1,0,1'   ) #   ro,mono,border
+                 ,dict(cid='file'      ,tp='ed'     ,t=110+GAP*0+23*1   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,ex0='1', ex1='0', ex2='1'   ) #   ro,mono,border
                  ,dict(cid=''          ,tp='lb'     ,tid='line'         ,l=GAP          ,w=80               ,cap=_('Line:')              ) #
-                 ,dict(cid='line'      ,tp='ed'     ,t=110+GAP*1+23*2   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,props='1,0,1'   ) #   ro,mono,border
+                 ,dict(cid='line'      ,tp='ed'     ,t=110+GAP*1+23*2   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,ex0='1', ex1='0', ex2='1'   ) #   ro,mono,border
                  ,dict(cid=''          ,tp='lb'     ,tid='col'          ,l=GAP          ,w=80               ,cap=_('Column:')            ) #
-                 ,dict(cid='col'       ,tp='ed'     ,t=110+GAP*2+23*3   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,props='1,0,1'   ) #   ro,mono,border
+                 ,dict(cid='col'       ,tp='ed'     ,t=110+GAP*2+23*3   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,ex0='1', ex1='0', ex2='1'   ) #   ro,mono,border
                  # Preset                                                                                          
                  ,dict(cid='load'      ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP              ,w=130              ,cap=_('Load &preset...')    ) # &p
                  ,dict(cid='save'      ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP+130+GAP      ,w=130              ,cap=_('&Save as preset...') ) # &s
                  # OK                                                                                              
-                 ,dict(cid='ok'        ,tp='bt'     ,t=DLG_H-GAP-24 ,l=    550-140      ,w=70               ,cap=_('OK'),props='1'       ) #   default
+                 ,dict(cid='ok'        ,tp='bt'     ,t=DLG_H-GAP-24 ,l=    550-140      ,w=70               ,cap=_('OK'),ex0='1'       ) #   default
                  ,dict(cid='cancel'    ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP+550- 70      ,w=70               ,cap=_('Cancel')             ) #
                 ]
         while True:
