@@ -436,7 +436,7 @@ class Command:
     def run_lxr_main(self):
         lxr     = ed.get_prop(app.PROP_LEXER_FILE)
         if lxr not in self.ext4lxr:
-            return log_status(f(_('No main lexer tool for "{}"'), lxr))
+            return log_status(f(_('Main tool for lexer "{}" is not configured yet'), lxr))
         self.run(self.ext4lxr[lxr])
        #def run_lxr_main
 
