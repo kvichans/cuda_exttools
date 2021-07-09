@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.38 2021-03-05'
+    '1.2.39 2021-07-09'
 ToDo: (see end of file)
 '''
 
@@ -1693,7 +1693,7 @@ class Command:
             
             elif btn=='?enc':
                 enc_nms = get_encoding_names()
-                enc_ind = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(enc_nms), caption=_('Encodings'))
+                enc_ind = app.dlg_menu(app.DMENU_LIST_ALT, '\n'.join(enc_nms), caption=_('Encodings'))
                 if enc_ind is not None:
                     ed_ext['encd'] = enc_nms[enc_ind].split('\t')[0]
 
@@ -1798,7 +1798,7 @@ class Command:
                           ,['(?P<line0>)', _('Number of line (0-based, default - 0)')]
                           ,['(?P<col0>)' , _('Number of column (0-based, default - 0)')]
                         ]
-                grp_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(['\t'.join(g) for g in grps]), caption=_('Pattern variables'))
+                grp_i   = app.dlg_menu(app.DMENU_LIST_ALT, '\n'.join(['\t'.join(g) for g in grps]), caption=_('Pattern variables'))
                 if grp_i is not None:
                     pttn_re += grps[grp_i][0]
                 
@@ -1822,7 +1822,7 @@ class Command:
             
             elif btn == 'load':
                 ps_nms  = ['{}\t{}'.format(ps['name'], ps['run']) for ps in self.preset]
-                ps_ind  = app.dlg_menu(app.MENU_LIST, '\n'.join(ps_nms), caption=_('Ready patterns'))
+                ps_ind  = app.dlg_menu(app.DMENU_LIST, '\n'.join(ps_nms), caption=_('Ready patterns'))
                 if ps_ind is not None:
                     pttn_re     = self.preset[ps_ind]['re']
                     pttn_test   = self.preset[ps_ind].get('test', '')
@@ -2156,7 +2156,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
     prms_l +=['{OS:'+env_k+'}\t'+env_v 
                 for env_k, env_v in os.environ.items()]
                         
-    prm_i   = app.dlg_menu(app.MENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))
+    prm_i   = app.dlg_menu(app.DMENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))
     if prm_i is not None:
         tostr  = (tostr + (' '+prms_l[prm_i].split('\t')[0])).lstrip()
     return tostr
