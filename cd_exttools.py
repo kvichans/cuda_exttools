@@ -3,11 +3,11 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.39 2021-07-09'
+    '1.2.40 2021-07-17'
 ToDo: (see end of file)
 '''
 
-import  os, json, random, subprocess, shlex, copy, collections, re, zlib, tempfile
+import  sys, os, json, random, subprocess, shlex, copy, collections, re, zlib, tempfile
 import  webbrowser, urllib
 import  importlib
 import  cudatext            as app
@@ -621,7 +621,7 @@ class Command:
 
         while True:
             # 'encd' can be empty string, fixed here
-            out_ln = pipe.stdout.readline().decode(ext.get('encd') or 'utf_8')
+            out_ln = pipe.stdout.readline().decode(ext.get('encd') or sys.getdefaultencoding(), errors='replace')
             if 0==len(out_ln): break
             out_ln = out_ln.strip('\r\n')
             pass;              #LOG and log('out_ln={}',out_ln)
