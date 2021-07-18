@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.2.39 2021-07-09'
+    '1.2.40 2021-07-18'
 ToDo: (see end of file)
 '''
 
@@ -621,7 +621,9 @@ class Command:
 
         while True:
             # 'encd' can be empty string, fixed here
-            out_ln = pipe.stdout.readline().decode(ext.get('encd') or 'utf_8')
+#           out_ln = pipe.stdout.readline().decode(ext.get('encd') or 'utf_8')
+            out_ln = pipe.stdout.readline().decode(ext.get('encd') or sys.getdefaultencoding(), errors='replace') # github.com/Alexey-T/CudaText/issues/3559
+
             if 0==len(out_ln): break
             out_ln = out_ln.strip('\r\n')
             pass;              #LOG and log('out_ln={}',out_ln)
