@@ -2195,7 +2195,7 @@ def _file_open(op_file):
     for h in app.ed_handles():
         op_ed   = app.Editor(h)
         _ed_fn = op_ed.get_filename()
-        if os.path.samefile(op_file, _ed_fn):
+        if _ed_fn and os.path.samefile(op_file, _ed_fn):
             return op_ed
     return None
    #def _file_open
