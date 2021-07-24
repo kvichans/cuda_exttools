@@ -300,28 +300,28 @@ class Command:
         self.umacrs     = self.saving.setdefault('umacrs', [])
         self.urls       = self.saving.setdefault('urls', [])
         self.exts       = self.saving['list']
-            
+
         # Update
         nms = {m['name'] for m in self.preset}
         for m in DEF_PRESETS:
             if m['name'] not in nms:
                 self.preset.append(m)
-            
+
         # Runtime data
         self.last_is_ext= True
         self.url4id     = {str(url['id']):url for url in self.urls}
         self.last_url_id= 0
         self.ext4id     = {str(ext['id']):ext for ext in self.exts}
-        self.crcs       = {}
-        self.last_crc   = -1
+        self.last_run_info   = None # info about last tool run
         self.last_ext_id= 0
         self.last_op_ind= -1
+        self.line_hash_tools = {} # line hash -> tool info
 
         # Adjust
         for ext in self.exts:
             self._fill_ext(ext)
 
-        # Actualize lexer-tool 
+        # Actualize lexer-tool
         lxrs_l  = app.lexer_proc(app.LEXER_GET_LEXERS, False) + ['(none)']
 #       lxrs_l  = _get_lexers()
         for i_lxr in range(len(self.ext4lxr)-1,-1,-1):
@@ -577,24 +577,15 @@ class Command:
         app.msg_status(_('Run: {} {}').format(cmnd, prms_s))
 
         rslt_txt= ''
-        crc_tag = 0
-        def gen_save_crc(ext, cwd='', filepath='', filecol=0, filerow=0):
-            ''' Generate 32-bit int for each ext running '''
-            text    = '|'.join([str(ext[k]) for k in ext]
-                              +[f('{}|{}|{}|{}|{}', cwd, filepath, cCrt, rCrt, len(self.crcs))]
-                              )
-            crc     = zlib.crc32(text.encode()) & 0x0fffffff
-            self.last_crc   = crc
-            self.crcs[crc]  = {  'ext':ext
-                                ,'cwd':cwd
-                                ,'pth':filepath
-                                ,'col':cCrt
-                                ,'row':rCrt
-                                }
-            return crc
         if False:pass
-        elif rslt in (RSLT_OP, RSLT_OPA):
-            crc_tag = gen_save_crc(ext, os.path.abspath('.'), file_nm, cCrt, rCrt)
+        elif rslt in (RSLT_OP, RSLT_OPA):   # Output OR 'Output append'
+            self.line_hash_tools.clear()    # discard old info - only navigate in last run's Output
+            self.last_run_info = {'ext':ext,
+                        'cwd':os.path.abspath('.'),
+                        'pth':file_nm,
+                        'col':cCrt,
+                        'row':rCrt,
+                        }
             self.last_op_ind = -1
             ed.cmd(cmds.cmd_ShowPanelOutput)
             ed.focus()
@@ -629,7 +620,8 @@ class Command:
             pass;              #LOG and log('out_ln={}',out_ln)
             if False:pass
             elif rslt in (RSLT_OP, RSLT_OPA):
-                app.app_log(app.LOG_ADD, out_ln, crc_tag, panel=app.LOG_PANEL_OUTPUT)
+                self.line_hash_tools[hash(out_ln)] = self.last_run_info
+                app.app_log(app.LOG_ADD, out_ln, panel=app.LOG_PANEL_OUTPUT)
             elif rslt == RSLT_CON:
                 print(out_ln)
             elif rslt in (RSLT_ND, RSLT_ND1, RSLT_ND2, RSLT_ND3):
@@ -661,38 +653,38 @@ class Command:
                          ,rslt_txt.strip('\n') if stripped else rslt_txt)
         elif rslt in (RSLT_OP, RSLT_OPA):
             ed.focus()
-            
+
         return True
        #def run
-       
+
     def on_output_nav(self, ed_self, output_line, crc_tag):
         pass;                  #LOG and log('output_line, crc_tag={}',(output_line, crc_tag))
-        
-        crc_inf = self.crcs.get(crc_tag, {})
-        ext     = crc_inf.get('ext')
+
+        run_inf = self.line_hash_tools.get(hash(output_line), {})
+        ext     = run_inf.get('ext')
         if not ext:                         app.msg_status(_('No tool to parse the output line'));return
         if not ext['pttn']:                 app.msg_status(_('Tool "{}" has not Pattern property').format(ext['nm']));return
         pttn    = ext['pttn']
         grp_dic = re.search(pttn, output_line).groupdict('') if re.search(pttn, output_line) is not None else {}
         if not grp_dic or not (
-            'line'  in grp_dic 
+            'line'  in grp_dic
         or  'line0' in grp_dic):            app.msg_status(_('Tool "{}" could not find a line-number into output line').format(ext['nm']));return # '
-        nav_file=     grp_dic.get('file' , crc_inf['pth']  )
+        nav_file=     grp_dic.get('file' , run_inf['pth']  )
         nav_line= int(grp_dic.get('line' , 1+int(grp_dic.get('line0', 0))))-1
         nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
         pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
         bs_dir  = ext['ddir']
         bs_dir  = bs_dir if bs_dir else '{FileDir}'
-        bs_dir  = os.path.dirname(crc_inf['pth']) \
+        bs_dir  = os.path.dirname(run_inf['pth']) \
                     if not bs_dir else  \
-                  _subst_fltd_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
-#                 _subst_props(bs_dir, crc_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
+                  _subst_fltd_props(bs_dir, run_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
+#                 _subst_props(bs_dir, run_inf['pth'], umcs=self._calc_umc_vals(), prjs=get_proj_vars())
         nav_file= os.path.join(bs_dir, nav_file)
         pass;                  #LOG and log('nav_file={}',(nav_file))
         if not os.path.exists(nav_file):    app.msg_status(_('Cannot open: {}').format(nav_file));return
-        
+
         self.last_op_ind = app.app_log(app. LOG_GET_LINEINDEX, '', panel=app.LOG_PANEL_OUTPUT)
-        
+
         nav_ed  = _file_open(nav_file)
         if nav_ed is None:                  app.msg_status(_('Cannot open: {}').format(nav_file));return
         nav_ed.focus()
@@ -711,33 +703,35 @@ class Command:
                 ed.unlock()
         nav_ed.set_caret(nav_col, nav_line)
        #def on_output_nav
-       
+
     def show_next_result(self): self._show_result('next')
     def show_prev_result(self): self._show_result('prev')
     def _show_result(self, what):
-        pass;                  #LOG and log('what, last_crc, self.last_op_ind={}',(what, self.last_crc, self.last_op_ind))
-        if self.last_crc==-1:
+        """ searches (forward/back) for pattern in lines of last tool-run
+        """
+        pass;                  #LOG and log('what, self.last_op_ind={}',(what, self.last_op_ind))
+        if not self.last_run_info:
             return app.msg_status(_('No any results for navigation'))
 
-        crc_inf     = self.crcs.get(self.last_crc, {})
-        ext         = crc_inf.get('ext')
-        ext_pttn    = ext['pttn']
+        _ext        = self.last_run_info.get('ext')
+        ext_pttn    = _ext['pttn']
         op_line_tags=app.app_log(app.LOG_GET_LINES_LIST, '', panel=app.LOG_PANEL_OUTPUT)
         pass;                  #LOG and log('op_line_tags={}',op_line_tags)
 #       op_line_tags=app.app_log(app.LOG_GET_LINES, '', panel=app.LOG_PANEL_OUTPUT)
 #       pass;                   LOG and log('op_line_tags={}',op_line_tags)
-#       op_line_tags=[(item.split(c13)[0], int(item.split(c13)[1])) 
-#                       if c13 in item else 
+#       op_line_tags=[(item.split(c13)[0], int(item.split(c13)[1]))
+#                       if c13 in item else
 #                     (item, 0)
 #                       for item in op_line_tags.split(c10)]
 #       pass;                   LOG and log('op_line_tags={}',op_line_tags)
-        for op_ind in (range(self.last_op_ind+1, len(op_line_tags)) 
+        for op_ind in (range(self.last_op_ind+1, len(op_line_tags))
                         if what=='next' else
-                       range(self.last_op_ind-1, -1, -1) 
+                       range(self.last_op_ind-1, -1, -1)
                       ):
             line, crc   = op_line_tags[op_ind]
-            if crc != self.last_crc:            continue    #for
-            if not re.search(ext_pttn, line):   continue    #for
+            line_tool_info = self.line_hash_tools.get(hash(line))
+            if line_tool_info is not self.last_run_info:    continue    #for
+            if not re.search(ext_pttn, line):           continue    #for
             self.last_op_ind = op_ind
             app.app_log(app. LOG_SET_LINEINDEX, str(op_ind), panel=app.LOG_PANEL_OUTPUT)
             self.on_output_nav(ed, line, crc)
