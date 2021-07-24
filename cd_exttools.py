@@ -579,7 +579,8 @@ class Command:
         rslt_txt= ''
         if False:pass
         elif rslt in (RSLT_OP, RSLT_OPA):   # Output OR 'Output append'
-            self.line_hash_tools.clear()    # discard old info - only navigate in last run's Output
+            if rslt == RSLT_OP:
+                self.line_hash_tools.clear()    # discard old info - Output is cleared
             self.last_run_info = {'ext':ext,
                         'cwd':os.path.abspath('.'),
                         'pth':file_nm,
