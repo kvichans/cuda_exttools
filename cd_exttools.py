@@ -2194,7 +2194,8 @@ def _file_open(op_file):
         return None
     for h in app.ed_handles():
         op_ed   = app.Editor(h)
-        if os.path.samefile(op_file, op_ed.get_filename()):
+        _ed_fn = op_ed.get_filename()
+        if os.path.samefile(op_file, _ed_fn):
             return op_ed
     return None
    #def _file_open
