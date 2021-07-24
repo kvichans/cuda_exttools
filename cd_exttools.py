@@ -141,7 +141,7 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
     {PRJNAME}         - If current project is loaded and has the PRJNAME var
 • OS environments:
     {OS:ENVNAME}      - If OS has ENVNAME environment
-   
+
 All macros can include suffix (function) to transform value.
    {Lexer|fun}             - gets fun({Lexer})
    {Lexer|fun:p1,p2}       - gets fun({Lexer},p1,p2)
@@ -331,13 +331,13 @@ class Command:
                 del self.ext4lxr[lxr]
         pass;                  #LOG and log('self.preset={}',self.preset)
        #def __init__
-       
+
     def on_start(self, ed_self):
         if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         pass
         self._do_acts(acts='|reg|menu|')
        #def on_start
-        
+
     def adapt_menu(self, id_menu=0):
         ''' Add or change top-level menu ExtTools
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
@@ -389,19 +389,19 @@ class Command:
                 app.menu_proc(  id_menu, app.MENU_ADD, command=call_with(self.browse,    url['id']),caption=url['nm']
                              , hotkey=get_hotkeys_desc(      f('cuda_exttools,browse,{}',url['id'])))
        #def adapt_menu
-        
+
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):
         ''' Use exts list '''
         pass;                  #LOG and log('what, acts={}',(what, acts))
         # Save
         if '|save|' in acts:
             open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
-        
+
         # Secondary data
         if '|second|' in acts:
             self.ext4id     = {str(ext['id']):ext for ext in self.exts}
             self.url4id     = {str(url['id']):url for url in self.urls}
-        
+
         # Register new subcommands
         if '|reg|' in acts:
             reg_subs        = 'cuda_exttools;run;' + '\n'.join(f('Tools: {}\t{}', ext['nm'], ext['id']) for ext in self.exts)
@@ -410,7 +410,7 @@ class Command:
             reg_subs        = 'cuda_exttools;browse;' + '\n'.join(f('Urls: {}\t{}', url['nm'], url['id']) for url in self.urls)
             pass;              #LOG and log('urls reg_subs={}',reg_subs)
             app.app_proc(app.PROC_SET_SUBCOMMANDS, reg_subs)
-        
+
         # Clear keys.json
         if '|keys|' in acts and ':' in what:
             # Need delete a key 'cuda_exttools,run,NNNNN'
@@ -427,7 +427,7 @@ class Command:
             if keys.pop(itm_key, None) is not None:
                 pass;           LOG and log('UPD keys.json, deleted key={}',itm_key)
                 open(keys_json, 'w').write(json.dumps(keys, indent=2))
-        
+
         # [Re]Build menu
         if '|menu|' in acts:
             self.adapt_menu()
@@ -468,7 +468,7 @@ class Command:
         webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:#?='))
         return True
        #def browse
-    
+
 #   def run(self, ext_id):
     def run(self, info=None):
         ''' Main (and single) way to run any exttool
@@ -484,7 +484,7 @@ class Command:
         nm      = ext['nm']
         lxrs    = ext['lxrs']
         lxr_cur = ed.get_prop(app.PROP_LEXER_FILE)
-        lxr_cur = lxr_cur if lxr_cur else '(none)' 
+        lxr_cur = lxr_cur if lxr_cur else '(none)'
         pass;                  #LOG and log('nm="{}", lxr_cur="{}", lxrs="{}"',nm, lxr_cur, lxrs)
         if (lxrs
         and not (','+lxr_cur+',' in ','+lxrs+',')):
@@ -497,13 +497,13 @@ class Command:
                 if not self.run(subid):
                     return False
             return True
-        
+
         cmnd    = ext['file']
         prms_s  = ext['prms']
         ddir    = ext['ddir']
         ddir    = ddir if ddir else '{FileDir}'     # Default InitDir set to {FileDir}
         pass;                  #LOG and log('nm="{}", cmnd="{}", ddir="{}", prms_s="{}"',nm, cmnd, ddir, prms_s)
-        
+
         # Saving
         if SAVS_Y==ext.get('savs', SAVS_N):
             if not ed.save():       return app.msg_status(_('Cancel running tool "{}"').format(nm))
@@ -513,7 +513,7 @@ class Command:
             for h in app.ed_handles():
                 if app.Editor(h).get_prop(app.PROP_MODIFIED):
                     return app.msg_status(_('Cancel running tool "{}"').format(nm))
-        
+
         # Preparing
         file_nm = ed.get_filename()
         if  not file_nm and (
@@ -555,7 +555,7 @@ class Command:
                 pass;           LOG and log('fail Popen',)
                 return False
             return True
-        
+
         # With capture
         pass;                  #LOG and log("'Y'==ext.get('shll', 'N')",'Y'==ext.get('shll', 'N'))
         nmargs['stdout']=subprocess.PIPE
@@ -739,7 +739,7 @@ class Command:
         else:#for
             app.msg_status(_('No more results for navigation'))
        #def _show_result
-       
+
 #   def dlg_export(self)
 #               lxrs    = ','+ed_ext['lxrs']+','
 #               lxrs_l  = _get_lexers()
@@ -748,7 +748,7 @@ class Command:
 #
 #               lx_cnts =[dict(cid='lxs',tp='ch-lbx',t=GAP,h=400    ,l=GAP          ,w=200  ,items=lxrs_l           ) #
 #                        ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    200-140  ,w=70   ,cap=_('OK'),props='1'  ) #  default
-#                        ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+200- 70  ,w=70   ,cap=_('Cancel')        ) #  
+#                        ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+200- 70  ,w=70   ,cap=_('Cancel')        ) #
 #                       ]
 #               lx_vals = dict(lxs=(crt,sels))
 #               lx_btn, \
@@ -761,12 +761,12 @@ class Command:
 #                   lxrs    = [lxr for (ind,lxr) in enumerate(lxrs_l) if sels[ind]=='1']
 #                   ed_ext['lxrs'] = ','.join(lxrs)
 #      #def dlg_export
-            
+
     def dlg_config(self):
         if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
 
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
-        
+
         ext_ids = [ext['id'] for ext in self.exts]
         ext_ind = ext_ids.index(self.last_ext_id) if self.last_ext_id in ext_ids else min(0, len(ext_ids)-1)
         url_ids = [url['id'] for url in self.urls]
@@ -782,7 +782,7 @@ class Command:
         DTLS_CUST_H     = _('Change this dialog sizes'
                             '\rCtrl+Click - Restore default values')
 
-        GAP2    = GAP*2    
+        GAP2    = GAP*2
         prs     = self.dlg_prs
         pass;                  #LOG and log('prs={}',prs)
         vals    = dict(lst=ext_ind if self.last_is_ext else url_ind
@@ -807,7 +807,7 @@ class Command:
                           ,(_('URL')            ,prs.get('url',  '500'))
                           ])
             head_nz_d   = ext_nz_d if vals['tls'] else url_nz_d
-            
+
             ACTS_W          = prs.get('w_btn', 90)
             AW2             = int(ACTS_W/2)
             HT_LST          = prs.get('h_list', 300)
@@ -879,7 +879,7 @@ class Command:
 
             ext_ids = [ext['id'] for ext in self.exts]
 #           url_ids = [url['id'] for url in self.urls]
-            
+
             vlss    = ext_vlss if vals['tls'] else url_vlss
             itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in head_nz_d.items()], vlss)
 #           itms    = ([(nm, '0' if sz[0]=='-' else sz) for (nm,sz) in ext_nz_d.items()], vlss)
@@ -897,7 +897,7 @@ class Command:
                     +[dict(cid='add',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('&Add...')                               )] # &a
                     +[dict(cid='del',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[1]    ,w=ACTS_W           ,cap=_('&Delete...')                    ,en=lG0 )] # &d
                     +[dict(cid='cln',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[2]    ,w=ACTS_W           ,cap=_('Clo&ne...')                     ,en=lG0 )] # &n
-                    +([]                                       
+                    +([]
                     +[dict(cid='jin',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Jo&in...')  ,hint=DTLS_JOIN_H   ,en=lG1 )] # &i
                     if vals['tls'] else []
                     +[dict(cid='cll',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('&Call')     ,hint=DTLS_CALL_H   ,en=lG0 )] # &o
@@ -905,15 +905,15 @@ class Command:
                     +[dict(cid='key',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[3]    ,w=ACTS_W           ,cap=_('Hotke&y...')                    ,en=lG0 )] # &n
                     +[dict(cid='up' ,tp='bt'    ,t=ACTS_T[1],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('U&p')       ,hint=DTLS_MVUP_H   ,en=lG1 )] # &p
                     +[dict(cid='dn' ,tp='bt'    ,t=ACTS_T[2],l=ACTS_L[5]-AW2,w=ACTS_W           ,cap=_('Do&wn')     ,hint=DTLS_MVDN_H   ,en=lG1 )] # &w
-                    +([]                                       
+                    +([]
                     +[dict(cid='man',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('Set &main for lexers...')
                                                                                                                     ,hint=DTLS_MNLX_H   ,en=lG0 )] # &m
                     if vals['tls'] else [])
                     +[dict(cid='mcr',tp='bt'    ,t=ACTS_T[2],l=ACTS_L[6]    ,r=ACTS_L[7]+ACTS_W ,cap=_('User macro &vars...')
                                                                                                                     ,hint=DTLS_USMS_H           )] # &v
-            
+
 #                   +[dict(cid='exp',tp='bt'    ,t=ACTS_T[1],l=ACTS_L[9]-AW2,w=ACTS_W           ,cap=_('E&xport...'),hint=DTLS_EXPT_H           )] # &x
-                    
+
                     +[dict(cid='adj',tp='bt'    ,t=ACTS_T[1],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Ad&just...'),hint=DTLS_CUST_H           )] # &j
                     +[dict(cid='-'  ,tp='bt'    ,t=ACTS_T[2],l=DLG_W-GAP-ACTS_W,w=ACTS_W        ,cap=_('Close')                                 )] #
                     )
@@ -923,18 +923,18 @@ class Command:
             if btn is None or btn=='-':  return
             scam            = app.app_proc(app.PROC_GET_KEYSTATE, '') if app.app_api_version()>='1.0.143' else ''
             btn_m           = scam + '/' + btn if scam and scam!='a' else btn   # smth == a/smth
-            
+
             lst_ind = vals['lst']
             ext_ind = lst_ind if     self.last_is_ext else ext_ind
             url_ind = lst_ind if not self.last_is_ext else url_ind
             # Switch lists
-            if btn=='tls':  
+            if btn=='tls':
                 self.last_is_ext= True
                 vals['tls'] = True; vals['urs'] = False
                 vals['lst'] = ext_ind
                 vals['evl'] = False
                 continue#while
-            if btn=='urs':  
+            if btn=='urs':
                 self.last_is_ext= False
                 vals['tls'] = False;vals['urs'] = True
                 vals['lst'] = url_ind
@@ -957,24 +957,24 @@ class Command:
             if btn=='mcr':                  #User macros
                 self._dlg_usr_mcrs()
                 continue #while
-            
+
             if btn=='man':                  #Main lexer tool
                 self._dlg_main_tool(0 if ext_ind==-1 else ext_ids[ext_ind])
                 continue #while
-            
+
             self_cllc   = self.exts if vals['tls'] else self.urls
-            if False:pass 
+            if False:pass
             elif btn=='key':                # Assign/Clear hotkey
-                app.dlg_hotkeys(f('cuda_exttools,{},{}' 
+                app.dlg_hotkeys(f('cuda_exttools,{},{}'
                                 ,'run' if vals['tls'] else 'browse'
                                 ,self_cllc[lst_ind]['id']))
                 keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
                 continue
-            
+
             elif btn=='cll':                # Call URL
                 self.browse(self.urls[lst_ind]['id'])
                 continue
-                
+
             elif btn=='jin':                # Create joined tool
                 jo_ids  = self._dlg_exts_for_join()
                 if jo_ids is None or len(jo_ids)<2:
@@ -988,7 +988,7 @@ class Command:
                     continue #while
                 self.exts  += [ext]
                 vals['lst'] = len(self.exts)-1
-                
+
             if btn in ('add', 'cln') and vals['urs']:  #Create/Clone URL
                 if btn=='add':
                     url     = {'id':_gen_id(self.url4id)
@@ -1037,7 +1037,7 @@ class Command:
             lst_ind = vals['lst']
             if lst_ind==-1:
                 continue #while
-                
+
             what    = ''
             ext_ids     = [ext['id'] for ext in self.exts]
             url_ids     = [url['id'] for url in self.urls]
@@ -1045,10 +1045,10 @@ class Command:
                 self.last_ext_id    = ext_ids[ext_ind]
             if vals['urs']:
                 self.last_url_id    = url_ids[url_ind]
-            
+
 #           self_cllc   = self.exts if vals['tls'] else self.urls
             if False:pass
-            
+
             elif btn=='edt' and vals['tls']:#Edit Tool
                 ed_ans  = self._dlg_ext_prop(self.exts[ext_ind], keys)
                 if ed_ans is None or not ed_ans:
@@ -1068,7 +1068,7 @@ class Command:
                 ,self_cllc[lst_ind+1])  = (self_cllc[lst_ind+1]
                                           ,self_cllc[lst_ind  ])
                 vals['lst'] = lst_ind+1
-            
+
             elif btn=='del' and vals['urs']:# Delete URL
                 if app.msg_box( _('Delete URL?\n')
                                  +'\n'+self.urls[url_ind]['nm']
@@ -1087,7 +1087,7 @@ class Command:
                 ext_vls = ext_vlss[ext_ind]
                 id4del  = self.exts[ext_ind]['id']
                 jex4dl  = [ex for ex in self.exts if id4del in ex.get('jext', [])]
-                if app.msg_box( _('Delete tool?\n\n') + '\n'.join(['{}: {}'.format(flds[ind], ext_vls[ind]) 
+                if app.msg_box( _('Delete tool?\n\n') + '\n'.join(['{}: {}'.format(flds[ind], ext_vls[ind])
                                                             for ind in range(len(flds))
                                                        ])
                               + ('\n\n'+'!'*50+_('\nDelete with joined tool(s)\n   ')+'\n   '.join([ex['nm'] for ex in jex4dl]) if jex4dl else '')
@@ -1115,7 +1115,7 @@ class Command:
             self._do_acts(what)
            #while True
        #def dlg_config
-        
+
     def _dlg_adj_list(self):
         prs     = self.dlg_prs
         custs   = app.dlg_input_ex(10, _('Customization. Widths prefix "C"/"R" to align, "-" to hide.')
@@ -1169,12 +1169,12 @@ class Command:
             lxrs_enm= ['{}{}'.format(lxr, '  >>>  {}'.format(nm4ids[self.ext4lxr[lxr]]) if lxr in self.ext4lxr else '')
                             for lxr in lxrs_l]
             cnts    =[dict(           tp='lb'   ,t=GAP+ 3           ,l=GAP          ,w=400  ,cap=_('&Lexer  >>>  main tool')) #  &l
-                     ,dict(cid='lxs' ,tp='lbx'  ,t=GAP+23   ,h=300  ,l=GAP          ,w=400  ,items=lxrs_enm                 ) #  
+                     ,dict(cid='lxs' ,tp='lbx'  ,t=GAP+23   ,h=300  ,l=GAP          ,w=400  ,items=lxrs_enm                 ) #
                      ,dict(           tp='lb'   ,t=GAP+ 3           ,l=GAP+400+GAP  ,w=300  ,cap=_('&Tools')                ) #  &t
-                     ,dict(cid='tls' ,tp='lbx'  ,t=GAP+23   ,h=300  ,l=GAP+400+GAP  ,w=300  ,items=nms                      ) #  
+                     ,dict(cid='tls' ,tp='lbx'  ,t=GAP+23   ,h=300  ,l=GAP+400+GAP  ,w=300  ,items=nms                      ) #
                      ,dict(cid='set' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP          ,w=97   ,cap=_('&Assign tool')          ) #  &a
                      ,dict(cid='del' ,tp='bt'   ,t=GAP+23+300+GAP   ,l=GAP+97+GAP   ,w=97   ,cap=_('&Break link')           ) #  &b
-                     ,dict(cid='-'   ,tp='bt'   ,t=GAP+23+300+GAP   ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 ) #  
+                     ,dict(cid='-'   ,tp='bt'   ,t=GAP+23+300+GAP   ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                 ) #
                     ]
             btn, vals, *_t = dlg_wrapper(_('Main tool for lexers'), DLG_W, DLG_H, cnts, vals, focus_cid='lxs')
             if btn is None or btn=='-':    return
@@ -1182,8 +1182,8 @@ class Command:
             tool_ind    = vals['tls']
             changed     = False
             if False:pass
-            elif (btn=='set' #'assign' 
-            and   lxr_ind in range(len(lxrs_l)) 
+            elif (btn=='set' #'assign'
+            and   lxr_ind in range(len(lxrs_l))
             and   tool_ind in range(len(ids))):      #Assign
                 lxr     = lxrs_l[lxr_ind]
                 self.ext4lxr[lxr]   = ids[tool_ind]
@@ -1192,7 +1192,7 @@ class Command:
                     ext['lxrs'] = (ext['lxrs']+','+lxr).lstrip(',')
                 changed = True
 
-            elif (btn=='del' #'break' 
+            elif (btn=='del' #'break'
             and   lxr_ind in range(len(lxrs_l))
             and   lxrs_l[lxr_ind] in self.ext4lxr):  #Break
                 del self.ext4lxr[lxrs_l[lxr_ind]]
@@ -1202,7 +1202,7 @@ class Command:
                 open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
            #while True
        #def _dlg_main_tool
-        
+
     def _dlg_usr_mcrs(self):
         DLG_W,  \
         DLG_H   = GAP*2+605, GAP+20+300+GAP+25+25+6
@@ -1226,7 +1226,7 @@ class Command:
             nempty  = '1' if self.umacrs else '0'
             cnts    =[dict(          tp='lb'    ,tid='evl'     ,l=GAP          ,w=400  ,cap=_('&Vars')                              )   # &v
                      ,dict(cid='evl',tp='ch'    ,t=GAP         ,l=GAP+105      ,w=80   ,cap=_('Expanded mac&ros')       ,act='1'    )   # &r
-                     ,dict(cid='lst',tp='lvw'   ,t=GAP+21,h=300,l=GAP          ,w=605  ,items=itms                                  )   # 
+                     ,dict(cid='lst',tp='lvw'   ,t=GAP+21,h=300,l=GAP          ,w=605  ,items=itms                                  )   #
                      ,dict(cid='edt',tp='bt'    ,t=bt_t1       ,l=bt_l1        ,w=110  ,cap=_('&Edit...')  ,ex0='1'     ,en=nempty  )   # &e  default
                      ,dict(cid='add',tp='bt'    ,t=bt_t1       ,l=bt_l2        ,w=110  ,cap=_('&Add...')                ,en=nempty  )   # &a
                      ,dict(cid='cln',tp='bt'    ,t=bt_t2       ,l=bt_l1        ,w=110  ,cap=_('Clo&ne')                 ,en=nempty  )   # &n
@@ -1234,8 +1234,8 @@ class Command:
                      ,dict(cid='up' ,tp='bt'    ,t=bt_t1       ,l=bt_l3        ,w=110  ,cap=_('&Up')                    ,en=nempty  )   # &u
                      ,dict(cid='dn' ,tp='bt'    ,t=bt_t2       ,l=bt_l3        ,w=110  ,cap=_('Do&wn')                  ,en=nempty  )   # &w
                      ,dict(cid='prj',tp='bt'    ,t=bt_t2       ,l=bt_l4+20     ,w=140  ,cap=_('Pro&ject macros...')                 )   # &j
-                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                               )   # 
-                     ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                              )   # 
+                     ,dict(cid='hlp',tp='bt'    ,t=bt_t1       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Help')                               )   #
+                     ,dict(cid='-'  ,tp='bt'    ,t=bt_t2       ,l=DLG_W-GAP-80 ,w=80   ,cap=_('Close')                              )   #
                     ]
             if not with_proj_man:
                 cnts    = [cnt for cnt in cnts if 'cid' not in cnt or cnt['cid']!='prj']
@@ -1245,11 +1245,11 @@ class Command:
             if btn=='hlp':
                 dlg_help_vars()
                 continue
-            
+
             if btn=='prj':
                 app.app_proc(app.PROC_EXEC_PLUGIN, 'cuda_project_man,config_proj')
                 continue
-            
+
             if btn=='add' or                          btn=='edt' and  um_ind!=-1:
                 umc = self.umacrs[um_ind].copy()   if btn=='edt' else   {'nm':'', 'ex':'', 'co':''}
                 um_cnts= [
@@ -1275,18 +1275,18 @@ class Command:
                         break #while um
                     if um_btn=='fil':
                         ans_file = app.dlg_file(True, '', '', '')
-                        if ans_file is not None: 
+                        if ans_file is not None:
                             umc['ex']   = (umc['ex'] +' '+ ans_file).lstrip()
                         um_fcsd  = 'ex'
                     if um_btn=='dir':
                         ans_dir = app.dlg_dir('')
-                        if ans_dir is not None: 
+                        if ans_dir is not None:
                             umc['ex']   = (umc['ex'] +' '+ ans_dir).lstrip()
                         um_fcsd  = 'ex'
                     if um_btn=='var':
                         umc['ex']  = append_prmt(umc['ex'], self.umacrs, excl_umc=umc['nm'])
                         um_fcsd  = 'ex'
-                    
+
                     if um_btn=='!':
                         if not umc['nm']:
                             app.msg_box(_('Set Name'), app.MB_OK)
@@ -1299,7 +1299,7 @@ class Command:
                         break #while um
                #while um
                 if umc is None: # =='No changes'
-                    continue #while    No changes    
+                    continue #while    No changes
                 if btn=='edt':
                     self.umacrs[um_ind].update(umc)
                 else: #   'add'
@@ -1314,10 +1314,10 @@ class Command:
                 um_ind      = len(self.umacrs)-1
                 vals['lst'] = um_ind
 
-            if btn=='del' and  um_ind!=-1: 
+            if btn=='del' and  um_ind!=-1:
                 if app.msg_box(  _('Delete Macro?\n\n')+ '\n'.join([
                                  _('Name: {}').format(   self.umacrs[um_ind]['nm'])
-                                ,_('Value: {}').format(  self.umacrs[um_ind]['ex']) 
+                                ,_('Value: {}').format(  self.umacrs[um_ind]['ex'])
                                 ,_('Comment: {}').format(self.umacrs[um_ind]['co'])]), app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:
                     continue #while    No changes
                 del self.umacrs[um_ind]
@@ -1350,7 +1350,7 @@ class Command:
 
         cnts    =[dict(cid='exs',tp='ch-lbx',t=GAP,h=400    ,l=GAP          ,w=300  ,items=ext_nms          ) #
                  ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    300-140  ,w=70   ,cap=_('OK'),ex0='1'  ) #  default
-                 ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+300- 70  ,w=70   ,cap=_('Cancel')        ) #  
+                 ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+300- 70  ,w=70   ,cap=_('Cancel')        ) #
                 ]
         vals    = dict(exs=(crt,sels))
         btn,    \
@@ -1362,7 +1362,7 @@ class Command:
         ext_ids = [ext4jn[ind]['id'] for ind in range(len(sels)) if sels[ind]=='1']
         return ext_ids
        #def _dlg_exts_for_join
-        
+
     def _dlg_url_prop(self, src_url, keys=None, for_ed='1'):
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
@@ -1371,7 +1371,7 @@ class Command:
 
         ed_url      = copy.deepcopy(src_url)
 
-        GAP2            = GAP*2    
+        GAP2            = GAP*2
         PRP1_W, PRP1_L  = (100,     GAP)
         PRP2_W, PRP2_L  = (400-GAP, PRP1_L+    PRP1_W+GAP)
         PRP3_W, PRP3_L  = (100,     PRP2_L+GAP+PRP2_W)
@@ -1390,7 +1390,7 @@ class Command:
                      ,dict(           tp='lb'   ,tid='url'     ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&URL:')                      ) # &u
                      ,dict(cid='url' ,tp='ed'   ,t=PROP_T[2]   ,l=PRP2_L   ,w=PRP2_W                                        ) #
                      ,dict(cid='?mcr',tp='bt'   ,tid='url'     ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Macro...')                  ) # &m
-                                              
+
                      ,dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                    ) #
                      ,dict(cid='keys',tp='ed'   ,t=PROP_T[3]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'   ) #     ro,mono,border
 #                    ,dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')                 ) # &g
@@ -1417,7 +1417,7 @@ class Command:
                     app.msg_box(_('Set Name'), app.MB_OK)
                     focus_cid   = 'nm'
                     continue #while
-                    
+
                 pass;          #LOG and log('save    src_ext={}',src_ext)
                 pass;          #LOG and log('save ed_ext={}',ed_ext)
                 if src_url==ed_url and src_kys==ed_kys:
@@ -1443,7 +1443,7 @@ class Command:
                 keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
            #while True:
        #def _dlg_url_prop
-        
+
     def _dlg_ext_prop(self, src_ext, keys=None, for_ed='1'):
         if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
@@ -1452,14 +1452,14 @@ class Command:
         src_kys     = get_keys_desc('cuda_exttools,run', src_ext['id'], keys)
 
         ed_ext      = copy.deepcopy(src_ext)
-        
-        GAP2            = GAP*2    
+
+        GAP2            = GAP*2
         PRP1_W, PRP1_L  = (100,     GAP)
         PRP2_W, PRP2_L  = (400-GAP, PRP1_L+    PRP1_W+GAP)
         PRP3_W, PRP3_L  = (100,     PRP2_L+GAP+PRP2_W)
         PROP_T          = [GAP*ind+25*(ind-1) for ind in range(20)]   # max 20 rows
         DLG_W, DLG_H    = PRP3_L+PRP3_W+GAP, PROP_T[17]-21
-        
+
         jex_ids         = ed_ext.get('jext', None)
         joined          = jex_ids is not None
         sel_jext        = 0
@@ -1471,9 +1471,9 @@ class Command:
             val_savs= self.savs_vals.index(ed_ext['savs'] if ed_ext else SAVS_N)        # def is "not save"
             val_rslt= self.rslt_vals.index(ed_ext['rslt'] if ed_ext else RSLT_OP)       # def is "to panel"
 
-            
+
             jext_nms= [self.ext4id[str(eid)]['nm'] for eid in jex_ids] if joined else None
-            
+
             main_for= ','.join([lxr for (lxr,eid) in self.ext4lxr.items() if eid==ed_ext['id']])
             more_s  = json.dumps(_adv_prop('get-dict', ed_ext)).strip('{}').strip()
 
@@ -1499,7 +1499,7 @@ class Command:
             cnts    = ([]
                      +[dict(           tp='lb'   ,tid='nm'      ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Name:')                        )] # &n
                      +[dict(cid='nm'  ,tp='ed'   ,t=PROP_T[1]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
-                    +([]                                       
+                    +([]
                      +[dict(           tp='lb'   ,tid='seri'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Se&ries:')                      )] # &r
                      +[dict(cid='seri',tp='lbx'  ,t=PROP_T[2]   ,l=PRP2_L   ,w=PRP2_W    ,b=PROP_T[6]-GAP,items=jext_nms        )] #
                      +[dict(cid='?ser',tp='bt'   ,t=PROP_T[2]   ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Select...')    ,en=for_ed      )] # &s
@@ -1512,11 +1512,11 @@ class Command:
                      +[dict(cid='?fil',tp='bt'   ,tid='file'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('&Browse...')    ,en=for_ed      )] # &b
                      +[dict(cid='shll',tp='ch'   ,t=PROP_T[3]-2 ,l=PRP2_L   ,w=PRP2_W   ,cap=_('&Shell command'),en=for_ed         # &s
                                                                                         ,hint=_('Run the tool via OS shell interpreter (e.g. Bash on Unix, Cmd on Windows)')    )]
-                                                 
+
                      +[dict(           tp='lb'   ,tid='prms'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Parameters:')                  )] # &p
                      +[dict(cid='prms',tp='ed'   ,t=PROP_T[4]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                      +[dict(cid='?mcr',tp='bt'   ,tid='prms'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('A&dd...')       ,en=for_ed      )] # &a
-                                                 
+
                      +[dict(           tp='lb'   ,tid='ddir'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Initial folder:')              )] # &i
                      +[dict(cid='ddir',tp='ed'   ,t=PROP_T[5]   ,l=PRP2_L   ,w=PRP2_W                                           )] #
                      +[dict(cid='?dir',tp='bt'   ,tid='ddir'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('B&rowse...')    ,en=for_ed      )] # &r
@@ -1524,34 +1524,34 @@ class Command:
                      +[dict(           tp='lb'   ,tid='lxrs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Lexers:')                       )] #
                      +[dict(cid='lxrs',tp='ed'   ,t=PROP_T[6]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?lxr',tp='bt'   ,tid='lxrs'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Le&xers...')    ,en=for_ed      )] # &x
-                                                 
+
                      +[dict(           tp='lb'   ,tid='main'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Main for:')                     )] #
                      +[dict(cid='main',tp='ed'   ,t=PROP_T[7]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?man',tp='bt'   ,tid='main'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Set &main...')  ,en=for_ed      )] # &m
-                                                 
+
                      +[dict(           tp='lb'   ,tid='savs'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Sa&ve before:')                 )] # &v
                      +[dict(cid='savs',tp='cb-ro',t=PROP_T[8]   ,l=PRP2_L   ,w=PRP2_W   ,items=self.savs_caps   ,en=for_ed      )] #
-                                              
+
                      +[dict(           tp='lb'   ,tid='keys'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Hotkey:')                       )] #
                      +[dict(cid='keys',tp='ed'   ,t=PROP_T[9]   ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
 #                    +[dict(cid='?key',tp='bt'   ,tid='keys'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Assi&gn...')    ,en=for_ed      )] # &g
-                    +([] if joined else []                     
+                    +([] if joined else []
                      +[dict(           tp='lb'   ,tid='rslt'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('&Capture output:')              )] # &c
-                     +[dict(cid='rslt',tp='cb-ro',t=PROP_T[11]  ,l=PRP2_L   ,w=PRP2_W   ,items=self.rslt_caps   ,en=for_ed      )] 
+                     +[dict(cid='rslt',tp='cb-ro',t=PROP_T[11]  ,l=PRP2_L   ,w=PRP2_W   ,items=self.rslt_caps   ,en=for_ed      )]
                      +[dict(           tp='lb'   ,tid='encd'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Encoding:')                     )] #
                      +[dict(cid='encd',tp='ed'   ,t=PROP_T[12]  ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?enc',tp='bt'   ,tid='encd'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('S&elect...')    ,en=for_ed      )] # &
                      +[dict(           tp='lb'   ,tid='pttn'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Pattern:')                      )] #
                      +[dict(cid='pttn',tp='ed'   ,t=PROP_T[13]  ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?ptn',tp='bt'   ,tid='pttn'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Se&t...')       ,en=for_ed      )] # &e
-                    )                                         
+                    )
                      +[dict(           tp='lb'   ,tid='more'    ,l=PRP1_L   ,w=PRP1_W   ,cap=_('Advanced:')                     )] #
                      +[dict(cid='more',tp='ed'   ,t=PROP_T[14]  ,l=PRP2_L   ,w=PRP2_W                       ,ex0='1', ex1='0', ex2='1'      )] #     ro,mono,border
                      +[dict(cid='?mor',tp='bt'   ,tid='more'    ,l=PRP3_L   ,w=PRP3_W   ,cap=_('Set...')        ,en=for_ed      )] #
-                    +([] if joined else []                     
+                    +([] if joined else []
                      +[dict(cid='help',tp='bt'   ,t=PROP_T[15]+9,l=GAP      ,w=PRP3_W       ,cap=_('Help')      ,en=for_ed      )] #
                      +[dict(cid='prjs',tp='bt'   ,t=PROP_T[15]+9,l=PRP2_L   ,w=PRP3_W       ,cap=_('Pro&ject...'),en=for_ed     )] # &j
-                    )                                         
+                    )
                      +[dict(cid='!'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*2-100*2,w=100  ,cap=_('OK')    ,ex0='1',en=for_ed)] #     default
                      +[dict(cid='-'   ,tp='bt'   ,t=PROP_T[15]+9,l=DLG_W-GAP*1-100*1,w=100  ,cap=_('Cancel')                    )] #
                     )
@@ -1563,16 +1563,16 @@ class Command:
             chds    = dlg_wrapper(_('Tool properties'), DLG_W, DLG_H, cnts, vals, focus_cid=focus_cid)
 #           pass;               LOG and log('fid,chds={}',(fid,chds))
             if btn is None or btn=='-': return None
-            
+
             focus_cid           = fid if fid else focus_cid
-            
+
             ed_ext['nm']        =   vals[  'nm']
             ed_ext['lxrs']      =   vals['lxrs']
             ed_ext['savs']      = self.savs_vals[int(
                                     vals['savs'])]
             if joined:
                 sel_jext        =   vals['seri']
-            if not joined:      
+            if not joined:
                 ed_ext['file']  =   vals['file']
                 ed_ext['shll']  =   vals['shll']=='1'
                 ed_ext['prms']  =   vals['prms']
@@ -1592,7 +1592,7 @@ class Command:
                     app.msg_box(_('Set File name'), app.MB_OK)
                     focus_cid   = 'file'
                     continue #while
-                    
+
                 pass;          #LOG and log('save    src_ext={}',src_ext)
                 pass;          #LOG and log('save ed_ext={}',ed_ext)
                 if src_ext==ed_ext and src_kys==ed_kys:
@@ -1614,7 +1614,7 @@ class Command:
 
             if joined and btn=='view' and sel_jext!=-1: # View one of joined
                 self._dlg_ext_prop(self.ext4id[str(jex_ids[sel_jext])], keys, for_ed='0')
-            
+
             if joined and btn=='?ser': # Select exts to join
                 jex_ids_new = self._dlg_exts_for_join(jex_ids)
                 if jex_ids_new is not None and len(jex_ids_new)>1:
@@ -1622,26 +1622,26 @@ class Command:
                 continue #while
 
             if joined and btn=='up' and sel_jext>0:
-                (jex_ids[sel_jext-1] 
-                ,jex_ids[sel_jext  ])   =   (jex_ids[sel_jext  ] 
+                (jex_ids[sel_jext-1]
+                ,jex_ids[sel_jext  ])   =   (jex_ids[sel_jext  ]
                                             ,jex_ids[sel_jext-1])
                 sel_jext               -= 1
             if joined and btn=='dn' and sel_jext<len(jex_ids):
-                (jex_ids[sel_jext  ] 
-                ,jex_ids[sel_jext+1])   =   (jex_ids[sel_jext+1] 
+                (jex_ids[sel_jext  ]
+                ,jex_ids[sel_jext+1])   =   (jex_ids[sel_jext+1]
                                             ,jex_ids[sel_jext  ])
                 sel_jext               += 1
 
             if btn=='?man': #Lexer main tool
                 self._dlg_main_tool(ed_ext['id'])
                 continue #while
-            
+
             elif btn=='?fil':
                 file4run= app.dlg_file(True, '!'+ed_ext['file'], '', '')# '!' to disable check "filename exists"
                 if file4run is not None:
                     ed_ext['file']  = file4run
                     focus_cid       = 'file'
-            
+
             elif btn=='?dir':
                 new_dir = app.dlg_dir(ed_ext['ddir'])
                 if new_dir is not None:
@@ -1664,7 +1664,7 @@ class Command:
             elif btn=='?key':
                 app.dlg_hotkeys('cuda_exttools,run,'+str(ed_ext['id']))
                 keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-            
+
             elif btn=='?lxr':   #Lexers only
                 lxrs    = ','+ed_ext['lxrs']+','
                 lxrs_l  = app.lexer_proc(app.LEXER_GET_LEXERS, False) + ['(none)']
@@ -1674,7 +1674,7 @@ class Command:
 
                 lx_cnts =[dict(cid='lxs',tp='ch-lbx',t=GAP,h=400    ,l=GAP          ,w=200  ,items=lxrs_l           ) #
                          ,dict(cid='!'  ,tp='bt'    ,t=GAP+400+GAP  ,l=    200-140  ,w=70   ,cap=_('OK'),ex0='1'  ) #  default
-                         ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+200- 70  ,w=70   ,cap=_('Cancel')        ) #  
+                         ,dict(cid='-'  ,tp='bt'    ,t=GAP+400+GAP  ,l=GAP+200- 70  ,w=70   ,cap=_('Cancel')        ) #
                         ]
                 lx_vals = dict(lxs=(crt,sels))
                 lx_btn, \
@@ -1686,7 +1686,7 @@ class Command:
                     crt,sels= lx_vals['lxs']
                     lxrs    = [lxr for (ind,lxr) in enumerate(lxrs_l) if sels[ind]=='1']
                     ed_ext['lxrs'] = ','.join(lxrs)
-            
+
             elif btn=='?enc':
                 enc_nms = get_encoding_names()
                 enc_ind = app.dlg_menu(app.DMENU_LIST_ALT, '\n'.join(enc_nms), caption=_('Encodings'))
@@ -1700,7 +1700,7 @@ class Command:
                     ed_ext['pttn']      = new_pttn
                     ed_ext['pttn-test'] = new_test
                 pass;          #LOG and log('ok ed_ext[pttn-data]={}',ed_ext['pttn-data'])
-            
+
             elif btn=='?mor':   #Advanced
                 ad_vals = {}
                 ad_cnts = []
@@ -1738,7 +1738,7 @@ class Command:
         grp_dic = {}
         if pttn_re and pttn_test:
             grp_dic = re.search(pttn_re, pttn_test).groupdict('') if re.search(pttn_re, pttn_test) is not None else {}
-        
+
         RE_REF  = 'https://docs.python.org/3/library/re.html'
         DLG_W,  \
         DLG_H   = GAP+550+GAP, GAP+250+3#+GAP
@@ -1748,11 +1748,11 @@ class Command:
                  ,dict(cid='apnd'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap=_('&Add...')
                                                                                                             ,hint=_('Append named group')   ) # &a
 #                ,dict(cid='help'      ,tp='bt'     ,tid='pttn_re'  ,l=DLG_W-GAP*1-70   ,w=70               ,cap='&?..'                  ) # &?
-                 # Testing                                                                                         
+                 # Testing
                  ,dict(cid=''          ,tp='lb'     ,t= 60          ,l=GAP              ,w=300              ,cap=_('Test "&Output line":')) # &o
                  ,dict(cid='pttn_test' ,tp='ed'     ,t= 60+18       ,l=GAP              ,r=DLG_W-GAP*2-70                                ) #
                  ,dict(cid='test'      ,tp='bt'     ,tid='pttn_test',l=DLG_W-GAP*1-70   ,w=70               ,cap=_('&Test')              ) # &t
-                                                                                                                               
+
                  ,dict(cid=''          ,tp='lb'     ,t=110+GAP*0+23*0   ,l=GAP+ 80      ,w=300              ,cap=_('Testing results')    ) #
                  ,dict(cid=''          ,tp='lb'     ,tid='file'         ,l=GAP          ,w=80               ,cap=_('Filename:')          ) #
                  ,dict(cid='file'      ,tp='ed'     ,t=110+GAP*0+23*1   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,ex0='1', ex1='0', ex2='1'   ) #   ro,mono,border
@@ -1760,15 +1760,15 @@ class Command:
                  ,dict(cid='line'      ,tp='ed'     ,t=110+GAP*1+23*2   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,ex0='1', ex1='0', ex2='1'   ) #   ro,mono,border
                  ,dict(cid=''          ,tp='lb'     ,tid='col'          ,l=GAP          ,w=80               ,cap=_('Column:')            ) #
                  ,dict(cid='col'       ,tp='ed'     ,t=110+GAP*2+23*3   ,l=GAP+ 80      ,r=DLG_W-GAP*2-70               ,ex0='1', ex1='0', ex2='1'   ) #   ro,mono,border
-                 # Preset                                                                                          
+                 # Preset
                  ,dict(cid='load'      ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP              ,w=130              ,cap=_('Load &preset...')    ) # &p
                  ,dict(cid='save'      ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP+130+GAP      ,w=130              ,cap=_('&Save as preset...') ) # &s
-                 # OK                                                                                              
+                 # OK
                  ,dict(cid='ok'        ,tp='bt'     ,t=DLG_H-GAP-24 ,l=    550-140      ,w=70               ,cap=_('OK'),ex0='1'       ) #   default
                  ,dict(cid='cancel'    ,tp='bt'     ,t=DLG_H-GAP-24 ,l=GAP+550- 70      ,w=70               ,cap=_('Cancel')             ) #
                 ]
         while True:
-            vals    = dict(  
+            vals    = dict(
              pttn_re    =pttn_re
             ,pttn_test  =pttn_test
             ,file       =grp_dic.get('file', '')
@@ -1786,7 +1786,7 @@ class Command:
             if False:pass
             elif btn == 'ok':
                 return (pttn_re, pttn_test)
-            
+
             elif btn == 'apnd':
                 grps    = [['(?P<file>)' , _('Filename (default - current file name)')]
                           ,['(?P<line>)' , _('Number of line (default - 1)')]
@@ -1797,7 +1797,7 @@ class Command:
                 grp_i   = app.dlg_menu(app.DMENU_LIST_ALT, '\n'.join(['\t'.join(g) for g in grps]), caption=_('Pattern variables'))
                 if grp_i is not None:
                     pttn_re += grps[grp_i][0]
-                
+
 #           elif btn == 'help':
 #               app.msg_box(''
 #                          +'These groups will be used for navigation:'
@@ -1809,13 +1809,13 @@ class Command:
 #                          +'\n'
 #                          +'\nFull syntax documentation: https://docs.python.org/3/library/re.html'
 #               , app.MB_OK)
-            
+
             elif btn == 'test':
                 try:
                     grp_dic = re.search(pttn_re, pttn_test).groupdict('') if re.search(pttn_re, pttn_test) is not None else {}
                 except Exception as e:
                     app.msg_box(_('RegEx is incorrect: '+str(e)), app.MB_OK+app.MB_ICONERROR)
-            
+
             elif btn == 'load':
                 ps_nms  = ['{}\t{}'.format(ps['name'], ps['run']) for ps in self.preset]
                 ps_ind  = app.dlg_menu(app.DMENU_LIST, '\n'.join(ps_nms), caption=_('Ready patterns'))
@@ -1823,7 +1823,7 @@ class Command:
                     pttn_re     = self.preset[ps_ind]['re']
                     pttn_test   = self.preset[ps_ind].get('test', '')
                     grp_dic     = re.search(pttn_re, pttn_test).groupdict('') if re.search(pttn_re, pttn_test) is not None else {}
-            
+
             elif btn == 'save':
                 if not pttn_re:
                     app.msg_box(_('Set "Regular expression"'), app.MB_OK)
@@ -1840,7 +1840,7 @@ class Command:
            #while True
         pass
        #def _dlg_pattern
-        
+
     def _fill_ext(self, ext):
         ext.pop('capt', None)   # obsolete
         ext.pop('name', None)   # obsolete
@@ -1862,7 +1862,7 @@ class Command:
         file_nm         = file_nm   if file_nm is not None else     ed.get_filename()
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
-        umc_vals        = {}            
+        umc_vals        = {}
         for umc in self.umacrs:
             pass;              #LOG and log('umc={}',(umc))
             umc_vals[umc['nm']]  = _subst_fltd_props(umc['ex'], file_nm, cCrt, rCrt, umcs=umc_vals, prjs=get_proj_vars())
@@ -1870,21 +1870,21 @@ class Command:
             pass;              #LOG and log('umc_vals={}',(umc_vals))
         return umc_vals
        #def _calc_umc_vals
-       
+
    #class Command
 
 def _adv_prop(act, ext, par=''):
     core_props  = ('id','nm','file','ddir','shll','prms','savs','rslt','encd','lxrs','pttn','pttn-test', 'jext')
     if False:pass
     elif act=='get-dict':
-        return {k:v for k,v in ext.items() 
+        return {k:v for k,v in ext.items()
                     if  k not in core_props}
 #   elif act=='apply-json':
 #       js  = par
 #       for k in [k for k in ext.keys() if k not in core_props]:
 #           ext.pop(k, None)
 #       adv = json.loads(js)
-#       adv = {k:v for k,v in adv.items() 
+#       adv = {k:v for k,v in adv.items()
 #                  if  k not in core_props}
 #       pass;                  #LOG and log('ext, adv={}',(ext, adv))
 #       ext.update(adv)
@@ -1905,7 +1905,7 @@ FILTER_REDUCTS={
 def _fltrd_to(mcr_flt, base_val):
     """ Apply filter[s] for
             NM|func1[:par1,par2[|func2]]
-        as func2(func1(base_val,par1,par2)) 
+        as func2(func1(base_val,par1,par2))
     """
     pass;                      #LOG and log('mcr_flt, base_val={}',(mcr_flt, base_val))
     flt_val     = base_val
@@ -1950,7 +1950,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     for env_k,env_v in os.environ.items():
         prm     = _replace_mcr(prm, '{OS:'+env_k+'}', env_v)
         if '{' not in prm:  return prm
-    
+
     # Substitude Project vars
     for prj_k,prj_v in prjs.items():
         prm     = _replace_mcr(prm, prj_k, prj_v)
@@ -1961,12 +1961,12 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     app_dir = app.app_path(app.APP_DIR_EXE)
     if      '{AppDir'             in prm: prm = _replace_mcr(prm, '{AppDir}'        ,   app_dir)
     if      '{AppDrive'           in prm: prm = _replace_mcr(prm, '{AppDrive}'      ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
-            
+
     def text2temp(ed_):
         src_fn  = ed_.get_filename()
         if src_fn and not ed_.get_prop(app.PROP_MODIFIED):
             return src_fn
-        
+
         src_stem= '.'.join(os.path.basename(src_fn).split('.')[0:-1])
         src_ext =          os.path.basename(src_fn).split('.')[-1]
         trg_dir = tempfile.gettempdir() + os.sep + 'cudatext'
@@ -1977,20 +1977,20 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
         while os.path.isfile(trg_fn):
             uni_nm += 1
             trg_fn  = trg_dir + os.sep + src_stem + f('.text{}.', uni_nm) + src_ext
-            
+
         open(trg_fn, 'w').write(ed_.get_text_all())
         return trg_fn
        #def text2temp
-    
+
     for gr in range(apx.get_groups_count()):
         sGN         = 'g'+str(gr+1)
         pass;                  #log('sGN,prm,_+sGN+}} in prm={}',(sGN,prm,'_'+sGN+'}' in prm))
         if '_'+sGN+'}' not in prm and \
-           '_'+sGN+'|' not in prm:  continue        
+           '_'+sGN+'|' not in prm:  continue
         gr_ed       = app.ed_group(gr)
-        if not gr_ed:               continue        
+        if not gr_ed:               continue
         f_gN_nm     = gr_ed.get_filename()
-        if not f_gN_nm:             continue        
+        if not f_gN_nm:             continue
         if  '{FileName_' +sGN+'}' in prm \
         or  '{FileName_' +sGN+'|' in prm: prm = _replace_mcr(prm, '{FileName_'     +sGN+'}' ,                          f_gN_nm)
         if  '{FileDir_'  +sGN     in prm: prm = _replace_mcr(prm, '{FileDir_'      +sGN+'}' ,          os.path.dirname(f_gN_nm))
@@ -2038,7 +2038,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     for umc_k,umc_v in umcs.items():
         prm     = _replace_mcr(prm, umc_k, umc_v)
         if '{' not in prm:  return prm
-    
+
     return prm
    #_subst_fltd_props
 
@@ -2056,7 +2056,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
 #   app_dir = app.app_path(app.APP_DIR_EXE)
 #   if      '{AppDir}'            in prm: prm = prm.replace('{AppDir}'       ,   app_dir)
 #   if      '{AppDrive}'          in prm: prm = prm.replace('{AppDrive}'     ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
-#           
+#
 #   if      '{FileName}'          in prm: prm = prm.replace('{FileName}'     ,                          file_nm)
 #   if      '{FileDir}'           in prm: prm = prm.replace('{FileDir}'      ,          os.path.dirname(file_nm))
 #   if      '{FileNameOnly}'      in prm: prm = prm.replace('{FileNameOnly}' ,         os.path.basename(file_nm))
@@ -2082,13 +2082,13 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
 #       ans = app.dlg_file(True, '!', '', '')   # '!' to disable check "filename exists"
 #       if ans is None: return
 #       prm = prm.replace('{InteractiveFile}' , ans)
-#       
+#
 #   if '{' not in prm:  return prm
 #   # Substitude user vars
 #   for umc_k,umc_v in umcs.items():
 #       prm = prm.replace(umc_k, umc_v)
 #       if '{' not in prm:  return prm
-#       
+#
 #   return prm
 #  #def _subst_props
 
@@ -2115,10 +2115,10 @@ def get_current_word(ed, c_crt, r_crt):
    #def get_current_word
 
 def append_prmt(tostr, umacrs, excl_umc=None):
-    prms_l  =['{}\t{}'.format(umc['nm'], umc['ex']) 
-                for umc in umacrs 
+    prms_l  =['{}\t{}'.format(umc['nm'], umc['ex'])
+                for umc in umacrs
                 if (excl_umc is None or umc['nm']!=excl_umc)]
-    prms_l +=[pj_k+'\t'+pj_v 
+    prms_l +=[pj_k+'\t'+pj_v
                 for pj_k, pj_v in get_proj_vars().items()]
     pass;                      #LOG and log('prms_l={}',(prms_l))
     prms_l +=([]
@@ -2149,9 +2149,9 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[f(_('{{ContentAsTemp_g{0}}}\tName of [temporary] file with current text in group {0}')            , gr+1) for gr in range(6)]
             +[f(_('{{Lexer_g{0}}}\tLexer of current file in group {0}')                                         , gr+1) for gr in range(6)]
              )
-    prms_l +=['{OS:'+env_k+'}\t'+env_v 
+    prms_l +=['{OS:'+env_k+'}\t'+env_v
                 for env_k, env_v in os.environ.items()]
-                        
+
     prm_i   = app.dlg_menu(app.DMENU_LIST_ALT, '\n'.join(prms_l), caption=_('Variables'))
     if prm_i is not None:
         tostr  = (tostr + (' '+prms_l[prm_i].split('\t')[0])).lstrip()
@@ -2191,7 +2191,7 @@ def get_keys_desc(mdl_mth, id, keys=None):
 def _file_open(op_file):
     if not app.file_open(op_file):
         return None
-    for h in app.ed_handles(): 
+    for h in app.ed_handles():
         op_ed   = app.Editor(h)
         if os.path.samefile(op_file, op_ed.get_filename()):
             return op_ed
@@ -2209,12 +2209,12 @@ def log_status(msg):
     print(msg)
     app.msg_status(msg)
    #def log_status
-    
+
 #if __name__ == '__main__' :     # Tests
 def _testing():
     Command()._dlg_pattern('', '', 'ext')
 #_testing()
-        
+
 '''
 ToDo
 [-][kv-kv][09dec15] Run test cmd
