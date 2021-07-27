@@ -1,9 +1,10 @@
 ''' Plugin for CudaText editor
 Authors:
-    Andrey Kvichansky    (kvichans on github.com)
+    Andrey Kvichansky (kvichans on github.com)
     Alexey Torgashin (CudaText)
+    halfbrained (halfbrained on github.com )
 Version:
-    '1.2.40 2021-07-18'
+    '1.3.01 2021-07-27'
 ToDo: (see end of file)
 '''
 
@@ -312,10 +313,10 @@ class Command:
         self.url4id     = {str(url['id']):url for url in self.urls}
         self.last_url_id= 0
         self.ext4id     = {str(ext['id']):ext for ext in self.exts}
-        self.last_run_info   = None # info about last tool run
+        self.last_run_info   = None # info about last tool run      ##!! halfbrained
         self.last_ext_id= 0
         self.last_op_ind= -1
-        self.line_hash_tools = {} # line hash -> tool info
+        self.line_hash_tools = {} # line hash -> tool info          ##!! halfbrained
 
         # Adjust
         for ext in self.exts:
