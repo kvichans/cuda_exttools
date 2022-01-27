@@ -2,9 +2,9 @@
 Authors:
     Andrey Kvichansky (kvichans on github.com)
     Alexey Torgashin (CudaText)
-    halfbrained (halfbrained on github.com )
+    halfbrained (halfbrained on github.com)
 Version:
-    '1.3.01 2021-07-27'
+    '1.3.02 2022-01-27'
 ToDo: (see end of file)
 '''
 
@@ -102,6 +102,16 @@ SAVS_A          = 'A'
 
 #def F(s, *args, **kwargs):return s.format(*args, **kwargs)
 #GAP     = 5
+
+def extract_file_macro(param):
+    # allow {FileDir} even for untitled tabs
+    s = param.replace('{FileDir}', '')
+    n = s.find('{File')
+    if n<0: return ''
+    n2 = s.find('}', n)
+    if n2<0: return ''
+    return s[n:n2+1]
+
 
 def dlg_help_vars():
     EXT_HELP_BODY   = \
@@ -517,10 +527,13 @@ class Command:
 
         # Preparing
         file_nm = ed.get_filename()
-        if  not file_nm and (
-            '{File' in cmnd
-        or  '{File' in prms_s
-        or  '{File' in ddir ):  return log_status(_('Cannot run tool "{}" for untitled tab').format(nm))
+        
+        macro_found = extract_file_macro(cmnd) \
+                    or extract_file_macro(prms_s) \
+                    or extract_file_macro(ddir)
+        if not file_nm and macro_found:
+            return log_status(_('Cannot run "{}" for untitled tab, because of macro "{}"').format(nm, macro_found))
+
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
