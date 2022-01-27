@@ -485,6 +485,13 @@ class Command:
     def run(self, info=None):
         ''' Main (and single) way to run any exttool
         '''
+        # support string parameter in quotes: Macros plugin gives it
+        if type(info) is str:
+            info = info.strip('"')
+        try:
+            info = int(info)
+        except:
+            pass
         ext_id  = info                  # For call as "module=cuda_exttools;cmd=run;info=id"
         self.last_is_ext    = True
         self.last_ext_id    = ext_id
