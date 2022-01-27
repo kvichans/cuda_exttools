@@ -465,8 +465,9 @@ class Command:
 
         # Preparing
         file_nm = ed.get_filename()
-        if  not file_nm and '{File' in ref:
-            return log_status(f(_('Cannot open URL "{}" for untitled tab'), url['nm']))
+        macro_found = extract_file_macro(ref)
+        if not file_nm and macro_found:
+            return log_status(f(_('Cannot open URL "{}" for untitled tab, because of macro "{}"'), url['nm'], macro_found))
         (cCrt, rCrt
         ,cEnd, rEnd)    = ed.get_carets()[0]
         umc_vals= self._calc_umc_vals()
