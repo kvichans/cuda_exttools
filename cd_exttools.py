@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.02 2022-01-27'
+    '1.3.03 2022-01-27'
 ToDo: (see end of file)
 '''
 
@@ -485,6 +485,9 @@ class Command:
     def run(self, info=None):
         ''' Main (and single) way to run any exttool
         '''
+        # support string parameter in quotes: Macros plugin gives it
+        if type(info) is str:
+            info = info.strip('"')
         ext_id  = info                  # For call as "module=cuda_exttools;cmd=run;info=id"
         self.last_is_ext    = True
         self.last_ext_id    = ext_id
