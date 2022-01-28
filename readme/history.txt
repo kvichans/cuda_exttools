@@ -1,4 +1,4 @@
-1.3.02 (2022-01.27): patch by Alexey T.
+1.3.03 (2022-01-27): patch by Alexey T.
 added: macro {FileDir} is now allowed to use even for untitled tabs - this macro means empty-str here
 added: show more detailed statusbar error when {File..} macro is found for untitled tab
 
