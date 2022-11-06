@@ -477,7 +477,7 @@ class Command:
         app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
 #       webbrowser.open_new_tab(ref)
         pass;                  #LOG and log('quote(ref)={}',(urllib.parse.quote(ref, safe='/:')))
-        webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:#?='))
+        safe_open_url(urllib.parse.quote(ref, safe='/:#?='))
         return True
        #def browse
 
@@ -2234,6 +2234,17 @@ def log_status(msg):
 def _testing():
     Command()._dlg_pattern('', '', 'ext')
 #_testing()
+
+def safe_open_url(url):
+    '''
+    On Windows 10, app crashes when webbrowser.open* is called with running LSP server.
+    '''
+    if os.name=='nt':
+        import subprocess
+        subprocess.Popen(['start', url], shell=True)
+    else:
+        import webbrowser
+        webbrowser.open_new_tab(url)
 
 '''
 ToDo
