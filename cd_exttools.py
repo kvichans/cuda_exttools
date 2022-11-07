@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.04 2022-11-06'
+    '1.3.05 2022-11-07'
 ToDo: (see end of file)
 '''
 
@@ -481,7 +481,7 @@ class Command:
         url = urllib.parse.quote(ref, safe='/:#?=')
         if os.name=='nt':
             # On Windows 10, app crashes when webbrowser.open* is called with running LSP server.
-            subprocess.Popen(['start', url], shell=True)
+            subprocess.Popen(['start', '', url], shell=True)
         else:
             webbrowser.open_new_tab(url)
 
