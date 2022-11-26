@@ -646,10 +646,11 @@ class Command:
                 app.app_proc(app.PROC_SET_GROUPING, app.GROUPS_3VERT)
             app.file_open('', group=2)
 
+        # 'encd' can be empty string, fixed here
+        enc = ext.get('encd') or sys.getdefaultencoding()
+
         while True:
-            # 'encd' can be empty string, fixed here
-#           out_ln = pipe.stdout.readline().decode(ext.get('encd') or 'utf_8')
-            out_ln = pipe.stdout.readline().decode(ext.get('encd') or sys.getdefaultencoding(), errors='replace') # github.com/Alexey-T/CudaText/issues/3559
+            out_ln = pipe.stdout.readline().decode(enc, errors='replace') # github.com/Alexey-T/CudaText/issues/3559
 
             if 0==len(out_ln): break
             out_ln = out_ln.strip('\r\n')
