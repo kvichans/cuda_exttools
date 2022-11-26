@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.05 2022-11-07'
+    '1.3.06 2022-11-26'
 ToDo: (see end of file)
 '''
 
@@ -111,6 +111,16 @@ def extract_file_macro(param):
     n2 = s.find('}', n)
     if n2<0: return ''
     return s[n:n2+1]
+
+
+def output_scroll_to_end():
+    dlg_h = app.app_proc(app.PROC_GET_OUTPUT_FORM, '')
+    ed_h = app.dlg_proc(dlg_h, app.DLG_CTL_HANDLE, index=0) # memo index in Output is 0
+    ed_ = app.Editor(ed_h)
+    cnt = ed_.get_line_count()
+    if cnt==0: return
+    ed_.set_caret(0, cnt-1)
+    ed_.set_prop(app.PROP_LINE_TOP, cnt-1)
 
 
 def dlg_help_vars():
@@ -648,6 +658,7 @@ class Command:
             elif rslt in (RSLT_OP, RSLT_OPA):
                 self.line_hash_tools[hash(out_ln)] = self.last_run_info
                 app.app_log(app.LOG_ADD, out_ln, panel=app.LOG_PANEL_OUTPUT)
+                output_scroll_to_end()
             elif rslt == RSLT_CON:
                 print(out_ln)
             elif rslt in (RSLT_ND, RSLT_ND1, RSLT_ND2, RSLT_ND3):
