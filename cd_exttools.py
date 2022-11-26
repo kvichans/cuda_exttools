@@ -113,14 +113,18 @@ def extract_file_macro(param):
     return s[n:n2+1]
 
 
+output_h = app.dlg_proc(
+    app.app_proc(app.PROC_GET_OUTPUT_FORM, ''),
+    app.DLG_CTL_HANDLE,
+    index=0 # memo index in Output is 0
+    )
+ed_output = app.Editor(output_h)
+
 def output_scroll_to_end():
-    dlg_h = app.app_proc(app.PROC_GET_OUTPUT_FORM, '')
-    ed_h = app.dlg_proc(dlg_h, app.DLG_CTL_HANDLE, index=0) # memo index in Output is 0
-    ed_ = app.Editor(ed_h)
-    cnt = ed_.get_line_count()
+    cnt = ed_output.get_line_count()
     if cnt==0: return
-    ed_.set_caret(0, cnt-1)
-    ed_.set_prop(app.PROP_LINE_TOP, cnt-1)
+    ed_output.set_caret(0, cnt-1)
+    ed_output.set_prop(app.PROP_LINE_TOP, cnt-1)
 
 
 def dlg_help_vars():
