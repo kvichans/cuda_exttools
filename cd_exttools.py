@@ -713,7 +713,7 @@ class Command:
         or  'line0' in grp_dic):            app.msg_status(_('Tool "{}" could not find a line-number into output line').format(ext['nm']));return # '
         nav_file=     grp_dic.get('file' , run_inf['pth']  )
         nav_line= int(grp_dic.get('line' , 1+int(grp_dic.get('line0', 0))))-1
-        nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0))))-1
+        nav_col = int(grp_dic.get('col'  , 1+int(grp_dic.get('col0' , 0) or '0')) or '0')-1
         pass;                  #LOG and log('nav_file, nav_line, nav_col={}',(nav_file, nav_line, nav_col))
         bs_dir  = ext['ddir']
         bs_dir  = bs_dir if bs_dir else '{FileDir}'
