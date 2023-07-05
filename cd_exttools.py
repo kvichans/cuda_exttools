@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.07 2022-12-09'
+    '1.3.08 2023-07-05'
 ToDo: (see end of file)
 '''
 
@@ -691,8 +691,9 @@ class Command:
                     stripped= not(cCrt==0                           # Caret at start of line
                               or  cCrt==len(ed.get_text_line(rCrt)) # Caret before EOL/EOF
                                 )
-                ed.insert(cCrt, rCrt
+                pos_after = ed.insert(cCrt, rCrt
                          ,rslt_txt.strip('\n') if stripped else rslt_txt)
+                ed.set_caret(*pos_after)
         elif rslt in (RSLT_OP, RSLT_OPA):
             ed.focus()
 
