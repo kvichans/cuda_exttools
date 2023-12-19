@@ -18,6 +18,7 @@ import  cudax_lib           as apx
 from    cudax_lib       import log
 from    .encodings      import *
 from    .cd_plug_lib    import *
+from datetime import datetime
 
 pass;                           # Logging
 pass;                           from pprint import pformat
@@ -552,7 +553,7 @@ class Command:
 
         # Preparing
         file_nm = ed.get_filename()
-        
+
         macro_found = extract_file_macro(cmnd) \
                     or extract_file_macro(prms_s) \
                     or extract_file_macro(ddir)
@@ -662,7 +663,8 @@ class Command:
             if False:pass
             elif rslt in (RSLT_OP, RSLT_OPA):
                 self.line_hash_tools[hash(out_ln)] = self.last_run_info
-                app.app_log(app.LOG_ADD, out_ln, panel=app.LOG_PANEL_OUTPUT)
+                out_time = '['+datetime.now().strftime('%H:%M:%S')+'] '
+                app.app_log(app.LOG_ADD, out_time+out_ln, panel=app.LOG_PANEL_OUTPUT)
                 output_scroll_to_end()
             elif rslt == RSLT_CON:
                 print(out_ln)
