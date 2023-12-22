@@ -1,3 +1,6 @@
+1.3.09 (2023-12-22)
+fixed: adapt for changed menu_proc API
+
 1.3.08 (2023-07-05)
 changed: on action "Replace selection", put caret to the end of selection (by Alexey T.)
 
