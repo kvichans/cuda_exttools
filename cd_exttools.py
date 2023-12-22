@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.08 2023-07-05'
+    '1.3.09 2023-12-22'
 ToDo: (see end of file)
 '''
 
@@ -377,10 +377,10 @@ class Command:
         else:
             top_its = app.menu_proc(    'top', app.MENU_ENUM)
             pass;              #LOG and log('top_its={}',top_its)
-            if PLUG_AUTAG in [it['tag'] for it in top_its]:
+            if PLUG_AUTAG in [it.get('tag', '') for it in top_its]:
                 # Reuse id from 'top'
                 pass;           LOG and log('Reuse by tag',)
-                id_menu = [it['id'] for it in top_its if it['tag']==PLUG_AUTAG][0]
+                id_menu = [it['id'] for it in top_its if it.get('tag', '')==PLUG_AUTAG][0]
                 app.menu_proc(          id_menu, app.MENU_CLEAR)
                 pass;          #LOG and log('CLEAR id_menu={}',id_menu)
             else:
