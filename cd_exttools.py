@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.09 2023-12-22'
+    '1.3.10 2024-01-09'
 ToDo: (see end of file)
 '''
 
@@ -380,13 +380,17 @@ class Command:
             if PLUG_AUTAG in [it.get('tag', '') for it in top_its]:
                 # Reuse id from 'top'
                 pass;           LOG and log('Reuse by tag',)
-                id_menu = [it['id'] for it in top_its if it.get('tag', '')==PLUG_AUTAG][0]
+                items = [it['id'] for it in top_its if it.get('tag', '')==PLUG_AUTAG]
+                if not items: return
+                id_menu = items[0]
                 app.menu_proc(          id_menu, app.MENU_CLEAR)
                 pass;          #LOG and log('CLEAR id_menu={}',id_menu)
             else:
                 # Create AFTER Plugins
                 pass;           LOG and log('Create AFTER Plugin',)
-                plg_ind = [ind for ind,it in enumerate(top_its) if 'plugins' in it['hint']][0]
+                items = [ind for ind,it in enumerate(top_its) if 'plugins' in it.get('hint', '')]
+                if not items: return
+                plg_ind = items[0]
                 pass;          #LOG and log('plg_ind={}',plg_ind)
                 id_menu = app.menu_proc('top', app.MENU_ADD, tag=PLUG_AUTAG, index=1+plg_ind,       caption=_('&Tools'))
                 pass;          #LOG and log('ADD id_menu,plg_ind={}',id_menu,plg_ind)
