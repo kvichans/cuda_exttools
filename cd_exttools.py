@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.10 2024-01-09'
+    '1.3.11 2024-01-12'
 ToDo: (see end of file)
 '''
 
@@ -304,7 +304,7 @@ class Command:
                           ,RSLT_SEL:RSLT_REPL_SEL}
 
         # Saving data
-        self.saving     = apx._json_loads(open(EXTS_JSON).read()) if os.path.exists(EXTS_JSON) else {
+        self.saving     = apx._json_loads(open(EXTS_JSON, encoding='utf8').read()) if os.path.exists(EXTS_JSON) else {
                              'ver':JSON_FORMAT_VER
                             ,'list':[]
                             ,'urls':[]
@@ -424,7 +424,7 @@ class Command:
         pass;                  #LOG and log('what, acts={}',(what, acts))
         # Save
         if '|save|' in acts:
-            open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+            open(EXTS_JSON, 'w', encoding='utf8').write(json.dumps(self.saving, indent=4))
 
         # Secondary data
         if '|second|' in acts:
@@ -451,11 +451,11 @@ class Command:
                           ''
             keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
             if not os.path.exists(keys_json): return
-            keys        = apx._json_loads(open(keys_json).read())
+            keys        = apx._json_loads(open(keys_json, encoding='utf8').read())
             pass;              #LOG and log('??? key={}',itm_key)
             if keys.pop(itm_key, None) is not None:
                 pass;           LOG and log('UPD keys.json, deleted key={}',itm_key)
-                open(keys_json, 'w').write(json.dumps(keys, indent=2))
+                open(keys_json, 'w', encoding='utf8').write(json.dumps(keys, indent=2))
 
         # [Re]Build menu
         if '|menu|' in acts:
@@ -837,7 +837,7 @@ class Command:
                       ,urs=       not self.last_is_ext
                       ,evl=False)
         while True:
-            keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+            keys        = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
             ext_nz_d    = OrdDict([
                            (_('Name')           ,prs.get('nm'  , '150'))
                           ,(_('Hotkey')         ,prs.get('keys', '100'))
@@ -995,7 +995,7 @@ class Command:
 #           if btn_m=='c/adj':              # [Ctrl+]Adjust  = restore defs
 #               if app.ID_OK == app.msg_box(_('Restore default layout?'), app.MB_OKCANCEL):
 #                   self.dlg_prs.clear()
-#                   open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+#                   open(EXTS_JSON, 'w', encoding='utf8').write(json.dumps(self.saving, indent=4))
 #               continue#while
             if btn=='adj':                  #Custom dlg controls
                 self._dlg_adj_list()
@@ -1015,7 +1015,7 @@ class Command:
                 app.dlg_hotkeys(f('cuda_exttools,{},{}'
                                 ,'run' if vals['tls'] else 'browse'
                                 ,self_cllc[lst_ind]['id']))
-                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+                keys    = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
                 continue
 
             elif btn=='cll':                # Call URL
@@ -1197,7 +1197,7 @@ class Command:
             self.dlg_prs['h_list']  =       max(200, int(custs[8]))
             self.dlg_prs['url']     = adapt2min(250,     custs[9], True)
     #       self.dlg_prs['w_btn']   =       max( 70, int(custs[9]))
-            open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+            open(EXTS_JSON, 'w', encoding='utf8').write(json.dumps(self.saving, indent=4))
        #def _dlg_adj_list
 
     def _dlg_main_tool(self, ext_id=0):
@@ -1246,7 +1246,7 @@ class Command:
                 changed = True
 
             if changed:
-                open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+                open(EXTS_JSON, 'w', encoding='utf8').write(json.dumps(self.saving, indent=4))
            #while True
        #def _dlg_main_tool
 
@@ -1385,7 +1385,7 @@ class Command:
                 vals['lst'] = um_ind
 
             # Save changes
-            open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+            open(EXTS_JSON, 'w', encoding='utf8').write(json.dumps(self.saving, indent=4))
            #while True
        #def _dlg_usr_mcrs
 
@@ -1413,7 +1413,7 @@ class Command:
     def _dlg_url_prop(self, src_url, keys=None, for_ed='1'):
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
-            keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+            keys    = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
         src_kys     = get_keys_desc('cuda_exttools,browse', src_url['id'], keys)
 
         ed_url      = copy.deepcopy(src_url)
@@ -1487,7 +1487,7 @@ class Command:
 
             elif btn=='?key':
                 app.dlg_hotkeys('cuda_exttools,browse,'+str(ed_url['id']))
-                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+                keys    = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
            #while True:
        #def _dlg_url_prop
 
@@ -1495,7 +1495,7 @@ class Command:
         if app.app_api_version()<FROM_API_VERSION:  return log_status(_('Need update CudaText'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         if keys is None:
-            keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+            keys    = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
         src_kys     = get_keys_desc('cuda_exttools,run', src_ext['id'], keys)
 
         ed_ext      = copy.deepcopy(src_ext)
@@ -1710,7 +1710,7 @@ class Command:
 
             elif btn=='?key':
                 app.dlg_hotkeys('cuda_exttools,run,'+str(ed_ext['id']))
-                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+                keys    = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
 
             elif btn=='?lxr':   #Lexers only
                 lxrs    = ','+ed_ext['lxrs']+','
@@ -1883,7 +1883,7 @@ class Command:
                                   ,'re':pttn_re
                                   ,'test':pttn_test
                                   }]
-                open(EXTS_JSON, 'w').write(json.dumps(self.saving, indent=4))
+                open(EXTS_JSON, 'w', encoding='utf8').write(json.dumps(self.saving, indent=4))
            #while True
         pass
        #def _dlg_pattern
@@ -2025,7 +2025,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
             uni_nm += 1
             trg_fn  = trg_dir + os.sep + src_stem + f('.text{}.', uni_nm) + src_ext
 
-        open(trg_fn, 'w').write(ed_.get_text_all())
+        open(trg_fn, 'w', encoding='utf8').write(ed_.get_text_all())
         return trg_fn
        #def text2temp
 
@@ -2225,7 +2225,7 @@ def get_usage_names():
 def get_keys_desc(mdl_mth, id, keys=None):
     if keys is None:
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
-        keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+        keys        = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
 
     cmd_id  = '{},{}'.format(mdl_mth, id)
     cmd_keys= keys.get(cmd_id, {})
