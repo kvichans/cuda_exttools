@@ -2021,7 +2021,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
         trg_dir = tempfile.gettempdir() + os.sep + 'cudatext'
         if not os.path.isdir(trg_dir):
             os.mkdir(trg_dir)
-        trg_fn      = trg_dir + os.sep + src_stem + '_'+ mark +'.'              + src_ext
+        trg_fn      = trg_dir + os.sep + src_stem + '_' + mark + '.'              + src_ext
         uni_nm      = 0
         while os.path.isfile(trg_fn):
             uni_nm += 1
