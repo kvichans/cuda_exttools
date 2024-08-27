@@ -1,3 +1,6 @@
+1.3.12 (2024-08-27)
+added: macro {SelectionAsTemp}
+
 1.3.11 (2024-01-12)
 fixed: possible crash on CJK locale
 

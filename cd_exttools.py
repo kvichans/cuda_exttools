@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.11 2024-01-12'
+    '1.3.12 2024-08-27'
 ToDo: (see end of file)
 '''
 
@@ -141,6 +141,7 @@ _('''In tool properties "File name", "Parameters", "Initial folder"
    {FileNameNoExt}    - Name without extension and path
    {FileExt}          - Extension
    {ContentAsTemp}    - Name of [temporary] file with current text
+   {SelectionAsTemp}  - Name of [temporary] file with selected text
    {Lexer}            - Name of global lexer
 • Current file in group N (N is 1...6):
    {FileName_gN}      - Full path
@@ -2029,6 +2030,24 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
         return trg_fn
        #def text2temp
 
+    def sel2temp(ed_):
+        src_fn  = ed_.get_filename()
+
+        src_stem= '.'.join(os.path.basename(src_fn).split('.')[0:-1])
+        src_ext =          os.path.basename(src_fn).split('.')[-1]
+        trg_dir = tempfile.gettempdir() + os.sep + 'cudatext'
+        if not os.path.isdir(trg_dir):
+            os.mkdir(trg_dir)
+        trg_fn      = trg_dir + os.sep + src_stem + '.sel.'              + src_ext
+        uni_nm      = 0
+        while os.path.isfile(trg_fn):
+            uni_nm += 1
+            trg_fn  = trg_dir + os.sep + src_stem + f('.sel{}.', uni_nm) + src_ext
+
+        open(trg_fn, 'w', encoding='utf8').write(ed_.get_text_sel())
+        return trg_fn
+       #def sel2temp
+
     for gr in range(apx.get_groups_count()):
         sGN         = 'g'+str(gr+1)
         pass;                  #log('sGN,prm,_+sGN+}} in prm={}',(sGN,prm,'_'+sGN+'}' in prm))
@@ -2054,6 +2073,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{FileNameNoExt'      in prm: prm = _replace_mcr(prm, '{FileNameNoExt}' ,'.'.join(os.path.basename(file_nm).split('.')[0:-1]))
     if      '{FileExt'            in prm: prm = _replace_mcr(prm, '{FileExt}'       ,         os.path.basename(file_nm).split('.')[-1])
     if      '{ContentAsTemp'      in prm: prm = _replace_mcr(prm, '{ContentAsTemp}'         ,    text2temp(ed))
+    if      '{SelectionAsTemp'    in prm: prm = _replace_mcr(prm, '{SelectionAsTemp}'       ,    sel2temp(ed))
     if      '{Lexer}'             in prm \
     or      '{Lexer|'             in prm: prm = _replace_mcr(prm, '{Lexer}'         ,    ed.get_prop(app.PROP_LEXER_FILE))
     if      '{LexerAtCaret'       in prm: prm = _replace_mcr(prm, '{LexerAtCaret}'  ,    ed.get_prop(app.PROP_LEXER_CARET))
@@ -2177,6 +2197,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
             +[_('{FileNameNoExt}\tFile name without extension and path')]
             +[_('{FileExt}\tExtension')]
             +[_('{ContentAsTemp}\tName of [temporary] file with current text')]
+            +[_('{SelectionAsTemp}\tName of [temporary] file with selected text')]
             +[_('{Lexer}\tFile lexer')]
             +[_('{LexerAtCaret}\tLocal lexer (at 1st caret)')]
             +[_('{CurrentLine}\tText of current line')]
