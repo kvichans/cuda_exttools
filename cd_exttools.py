@@ -2010,43 +2010,27 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{AppDir'             in prm: prm = _replace_mcr(prm, '{AppDir}'        ,   app_dir)
     if      '{AppDrive'           in prm: prm = _replace_mcr(prm, '{AppDrive}'      ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
 
-    def text2temp(ed_):
+    def text2temp(ed_, all_text):
         src_fn  = ed_.get_filename()
-        if src_fn and not ed_.get_prop(app.PROP_MODIFIED):
+        if all_text and src_fn and not ed_.get_prop(app.PROP_MODIFIED):
             return src_fn
 
+        mark = 'text' if all_text else 'sel'
         src_stem= '.'.join(os.path.basename(src_fn).split('.')[0:-1])
         src_ext =          os.path.basename(src_fn).split('.')[-1]
         trg_dir = tempfile.gettempdir() + os.sep + 'cudatext'
         if not os.path.isdir(trg_dir):
             os.mkdir(trg_dir)
-        trg_fn      = trg_dir + os.sep + src_stem + '.text.'              + src_ext
+        trg_fn      = trg_dir + os.sep + src_stem + '_'+ mark +'.'              + src_ext
         uni_nm      = 0
         while os.path.isfile(trg_fn):
             uni_nm += 1
-            trg_fn  = trg_dir + os.sep + src_stem + f('.text{}.', uni_nm) + src_ext
+            trg_fn  = trg_dir + os.sep + src_stem + '_' + mark + f('{}.', uni_nm) + src_ext
 
-        open(trg_fn, 'w', encoding='utf8').write(ed_.get_text_all())
+        content = ed_.get_text_all() if all_text else ed_.get_text_sel()
+        open(trg_fn, 'w', encoding='utf8').write(content)
         return trg_fn
        #def text2temp
-
-    def sel2temp(ed_):
-        src_fn  = ed_.get_filename()
-
-        src_stem= '.'.join(os.path.basename(src_fn).split('.')[0:-1])
-        src_ext =          os.path.basename(src_fn).split('.')[-1]
-        trg_dir = tempfile.gettempdir() + os.sep + 'cudatext'
-        if not os.path.isdir(trg_dir):
-            os.mkdir(trg_dir)
-        trg_fn      = trg_dir + os.sep + src_stem + '.sel.'              + src_ext
-        uni_nm      = 0
-        while os.path.isfile(trg_fn):
-            uni_nm += 1
-            trg_fn  = trg_dir + os.sep + src_stem + f('.sel{}.', uni_nm) + src_ext
-
-        open(trg_fn, 'w', encoding='utf8').write(ed_.get_text_sel())
-        return trg_fn
-       #def sel2temp
 
     for gr in range(apx.get_groups_count()):
         sGN         = 'g'+str(gr+1)
@@ -2063,7 +2047,7 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
         if  '{FileNameOnly_'+sGN  in prm: prm = _replace_mcr(prm, '{FileNameOnly_' +sGN+'}' ,         os.path.basename(f_gN_nm))
         if  '{FileNameNoExt_'+sGN in prm: prm = _replace_mcr(prm, '{FileNameNoExt_'+sGN+'}' ,'.'.join(os.path.basename(f_gN_nm).split('.')[0:-1]))
         if  '{FileExt_'  +sGN     in prm: prm = _replace_mcr(prm, '{FileExt_'      +sGN+'}' ,         os.path.basename(f_gN_nm).split('.')[-1])
-        if  '{ContentAsTemp_'+sGN in prm: prm = _replace_mcr(prm, '{ContentAsTemp_'+sGN+'}' ,    text2temp(gr_ed))
+        if  '{ContentAsTemp_'+sGN in prm: prm = _replace_mcr(prm, '{ContentAsTemp_'+sGN+'}' ,    text2temp(gr_ed, True))
         if  '{Lexer_'    +sGN+'}' in prm \
         or  '{Lexer_'    +sGN+'|' in prm: prm = _replace_mcr(prm, '{Lexer_'        +sGN+'}' , gr_ed.get_prop(app.PROP_LEXER_FILE))
     if      '{FileName}'          in prm \
@@ -2072,8 +2056,8 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
     if      '{FileNameOnly'       in prm: prm = _replace_mcr(prm, '{FileNameOnly}'  ,         os.path.basename(file_nm))
     if      '{FileNameNoExt'      in prm: prm = _replace_mcr(prm, '{FileNameNoExt}' ,'.'.join(os.path.basename(file_nm).split('.')[0:-1]))
     if      '{FileExt'            in prm: prm = _replace_mcr(prm, '{FileExt}'       ,         os.path.basename(file_nm).split('.')[-1])
-    if      '{ContentAsTemp'      in prm: prm = _replace_mcr(prm, '{ContentAsTemp}'         ,    text2temp(ed))
-    if      '{SelectionAsTemp'    in prm: prm = _replace_mcr(prm, '{SelectionAsTemp}'       ,    sel2temp(ed))
+    if      '{ContentAsTemp'      in prm: prm = _replace_mcr(prm, '{ContentAsTemp}'         ,    text2temp(ed, True))
+    if      '{SelectionAsTemp'    in prm: prm = _replace_mcr(prm, '{SelectionAsTemp}'       ,    text2temp(ed, False))
     if      '{Lexer}'             in prm \
     or      '{Lexer|'             in prm: prm = _replace_mcr(prm, '{Lexer}'         ,    ed.get_prop(app.PROP_LEXER_FILE))
     if      '{LexerAtCaret'       in prm: prm = _replace_mcr(prm, '{LexerAtCaret}'  ,    ed.get_prop(app.PROP_LEXER_CARET))
