@@ -494,10 +494,8 @@ class Command:
 #       ref = _subst_props(ref, file_nm, cCrt, rCrt, url['nm'], umcs=umc_vals, prjs=get_proj_vars())
 
         app.msg_status(f(_('Opened "{}": {}'), url['nm'], ref))
-#       webbrowser.open_new_tab(ref)
         pass;                  #LOG and log('quote(ref)={}',(urllib.parse.quote(ref, safe='/:')))
-#       webbrowser.open_new_tab(urllib.parse.quote(ref, safe='/:#?='))
-        url = urllib.parse.quote(ref, safe='/:#?=')
+        url = urllib.parse.quote(ref, safe='/:#?=@')
         if os.name=='nt':
             # On Windows 10, app crashes when webbrowser.open* is called with running LSP server.
             subprocess.Popen(['start', '', url], shell=True)
