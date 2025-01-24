@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.12 2024-08-27'
+    '1.3.13 2025-01-24'
 ToDo: (see end of file)
 '''
 
@@ -208,7 +208,7 @@ DEF_PRESETS = [
             "name": "Delphi"
         },
         {   "run": "gcc*",
-            "re": "(?P<file>[^:]+):(?P<line>\d+):(?P<col>\d+): .+",
+            "re": "(?P<file>[^:]+):(?P<line>\\d+):(?P<col>\\d+): .+",
             "name": "GNU C++"
         },
         {   "run": "iscc.exe",
@@ -277,7 +277,7 @@ DEF_PRESETS = [
             "name": "TypeScript"
         },
         {   "run": "fpc",
-            "re": "^(?P<file>[^\(]+)\((?P<line>\d+),(?P<col>\d+)\) .+",
+            "re": "^(?P<file>[^\\(]+)\\((?P<line>\\d+),(?P<col>\\d+)\\) .+",
             "name": "FreePascal"
         },
         ]
