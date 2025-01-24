@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.13 2025-01-24'
+    '1.3.14 2025-01-24'
 ToDo: (see end of file)
 '''
 
