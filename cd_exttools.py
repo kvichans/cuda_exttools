@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.14 2025-01-24'
+    '1.3.15 2025-01-25'
 ToDo: (see end of file)
 '''
 
@@ -132,8 +132,8 @@ def dlg_help_vars():
 _('''In tool properties "File name", "Parameters", "Initial folder"
     the following macros are processed.
 • Application:
-   {AppDir}           - Directory with app executable
-   {AppDrive}         - (Windows) Disk of app executable, eg "C:"
+   {AppDir}           - Directory of CudaText executable
+   {AppDrive}         - (Windows) Disk of CudaText executable, eg "C:"
 • Currently focused file:
    {FileName}         - Full path
    {FileDir}          - Folder path, without file name
@@ -555,7 +555,7 @@ class Command:
 
         # Preparing
         file_nm = ed.get_filename()
-        
+
         macro_found = extract_file_macro(cmnd) \
                     or extract_file_macro(prms_s) \
                     or extract_file_macro(ddir)
@@ -2171,17 +2171,17 @@ def append_prmt(tostr, umacrs, excl_umc=None):
                 for pj_k, pj_v in get_proj_vars().items()]
     pass;                      #LOG and log('prms_l={}',(prms_l))
     prms_l +=([]
-            +[_('{AppDir}\tDirectory with app executable')]
-            +[_('{AppDrive}\t(Win only) Disk of app executable, eg "C:"')]
-            +[_('{FileName}\tFull path')]
-            +[_('{FileDir}\tFolder path, without file name')]
-            +[_('{FileNameOnly}\tFile name only, without folder path')]
-            +[_('{FileNameNoExt}\tFile name without extension and path')]
-            +[_('{FileExt}\tExtension')]
+            +[_('{AppDir}\tDirectory of CudaText executable')]
+            +[_('{AppDrive}\t(Windows only) Disk of CudaText executable, eg "C:"')]
+            +[_('{FileName}\tFull path of current editor file')]
+            +[_('{FileDir}\tFolder path, without file name, of current editor file')]
+            +[_('{FileNameOnly}\tFile name only, without folder path, of current editor file')]
+            +[_('{FileNameNoExt}\tFile name without extension and path, of current editor file')]
+            +[_('{FileExt}\tExtension of current editor file')]
             +[_('{ContentAsTemp}\tName of [temporary] file with current text')]
             +[_('{SelectionAsTemp}\tName of [temporary] file with selected text')]
             +[_('{Lexer}\tFile lexer')]
-            +[_('{LexerAtCaret}\tLocal lexer (at 1st caret)')]
+            +[_('{LexerAtCaret}\tLocal lexer (at first caret)')]
             +[_('{CurrentLine}\tText of current line')]
             +[_('{CurrentLineNum}\tNumber of current line')]
             +[_('{CurrentLineNum0}\tNumber of current line (0-based)')]
