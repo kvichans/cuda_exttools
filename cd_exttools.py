@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.15 2025-01-25'
+    '1.3.16 2025-01-26'
 ToDo: (see end of file)
 '''
 
@@ -132,7 +132,7 @@ def dlg_help_vars():
 _('''In tool properties "File name", "Parameters", "Initial folder"
     the following macros are processed.
 • Application:
-   {AppDir}           - Directory of CudaText executable
+   {AppDir}           - Up-folder of CudaText "settings" folder
    {AppDrive}         - (Windows) Disk of CudaText executable, eg "C:"
 • Currently focused file:
    {FileName}         - Full path
@@ -2004,7 +2004,9 @@ def _subst_fltd_props(prm, file_nm, cCrt=-1, rCrt=-1, ext_nm='', umcs={}, prjs={
 
     if '{' not in prm:  return prm
     # Substitude std vars
-    app_dir = app.app_path(app.APP_DIR_EXE)
+    #app_dir = app.app_path(app.APP_DIR_EXE)
+    app_dir = os.path.dirname(app.app_path(app.APP_DIR_SETTINGS)) # better than APP_DIR_EXE for non-portable Cud installation (DEB installer or macOS)
+
     if      '{AppDir'             in prm: prm = _replace_mcr(prm, '{AppDir}'        ,   app_dir)
     if      '{AppDrive'           in prm: prm = _replace_mcr(prm, '{AppDrive}'      ,   app_dir[0:2] if os.name=='nt' and app_dir[1]==':' else '')
 
@@ -2171,7 +2173,7 @@ def append_prmt(tostr, umacrs, excl_umc=None):
                 for pj_k, pj_v in get_proj_vars().items()]
     pass;                      #LOG and log('prms_l={}',(prms_l))
     prms_l +=([]
-            +[_('{AppDir}\tDirectory of CudaText executable')]
+            +[_('{AppDir}\tUp-folder of CudaText "settings" folder')]
             +[_('{AppDrive}\t(Windows only) Disk of CudaText executable, eg "C:"')]
             +[_('{FileName}\tFull path of current editor file')]
             +[_('{FileDir}\tFolder path, without file name, of current editor file')]
