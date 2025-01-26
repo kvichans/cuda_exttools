@@ -1,4 +1,5 @@
-1.3.14 (2025-01-24)
+1.3.16 (2025-01-26)
+changed: macro {AppDir} is changed to up-folder of CudaText's "settings" folder (for portable installation it's the same as before)
 fixed: syntax-errors in some Python strings with RegEx'es
 
 1.3.13 (2025-01-02)
@@ -60,7 +61,7 @@ added: tool output can be also "Console"
 added: tool output can be also "Copy to new document, group N", where N is 1...3
 
 1.2.28 (2018-12-20)
-added: macros {ContentAsTemp},{ContentAsTempr_gN} to use modified text of file via temporary file 
+added: macros {ContentAsTemp},{ContentAsTempr_gN} to use modified text of file via temporary file
 
 1.2.27 (2018-12-18)
 added: macros {FileName_gN},{FileDir_gN},... to use current files from groups
