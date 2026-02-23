@@ -1,3 +1,6 @@
+1.3.17 (2026-02-23)
+fixed: avoid deprecated API: ed.lock
+
 1.3.16 (2025-01-26)
 changed: macro {AppDir} is changed to up-folder of CudaText's "settings" folder (for portable installation it's the same as before)
 fixed: syntax-errors in some Python strings with RegEx'es

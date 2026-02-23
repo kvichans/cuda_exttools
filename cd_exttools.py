@@ -4,7 +4,7 @@ Authors:
     Alexey Torgashin (CudaText)
     halfbrained (halfbrained on github.com)
 Version:
-    '1.3.16 2025-01-26'
+    '1.3.17 2026-02-23'
 ToDo: (see end of file)
 '''
 
@@ -740,13 +740,13 @@ class Command:
             ed_tab_sz   = apx.get_opt('tab_size', lev=apx.CONFIG_LEV_FILE)
             pass;              #LOG and log('nav_col, nav_line, tool_tab_sz, ed_tab_sz={}',(nav_col, nav_line, tool_tab_sz, ed_tab_sz))
             if tool_tab_sz != ed_tab_sz:
-                ed.lock()
+                ed.action(app.EDACTION_LOCK)
                 apx.set_opt('tab_size', str(tool_tab_sz), lev=apx.CONFIG_LEV_FILE)
             nav_col = ed.convert(app.CONVERT_COL_TO_CHAR, nav_col, nav_line)[0]
             pass;              #LOG and log('nav_col={}',(nav_col))
             if tool_tab_sz != ed_tab_sz:
                 apx.set_opt('tab_size', str(ed_tab_sz),   lev=apx.CONFIG_LEV_FILE)
-                ed.unlock()
+                ed.action(app.EDACTION_UNLOCK)
         nav_ed.set_caret(nav_col, nav_line)
        #def on_output_nav
 
